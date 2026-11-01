@@ -102,7 +102,7 @@ if [ -z "${DEVELOPMENT_TEAM:-}" ]; then
   else
     [ "$COUNT" = 0 ] && echo "No \"Apple Development\" certificate found. Sign in with your Apple ID in Xcode > Settings > Accounts and create one (free)."
     [ "$COUNT" -gt 1 ] && printf 'Several teams found:\n%s\n' "$TEAMS"
-    read -r -p "Team ID (10 characters): " DEVELOPMENT_TEAM
+    read -r -p "Team ID (10 characters): " DEVELOPMENT_TEAM || die "no team ID given. The collector is installed and running; build the app later with DEVELOPMENT_TEAM=ABCDE12345 ./install.sh"
   fi
 fi
 [[ "$DEVELOPMENT_TEAM" =~ ^[A-Z0-9]{10}$ ]] || die "invalid team ID: $DEVELOPMENT_TEAM"

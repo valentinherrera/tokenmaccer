@@ -24,13 +24,6 @@ struct TickerView: View {
         return up ? Color(red: 0.788, green: 0.204, blue: 0) : Color(red: 0.141, green: 0.541, blue: 0.239)
     }
 
-    /// Baseline of the curve, like the previous close of a stock: average per point in the previous period.
-    private func baseline(_ p: Period) -> Double? {
-        guard let c = change, c > -100 else { return nil }
-        let now = unit == .tokens ? Double(p.input) : p.usd
-        return now / (1 + c / 100) / Double(max(p.series.count, 1))
-    }
-
     private var change: Double? {
         unit == .tokens ? p?.change_input : p?.change_usd
     }
@@ -141,7 +134,7 @@ struct TickerView: View {
     }
 
     private func curve(_ p: Period) -> some View {
-        Curve(series: p.series, unit: unit, color: trendColor, baseline: baseline(p))
+        Curve(series: p.series, previous: p.previous, slots: p.slots, unit: unit, color: trendColor)
             .accessibilityLabel("Trend, \(Format.periodName(period))")
     }
 
@@ -208,40 +201,48 @@ struct TickerView: View {
     }
 }
 
-/// Line with a gradient fill. The dotted rule is the average per point in the previous period
-/// (the basis of the change, like a stock's previous close); without a previous period, the own average.
+/// Stock-chart logic: the line is the running total of the period and ends at the headline;
+/// the dotted line is the running total of the previous period on the same axis. The x axis always
+/// covers the whole period, so the line stops at "now".
 struct Curve: View {
     let series: [Point]
+    let previous: [Point]?
+    let slots: Int
     let unit: Unit
     let color: Color
-    let baseline: Double?
 
     @Environment(\.widgetRenderingMode) private var mode
 
+    private func value(_ p: Point) -> Double { unit == .tokens ? Double(p.input) : p.usd }
+
     var body: some View {
-        let values = series.map { unit == .tokens ? Double($0.input) : $0.usd }
-        let mean = values.isEmpty ? 0 : values.reduce(0, +) / Double(values.count)
+        let current: [(Int, Double)] = series.enumerated().map { ($0.offset, value($0.element)) }
+        let ghost: [(Int, Double)] = (previous ?? []).enumerated().map { ($0.offset, value($0.element)) }
+        let top = max(current.map(\.1).max() ?? 0, ghost.map(\.1).max() ?? 0, 1)
         let opacity: Double = mode == .fullColor ? 0.28 : 0.10
         let gradient = LinearGradient(colors: [color.opacity(opacity), color.opacity(0.0)], startPoint: .top, endPoint: .bottom)
-        let points: [(Int, Double)] = Array(values.enumerated())
         Chart {
-            ForEach(points, id: \.0) { p in
-                AreaMark(x: .value("t", p.0), y: .value("v", p.1))
+            ForEach(ghost, id: \.0) { p in
+                LineMark(x: .value("t", p.0), y: .value("v", p.1), series: .value("s", "previous"))
+                    .foregroundStyle(Color.secondary.opacity(0.6))
+                    .lineStyle(StrokeStyle(lineWidth: 1, lineCap: .round, dash: [2, 3]))
+                    .interpolationMethod(.linear)
+            }
+            ForEach(current, id: \.0) { p in
+                AreaMark(x: .value("t", p.0), y: .value("v", p.1), series: .value("s", "current"))
                     .foregroundStyle(gradient)
                     .interpolationMethod(.linear)
-                LineMark(x: .value("t", p.0), y: .value("v", p.1))
+                LineMark(x: .value("t", p.0), y: .value("v", p.1), series: .value("s", "current"))
                     .foregroundStyle(color)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
                     .interpolationMethod(.linear)
             }
-            RuleMark(y: .value("Baseline", baseline ?? mean))
-                .foregroundStyle(Color.secondary.opacity(0.5))
-                .lineStyle(StrokeStyle(lineWidth: 0.8, dash: [1, 3]))
         }
         .widgetAccentable()
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
-        .chartXScale(domain: 0...max(series.count - 1, 1))
+        .chartXScale(domain: 0...max(slots - 1, 1))
+        .chartYScale(domain: 0...top)
         .chartLegend(.hidden)
     }
 }

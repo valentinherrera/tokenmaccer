@@ -295,7 +295,31 @@ class CollectorTest(unittest.TestCase):
         w = self.widget()['periods']['7D']
         self.assertEqual(w['input'], 400)
         self.assertEqual(w['change_input'], 100.0)
-        self.assertEqual(len(w['series']), 7)
+        self.assertEqual(len(w['series']), 8)
+        self.assertEqual(w['slots'], 8)
+
+    def test_line_ends_at_headline_and_ghost_matches_pill(self) -> None:
+        self.write(
+            'a.jsonl',
+            [
+                turn('p1', ts(8, 12), inp=100, cread=0),
+                turn('p2', ts(400, 12), inp=50, cread=0),
+                turn('c1', ts(2, 12), inp=400, cread=0),
+                turn('c2', ts(0), inp=7, cread=0),
+            ],
+        )
+        self.run_collector()
+        for name, p in self.widget()['periods'].items():
+            self.assertEqual(p['series'][0]['input'], 0, name)
+            self.assertEqual(p['series'][-1]['input'], p['input'], f'{name}: line must end at the headline')
+            self.assertLessEqual(len(p['series']), p['slots'], name)
+            values = [x['input'] for x in p['series']]
+            self.assertEqual(values, sorted(values), f'{name}: running total never falls')
+            if p['change_input'] is not None:
+                at = len(p['series']) - 1
+                base = p['previous'][at]['input']
+                self.assertAlmostEqual(p['input'] / base - 1, p['change_input'] / 100, places=2, msg=name)
+        self.assertEqual(self.widget()['periods']['1D']['slots'], 25)
         self.assertEqual(self.widget()['order'], ['1D', '7D', '30D', 'YTD', '1Y', 'ALL'])
 
     def test_empty_install_produces_valid_widget_json(self) -> None:

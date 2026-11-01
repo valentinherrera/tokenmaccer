@@ -4,8 +4,8 @@ import Foundation
 /// (Info.plist key `TMAppGroup` = `$(DEVELOPMENT_TEAM).tokenmaccer`).
 let appGroup: String? = Bundle.main.object(forInfoDictionaryKey: "TMAppGroup") as? String
 
+/// One point of a running total.
 struct Point: Codable, Hashable {
-    let t: String
     let input: Int
     let usd: Double
 }
@@ -17,7 +17,12 @@ struct Period: Codable {
     let ratio: Int?
     let change_input: Double?
     let change_usd: Double?
+    /// Running total of this period, starting at 0; the last point equals the headline.
     let series: [Point]
+    /// Running total of the previous period on the same axis (the "previous close" line).
+    let previous: [Point]?
+    /// Number of x positions of the whole period (the line stops at "now", like a stock chart during the day).
+    let slots: Int
     let from: String
     let to: String
 }

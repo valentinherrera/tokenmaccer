@@ -266,33 +266,6 @@ def change(now: float, before: float) -> float | None:
     return round((now - before) / before * 100, 1)
 
 
-def metric(s: Sums, previous: Sums | None, series: List[Dict[str, Any]], start: str, end: str) -> Dict[str, Any]:
-    return {
-        'input': round(s['inp']),
-        'output': round(s['out']),
-        'usd': round(s['usd'], 2),
-        'ratio': round(s['inp'] / s['out']) if s['out'] else None,
-        'change_input': change(s['inp'], previous['inp']) if previous else None,
-        'change_usd': change(s['usd'], previous['usd']) if previous else None,
-        'series': series,
-        'from': start,
-        'to': end,
-    }
-
-
-def day_series(totals: Dict[str, Sums], start: dt.date, end: dt.date, step: int = 1) -> List[Dict[str, Any]]:
-    """Points built backwards in steps of `step` days: the last point ends today and is full,
-    only the first one may be partial."""
-    points = []
-    e = end
-    while e >= start:
-        a = max(e - dt.timedelta(days=step - 1), start)
-        s = range_sum(totals, a, e)
-        points.append({'t': a.isoformat(), 'input': round(s['inp']), 'usd': round(s['usd'], 2)})
-        e = a - dt.timedelta(days=1)
-    return points[::-1]
-
-
 def until_now(store: Store, totals: Dict[str, Sums], day: str, now: dt.datetime) -> Sums:
     """Usage of an earlier day from midnight up to the current time of day (current hour pro rata).
     Only if that day has no hourly values at all: the daily total pro rata by elapsed time of day."""
@@ -315,72 +288,164 @@ def add_sums(a: Sums, b: Sums) -> Sums:
     return {k: a[k] + b[k] for k in a}
 
 
-def hourly(store: Store, day: str, now: dt.datetime) -> Tuple[Sums, List[Dict[str, Any]]]:
-    points, s = [], zero()
-    for h in range(24):
-        if day == now.date().isoformat() and h > now.hour:
-            break
-        k = f'{day}T{h:02d}'
-        z = zero()
-        for m, v in store['hours'].get(k, {}).items():
-            z['inp'] += total_input(v)
-            z['out'] += v[1]
-            z['usd'] += usd(m, v)
-        s = add_sums(s, z)
-        points.append({'t': k, 'input': round(z['inp']), 'usd': round(z['usd'], 2)})
-    return s, points
-
-
 def or_none(s: Sums) -> Sums | None:
     return s if s['inp'] else None
 
 
+def cumulative(values: List[Sums]) -> List[Dict[str, Any]]:
+    """Running total, starting with 0 at the beginning of the period (like a price line that starts at the open)."""
+    points: List[Dict[str, Any]] = [{'input': 0, 'usd': 0.0}]
+    run = zero()
+    for v in values:
+        run = add_sums(run, v)
+        points.append({'input': round(run['inp']), 'usd': round(run['usd'], 2)})
+    return points
+
+
+def day_values(totals: Dict[str, Sums], start: dt.date, days: int) -> List[Sums]:
+    return [dict(totals.get((start + dt.timedelta(days=i)).isoformat()) or zero()) for i in range(days)]
+
+
+def hour_values(store: Store, totals: Dict[str, Sums], day: str, hours: int) -> List[Sums]:
+    """Usage per hour of a day; a day without hourly values is spread evenly over 24 hours."""
+    if not any(k.startswith(day + 'T') for k in store['hours']):
+        z = totals.get(day) or zero()
+        return [{k: z[k] / 24 for k in z} for _ in range(hours)]
+    values = []
+    for h in range(hours):
+        z = zero()
+        for m, v in store['hours'].get(f'{day}T{h:02d}', {}).items():
+            z['inp'] += total_input(v)
+            z['out'] += v[1]
+            z['usd'] += usd(m, v)
+        values.append(z)
+    return values
+
+
+def ghost(values: List[Sums], at: int, baseline: Sums | None) -> List[Dict[str, Any]] | None:
+    """Running total of the previous period. At index `at` (now) it carries exactly the value the change
+    is computed against, so line end vs. dotted line at the same x is what the pill says."""
+    if baseline is None:
+        return None
+    points = cumulative(values)
+    points[at] = {'input': round(baseline['inp']), 'usd': round(baseline['usd'], 2)}
+    return points
+
+
+def metric(
+    s: Sums,
+    previous: Sums | None,
+    series: List[Dict[str, Any]],
+    prev_series: List[Dict[str, Any]] | None,
+    slots: int,
+    start: str,
+    end: str,
+) -> Dict[str, Any]:
+    return {
+        'input': round(s['inp']),
+        'output': round(s['out']),
+        'usd': round(s['usd'], 2),
+        'ratio': round(s['inp'] / s['out']) if s['out'] else None,
+        'change_input': change(s['inp'], previous['inp']) if previous else None,
+        'change_usd': change(s['usd'], previous['usd']) if previous else None,
+        'series': series,
+        'previous': prev_series,
+        'slots': slots,
+        'from': start,
+        'to': end,
+    }
+
+
 def widget_data(store: Store, now: dt.datetime | None = None) -> Dict[str, Any]:
+    """Every period is drawn like a stock chart: the line is the running total and ends at the headline,
+    the dotted line is the running total of the previous period, the x axis covers the whole period."""
     now = now or dt.datetime.now()
     today = now.date()
     totals = daily_totals(store)
     days = sorted(totals)
     first = dt.date.fromisoformat(days[0]) if days else today
     r: Dict[str, Any] = {}
-    # 1D: today so far vs. yesterday up to the same time of day
-    s_today, series_today = hourly(store, today.isoformat(), now)
-    prev = until_now(store, totals, (today - dt.timedelta(days=1)).isoformat(), now)
-    r['1D'] = metric(s_today, or_none(prev), series_today, today.isoformat(), today.isoformat())
-    # 7D/30D: n-1 full days plus today so far vs. the same window n days earlier
+
+    # 1D: hours 0-24; today so far vs. yesterday up to the same time of day
+    yesterday = (today - dt.timedelta(days=1)).isoformat()
+    cur = hour_values(store, totals, today.isoformat(), now.hour + 1)
+    s = range_sum(totals, today, today)
+    prev = or_none(until_now(store, totals, yesterday, now))
+    r['1D'] = metric(
+        s,
+        prev,
+        cumulative(cur),
+        ghost(hour_values(store, totals, yesterday, 24), now.hour + 1, prev),
+        25,
+        today.isoformat(),
+        today.isoformat(),
+    )
+
+    # 7D/30D: n days, today so far vs. the same window n days earlier up to the same time of day
     for name, n in (('7D', 7), ('30D', 30)):
         start = today - dt.timedelta(days=n - 1)
         s = range_sum(totals, start, today)
-        prev = add_sums(
-            range_sum(totals, start - dt.timedelta(days=n), today - dt.timedelta(days=n + 1)),
-            until_now(store, totals, (today - dt.timedelta(days=n)).isoformat(), now),
+        prev = or_none(
+            add_sums(
+                range_sum(totals, start - dt.timedelta(days=n), today - dt.timedelta(days=n + 1)),
+                until_now(store, totals, (today - dt.timedelta(days=n)).isoformat(), now),
+            )
         )
-        r[name] = metric(s, or_none(prev), day_series(totals, start, today), start.isoformat(), today.isoformat())
+        r[name] = metric(
+            s,
+            prev,
+            cumulative(day_values(totals, start, n)),
+            ghost(day_values(totals, start - dt.timedelta(days=n), n), n, prev),
+            n + 1,
+            start.isoformat(),
+            today.isoformat(),
+        )
+
+    # YTD: axis Jan 1 - Dec 31, compared with last year up to the same date
     jan1 = dt.date(today.year, 1, 1)
+    year_days = (dt.date(today.year + 1, 1, 1) - jan1).days
+    elapsed = (today - jan1).days + 1
     try:
         ly_end = today.replace(year=today.year - 1)
     except ValueError:  # Feb 29
         ly_end = today.replace(year=today.year - 1, day=28)
-    prev = range_sum(totals, dt.date(today.year - 1, 1, 1), ly_end)
-    start = max(jan1, first)
+    ly_jan1 = dt.date(today.year - 1, 1, 1)
+    prev = or_none(range_sum(totals, ly_jan1, ly_end))
+    ly_days = (jan1 - ly_jan1).days
     r['YTD'] = metric(
         range_sum(totals, jan1, today),
-        or_none(prev),
-        day_series(totals, start, today, 7),
-        start.isoformat(),
+        prev,
+        cumulative(day_values(totals, jan1, elapsed)),
+        ghost(day_values(totals, ly_jan1, ly_days), min(elapsed, ly_days), prev),
+        year_days + 1,
+        jan1.isoformat(),
         today.isoformat(),
     )
+
+    # 1Y: the last 365 days vs. the 365 days before
     y_start = today - dt.timedelta(days=364)
-    prev = range_sum(totals, y_start - dt.timedelta(days=365), y_start - dt.timedelta(days=1))
-    start = max(y_start, first)
+    p_start = y_start - dt.timedelta(days=365)
+    prev = or_none(range_sum(totals, p_start, y_start - dt.timedelta(days=1)))
     r['1Y'] = metric(
         range_sum(totals, y_start, today),
-        or_none(prev),
-        day_series(totals, start, today, 7),
-        start.isoformat(),
+        prev,
+        cumulative(day_values(totals, y_start, 365)),
+        ghost(day_values(totals, p_start, 365), 365, prev),
+        366,
+        y_start.isoformat(),
         today.isoformat(),
     )
+
+    # ALL: since the first recorded day, nothing to compare with
+    n_all = (today - first).days + 1
     r['ALL'] = metric(
-        range_sum(totals, first, today), None, day_series(totals, first, today, 7), first.isoformat(), today.isoformat()
+        range_sum(totals, first, today),
+        None,
+        cumulative(day_values(totals, first, n_all)),
+        None,
+        n_all + 1,
+        first.isoformat(),
+        today.isoformat(),
     )
     return {'updated': now.astimezone().isoformat(timespec='seconds'), 'periods': r, 'order': PERIODS}
 

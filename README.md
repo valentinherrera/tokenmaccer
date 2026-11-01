@@ -14,6 +14,7 @@ A macOS desktop widget that shows your **Claude Code** token usage like a stock 
 ## What it shows
 
 - **Input tokens** as the headline (uncached input + cache reads + cache writes), tap to switch to **USD**.
+- Stock-chart logic: the line is the running total of the period and ends at the headline number; the dotted line is the previous period on the same axis. The axis always covers the whole period (1D: midnight to midnight), so the line stops at "now".
 - Change against the previous period: orange when usage rises, green when it falls. 1D, 7D and 30D compare up to the same time of day, so a half-finished day is not compared with a full one.
 - Output tokens, input per output token, and the estimated cost at API list prices.
 - Period chips (1D · 7D · 30D · YTD · 1Y · ALL) right in the widget; in the small widget, tap the period name.

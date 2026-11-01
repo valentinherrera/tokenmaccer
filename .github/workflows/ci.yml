@@ -1,0 +1,51 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  collector:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint and type-check
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet ruff==0.17.0 mypy==1.19.1
+          "$RUNNER_TEMP/venv/bin/ruff" check .
+          "$RUNNER_TEMP/venv/bin/ruff" format --check .
+          "$RUNNER_TEMP/venv/bin/mypy" collector tests
+      - name: Tests on the macOS system Python
+        run: /usr/bin/python3 -m unittest discover -s tests -v
+      - name: Shell scripts
+        run: |
+          bash -n install.sh && bash -n uninstall.sh
+          brew install --quiet shellcheck
+          shellcheck install.sh uninstall.sh
+
+  app:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install --quiet xcodegen
+      - name: Build (unsigned, warnings as errors)
+        working-directory: app
+        run: |
+          xcodegen generate
+          xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM=CI00000000 build
+      - name: Render preview with demo data
+        run: |
+          python3 scripts/make_demo.py "$RUNNER_TEMP/claude"
+          TOKENMACCER_CLAUDE_DIR="$RUNNER_TEMP/claude" TOKENMACCER_DATA_DIR="$RUNNER_TEMP/data" \
+            /usr/bin/python3 -I collector/collector.py
+          xcrun swiftc app/Shared/*.swift app/Preview/main.swift -o "$RUNNER_TEMP/render"
+          mkdir -p "$RUNNER_TEMP/png"
+          "$RUNNER_TEMP/render" "$RUNNER_TEMP/data/widget.json" "$RUNNER_TEMP/png" 7D 30D -AppleLocale en_US
+          test "$(ls "$RUNNER_TEMP/png" | wc -l)" -eq 12

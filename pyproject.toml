@@ -1,0 +1,14 @@
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "PLW"]
+ignore = ["UP006", "UP035"]  # keep typing.Dict/List for Python 3.9 (macOS system python)
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.mypy]
+python_version = "3.9"
+strict = true

@@ -6,8 +6,14 @@ import Foundation
 public struct AppSettings: Equatable, Sendable {
     /// Claude Code config folder whose `projects/` holds the transcripts (nil = ~/.claude).
     public var claudeDir: String?
+    /// Further transcript folders read in addition to `projects/`, e.g. an archive the user moves sessions
+    /// into (key "extraSources"; the same idea as TOKENMACCER_EXTRA_SOURCES for the source edition).
+    public var extraSources: [String]
 
-    public init(claudeDir: String? = nil) { self.claudeDir = claudeDir }
+    public init(claudeDir: String? = nil, extraSources: [String] = []) {
+        self.claudeDir = claudeDir
+        self.extraSources = extraSources
+    }
 
     public static func path(dataDir: String) -> String { joinPath(dataDir, "settings.json") }
 
@@ -17,13 +23,15 @@ public struct AppSettings: Equatable, Sendable {
             let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else { return AppSettings() }
         let dir = (obj["claudeDir"] as? String).flatMap { $0.isEmpty ? nil : $0 }
-        return AppSettings(claudeDir: dir)
+        let extra = (obj["extraSources"] as? [Any] ?? []).compactMap { $0 as? String }.filter { !$0.isEmpty }
+        return AppSettings(claudeDir: dir, extraSources: extra)
     }
 
     public func save(dataDir: String) throws {
         try FileManager.default.createDirectory(atPath: dataDir, withIntermediateDirectories: true)
         var obj: [String: Any] = [:]
         if let claudeDir { obj["claudeDir"] = claudeDir }
+        if !extraSources.isEmpty { obj["extraSources"] = extraSources }
         let data = try JSONSerialization.data(withJSONObject: obj, options: [.prettyPrinted, .sortedKeys])
         try saveAtomic(Self.path(dataDir: dataDir), data)
     }

@@ -58,7 +58,7 @@ No Xcode, no Terminal, no Python: the app brings its own collector.
 
 1. Download `TokenMaccer-1.0.0.dmg` from the [latest release](https://github.com/valentinherrera/tokenmaccer/releases/latest) and open it.
 2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple. macOS asks once to confirm opening an app downloaded from the internet; click **Open**. No security warning appears.
-3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**.
+3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
 4. Right-click the desktop › **Edit Widgets…** › search for **TokenMaccer** and add it. Your numbers appear within a few minutes.
 
 Already using the `install.sh` setup? The app takes over your history from `~/.claude/tools/tokenmaccer/` on its first run (it only copies, the old folder stays). Use one of the two, not both: run `./uninstall.sh` once the app shows your numbers.

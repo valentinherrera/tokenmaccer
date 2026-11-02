@@ -103,11 +103,12 @@ public enum Collector {
         }
         let x = { (p: String) in expandUser(p, environment: env) }
         let dataDir = x(value("--data-dir", "TOKENMACCER_DATA_DIR") ?? "~/Library/Application Support/TokenMaccer")
+        let settings = AppSettings.load(dataDir: dataDir)
         let claudeDir = x(
-            value("--claude-dir", "TOKENMACCER_CLAUDE_DIR", "CLAUDE_CONFIG_DIR")
-                ?? AppSettings.load(dataDir: dataDir).claudeDir ?? "~/.claude")
+            value("--claude-dir", "TOKENMACCER_CLAUDE_DIR", "CLAUDE_CONFIG_DIR") ?? settings.claudeDir ?? "~/.claude")
         let envExtra = (env["TOKENMACCER_EXTRA_SOURCES"] ?? "").split(separator: ":").map(String.init)
-        let sources = [joinPath(claudeDir, "projects")] + (envExtra + extra).filter { !$0.isEmpty }.map(x)
+        let sources = [joinPath(claudeDir, "projects")]
+            + (envExtra + extra + settings.extraSources).filter { !$0.isEmpty }.map(x)
         let prices: Prices
         if let p = value("--prices", "TOKENMACCER_PRICES") {
             prices = try Prices(contentsOf: URL(fileURLWithPath: x(p)))

@@ -33,6 +33,29 @@ extension CollectorTests {
         XCTAssertEqual(try firstSource(), home + "/.claude/projects")
     }
 
+    /// settings.json "extraSources": the agent also reads an archive folder, and a session that exists both
+    /// in projects/ and in the archive (moved or copied) is counted once.
+    func testSettingsExtraSourcesAreReadAndDeduplicated() throws {
+        let archive = tmp + "/archive"
+        let dataDir = tmp + "/support"
+        let env = ["HOME": tmp + "/home", "TOKENMACCER_PRICES": CollectorTests.pricesURL.path,
+                   "TOKENMACCER_DATA_DIR": dataDir]
+        try AppSettings(extraSources: [archive, ""]).save(dataDir: dataDir)
+        XCTAssertEqual(AppSettings.load(dataDir: dataDir).extraSources, [archive])
+        let sources = try Collector.configuration(arguments: [], environment: env).sources
+        XCTAssertEqual(sources, [tmp + "/home/.claude/projects", archive])
+
+        let live = write("live.jsonl", [turn("m1", ts(0), inp: 5, cread: 0)])
+        try FileManager.default.createDirectory(atPath: archive + "/p", withIntermediateDirectories: true)
+        try FileManager.default.copyItem(atPath: live, toPath: archive + "/p/live.jsonl")
+        let old = line(turn("m0", ts(45, 12), inp: 7, cread: 0)) + "\n"
+        try Data(old.utf8).write(to: URL(fileURLWithPath: archive + "/p/old.jsonl"))
+        var cfg = try config()
+        cfg.sources.append(archive)
+        XCTAssertEqual(Collector.run(cfg).exitCode, 0)
+        XCTAssertEqual(total(), 12, "archive-only session counted, duplicated session counted once")
+    }
+
     /// "Choose Folder…" accepts the config folder itself or its projects folder.
     func testChosenFolderBecomesTheClaudeDir() throws {
         XCTAssertEqual(AppSettings.claudeDir(fromChosen: claude), claude)

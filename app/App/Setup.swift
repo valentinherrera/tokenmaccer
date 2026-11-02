@@ -24,6 +24,7 @@ final class Setup {
     private let agent: SMAppService?
     private let home: String
     @ObservationIgnored private var started = false
+    @ObservationIgnored private var clearOnQuit = false
     /// Set when the user chose "Stop background updates"; the app then does not re-register on launch.
     private let stoppedKey = "backgroundUpdatesStopped"
 
@@ -121,9 +122,20 @@ final class Setup {
     /// "Stop Background Updates & Remove Data…": unregisters the agent and deletes what the app edition wrote
     /// (history and settings in Application Support, widget.json and the shared settings in the App Group).
     /// A source install's folder (~/.claude/tools/tokenmaccer) is never touched. Afterwards only the app is left.
+    /// The app's own defaults are cleared too, and not written again: a reinstall then starts like a first
+    /// install (registers on first open). AppKit saves the window position after willTerminate, so on quit
+    /// the app clears its defaults once more and exits there, before that save.
     func removeEverything() {
         let failures = Self.remove(data: true)
-        UserDefaults.standard.set(true, forKey: stoppedKey)
+        if !clearOnQuit {
+            clearOnQuit = true
+            _ = NotificationCenter.default.addObserver(
+                forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+            ) { _ in
+                Setup.clearOwnDefaults()
+                exit(0)
+            }
+        }
         note = failures.isEmpty
             ? "Background updates stopped and data removed. Move TokenMaccer from Applications to the Trash to finish."
             : "Could not remove everything: " + failures.joined(separator: "; ")
@@ -153,7 +165,26 @@ final class Setup {
         for path in paths where fm.fileExists(atPath: path) {
             do { try fm.removeItem(atPath: path) } catch { failures.append("\(path): \(error.localizedDescription)") }
         }
+        clearOwnDefaults()
         return failures
+    }
+
+    /// Deletes ~/Library/Preferences/<bundle id>.plist through cfprefsd (the "stopped" switch, window positions).
+    nonisolated static func clearOwnDefaults() {
+        guard let id = Bundle.main.bundleIdentifier else { return }
+        UserDefaults.standard.removePersistentDomain(forName: id)
+        CFPreferencesAppSynchronize(id as CFString)
+        // cfprefsd writes an empty plist a moment later (asynchronously); wait for it (at most 3 s), then
+        // remove the file, and only when it really is empty.
+        let file = (WidgetData.realHome ?? NSHomeDirectory()) + "/Library/Preferences/\(id).plist"
+        for _ in 0..<60 {
+            guard FileManager.default.fileExists(atPath: file) else { return }
+            if let left = NSDictionary(contentsOfFile: file), left.count == 0 {
+                try? FileManager.default.removeItem(atPath: file)
+                return
+            }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
     }
 
     /// `TokenMaccer --unregister [--remove-data]`: the same as the window's buttons, for the removal steps

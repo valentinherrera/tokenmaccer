@@ -107,7 +107,7 @@ Options: `./install.sh --collector-only` skips the app. `BUNDLE_ID_PREFIX=com.yo
 ### Uninstall the app
 
 1. Remove the widget: right-click it on the desktop › **Remove Widget**.
-2. Open TokenMaccer and choose **Stop › Stop Background Updates & Remove Data…** (or **Stop Background Updates** to keep your history).
+2. Open TokenMaccer and choose **Stop › Stop Background Updates & Remove Data…**. This removes everything the app wrote, its own settings included, so a later reinstall starts fresh. To keep your history, choose **Stop Background Updates** instead; after a reinstall, click **Turn On** in the TokenMaccer window.
 3. Quit TokenMaccer and drag it from Applications to the Trash.
 
 The same in Terminal:
@@ -116,10 +116,9 @@ The same in Terminal:
 osascript -e 'quit app "TokenMaccer"'
 /Applications/TokenMaccer.app/Contents/MacOS/TokenMaccer --unregister --remove-data   # without --remove-data: keep history
 rm -rf /Applications/TokenMaccer.app
-defaults delete io.github.valentinherrera.tokenmaccer   # the app's own settings (one switch)
 ```
 
-What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
+What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`. **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
 
 END PENDING RELEASE -->
 

@@ -180,7 +180,7 @@ public final class URLSessionTransport: HTTPTransport {
         let done = DispatchSemaphore(value: 0)
         session.dataTask(with: r) { data, response, error in
             if let error {
-                box.result = .failure(LeaderboardError.network(error.localizedDescription))
+                box.result = .failure(LeaderboardError.from(error))
             } else if let http = response as? HTTPURLResponse {
                 var headers: [String: String] = [:]
                 for (k, v) in http.allHeaderFields {
@@ -197,6 +197,12 @@ public final class URLSessionTransport: HTTPTransport {
     }
 }
 
+/// Values of `LeaderboardState.lastErrorKind`.
+public enum LeaderboardErrorKind {
+    public static let offline = "offline"
+    public static let unreachable = "unreachable"
+}
+
 public enum LeaderboardError: Error, Equatable, CustomStringConvertible {
     case network(String)
     case unauthorized
@@ -209,24 +215,49 @@ public enum LeaderboardError: Error, Equatable, CustomStringConvertible {
     case accountNotDeleted(entryRemoved: Bool, String)
     /// A sign-in for leaving belongs to another account than the one that joined.
     case otherAccount
+    /// This Mac has no internet connection (URLSession said so); `network` is everything else that did not reach
+    /// the server.
+    case offline
+
+    /// A URLSession failure: offline when the Mac has no connection, otherwise the server did not answer.
+    public static func from(_ error: Error) -> LeaderboardError {
+        let offline: Set<URLError.Code> = [.notConnectedToInternet, .networkConnectionLost, .dataNotAllowed,
+                                           .internationalRoamingOff, .callIsActive]
+        if let e = error as? URLError, offline.contains(e.code) { return .offline }
+        return .network(error.localizedDescription)
+    }
+
+    /// What the app words itself (in its own language, whatever language the collector wrote the message in):
+    /// `LeaderboardErrorKind.offline` or `.unreachable`; nil for everything that needs the message.
+    public var kind: String? {
+        switch self {
+        case .offline: return LeaderboardErrorKind.offline
+        case .network: return LeaderboardErrorKind.unreachable
+        case .server(let status, _) where status >= 500: return LeaderboardErrorKind.unreachable
+        default: return nil
+        }
+    }
 
     public var description: String {
         switch self {
-        case .network(let why): return "No connection to the leaderboard server (\(why))."
+        // German from the String Catalog of TokenMaccer.app: the collector runs inside the app bundle, so
+        // Bundle.main is the app (tests and a bare build fall back to the English key)
+        case .network(let why): return String(localized: "No connection to the leaderboard server (\(why)).")
+        case .offline: return String(localized: "No internet connection. The next report follows when you're back online.")
         case .unauthorized:
-            return "The sign-in expired. Choose Leave (you sign in with GitHub once more to delete your entry), then join again."
-        case .notParticipant: return "Your leaderboard entry no longer exists. Join again to take part."
-        case .rateLimited(let s): return "The server asks to wait \(s) s before the next report."
-        case .server(let status, let why): return status == 0 ? why : "Server error \(status): \(why)"
+            return String(localized: "The sign-in expired. Choose Leave (you sign in with GitHub once more to delete your entry), then join again.")
+        case .notParticipant: return String(localized: "Your leaderboard entry no longer exists. Join again to take part.")
+        case .rateLimited(let s): return String(localized: "The server asks to wait \(s) s before the next report.")
+        case .server(let status, let why): return status == 0 ? why : String(localized: "Server error \(status): \(why)")
         case .notSignedIn:
-            return "There is no sign-in for the leaderboard server on this Mac any more. Sign in with GitHub once more to delete your entry."
-        case .noServer: return "No leaderboard server configured."
+            return String(localized: "There is no sign-in for the leaderboard server on this Mac any more. Sign in with GitHub once more to delete your entry.")
+        case .noServer: return String(localized: "No leaderboard server configured.")
         case .accountNotDeleted(let removed, let why):
-            return (removed
-                ? "Your profile and totals are deleted, but your account on the leaderboard server is not yet"
-                : "Your account on the leaderboard server could not be deleted") + " (\(why))."
+            return removed
+                ? String(localized: "Your profile and totals are deleted, but your account on the leaderboard server is not yet (\(why)).")
+                : String(localized: "Your account on the leaderboard server could not be deleted (\(why)).")
         case .otherAccount:
-            return "This GitHub account is not the one that joined. Sign in with the account shown under Leaderboard."
+            return String(localized: "This GitHub account is not the one that joined. Sign in with the account shown under Leaderboard.")
         }
     }
 }
@@ -338,6 +369,8 @@ public struct LeaderboardState: Codable, Equatable, Sendable {
     public var ranks: [LeaderboardPlace]
     public var ranksAt: Date?
     public var lastError: String?
+    /// With `lastError`: `LeaderboardErrorKind.offline` or `.unreachable` when the app shows its own text.
+    public var lastErrorKind: String?
     /// Leave failed on the server: no more reports, the app offers Leave again.
     public var leavePending: Bool
     /// With `leavePending`: the collector has no usable sign-in (keychain item gone, refresh token dead),
@@ -631,7 +664,7 @@ public struct LeaderboardSync: Sendable {
                 state.userId = userId
                 state.leavePending = true
                 state.signInRequired = sessions.load() == nil
-                state.lastError = "Joining failed, and the account the sign-in created on the leaderboard server could not be deleted yet: \(cleanup)"
+                state.lastError = String(localized: "Joining failed, and the account the sign-in created on the leaderboard server could not be deleted yet: \(String(describing: cleanup))")
                 try? state.save(dataDir: dataDir)
             }
             throw error
@@ -713,7 +746,7 @@ public struct LeaderboardSync: Sendable {
             default:
                 pending.signInRequired = sessions.load() == nil
             }
-            pending.lastError = "Could not delete your entry on the server: \(error)"
+            pending.lastError = String(localized: "Could not delete your entry on the server: \(String(describing: error))")
             try? pending.save(dataDir: dataDir)
             Self.removeBoards(dataDir: dataDir)
             throw error
@@ -786,6 +819,7 @@ public struct LeaderboardSync: Sendable {
                 state.ranks = places
                 state.ranksAt = now
                 state.lastError = nil
+                state.lastErrorKind = nil
                 log = "leaderboard: reported, \(places.filter { $0.rank != nil }.count) places"
                 // the app's leaderboard window: the boards, then the avatars of who is on them (best effort)
                 if let boards = try? authorized(c, now: now, { try c.top(token: $0, now: now) }) {
@@ -797,10 +831,12 @@ public struct LeaderboardSync: Sendable {
                 state.ranks = []
                 state.ranksAt = nil
                 state.lastError = LeaderboardError.notParticipant.description
+                state.lastErrorKind = nil
                 Self.removeBoards(dataDir: dataDir)
                 log = "leaderboard: no longer a participant"
             } catch {
                 state.lastError = "\(error)"
+                state.lastErrorKind = (error as? LeaderboardError)?.kind
                 log = "leaderboard: report failed: \(error)"
             }
             try? state.save(dataDir: dataDir)

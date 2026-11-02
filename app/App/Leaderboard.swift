@@ -42,7 +42,7 @@ final class Leaderboard {
     /// Without a display name the server takes the GitHub username (changed afterwards with `rename`).
     func join(displayName: String? = nil, helper: URL?, afterJoin: @escaping () async -> Void) async {
         guard !busy else { return }
-        guard let helper else { error = "The background collector is missing from TokenMaccer.app."; return }
+        guard let helper else { error = String(localized: "The background collector is missing from TokenMaccer.app."); return }
         guard let endpoint else { error = LeaderboardError.noServer.description; return }
         error = nil
         busy = true
@@ -55,7 +55,7 @@ final class Leaderboard {
             await afterJoin()
             refresh()
         } else {
-            error = "Could not join: " + (answer.error ?? "unknown error")
+            error = String(localized: "Could not join: \(answer.error ?? String(localized: "unknown error"))")
         }
     }
 
@@ -67,7 +67,7 @@ final class Leaderboard {
         defer { renaming = false }
         let answer = await Self.helper(helper, ["leaderboard", "rename", "--display-name", displayName], stdin: nil)
         refresh()
-        if !answer.ok { error = "Could not change the name: " + (answer.error ?? "unknown error") }
+        if !answer.ok { error = String(localized: "Could not change the name: \(answer.error ?? String(localized: "unknown error"))") }
     }
 
     /// What the join panel shows (onboarding step 3 and the Join sheet), for the widget's period and unit.
@@ -97,14 +97,14 @@ final class Leaderboard {
         } catch let e as ASWebAuthenticationSessionError where e.code == .canceledLogin {
             return nil  // the user closed the sign-in window
         } catch {
-            self.error = "GitHub sign-in failed: \(error.localizedDescription)"
+            self.error = String(localized: "GitHub sign-in failed: \(error.localizedDescription)")
             return nil
         }
         switch LeaderboardEndpoint.code(fromCallback: callback) {
         case .success(let code):
             return (try? JSONSerialization.data(withJSONObject: ["code": code, "verifier": verifier])) ?? Data()
         case .failure(let e):
-            error = "GitHub sign-in failed: \(e)"
+            error = String(localized: "GitHub sign-in failed: \(String(describing: e))")
             return nil
         }
     }
@@ -124,7 +124,7 @@ final class Leaderboard {
         let answer = await Self.helper(helper, ["leaderboard", "leave"] + (signIn ? ["--sign-in"] : []), stdin: stdin)
         refresh()
         if !answer.ok {
-            error = answer.error.map { "Could not leave: " + $0 } ?? "Could not leave."
+            error = answer.error.map { String(localized: "Could not leave: \($0)") } ?? String(localized: "Could not leave.")
         }
     }
 
@@ -134,7 +134,7 @@ final class Leaderboard {
         guard let state = LeaderboardState.load(dataDir: dataDir), state.joined || state.leavePending else {
             return (true, nil)
         }
-        guard let helper else { return (false, "the background collector is missing") }
+        guard let helper else { return (false, String(localized: "the background collector is missing")) }
         let p = Process()
         let out = Pipe()
         p.executableURL = helper
@@ -146,10 +146,10 @@ final class Leaderboard {
         while p.isRunning, Date() < deadline { Thread.sleep(forTimeInterval: 0.1) }
         if p.isRunning {
             p.terminate()
-            return (false, "the leaderboard server did not answer")
+            return (false, String(localized: "the leaderboard server did not answer"))
         }
         let answer = parse(out.fileHandleForReading.readDataToEndOfFile())
-        return answer.ok ? (true, nil) : (false, answer.error ?? "unknown error")
+        return answer.ok ? (true, nil) : (false, answer.error ?? String(localized: "unknown error"))
     }
 
     private func signIn(_ url: URL) async throws -> URL {
@@ -169,7 +169,7 @@ final class Leaderboard {
             session.presentationContextProvider = anchor
             auth = session
             if !session.start() {
-                cont.resume(throwing: LeaderboardError.server(0, "the sign-in window could not open"))
+                cont.resume(throwing: LeaderboardError.server(0, String(localized: "the sign-in window could not open")))
             }
         }
     }
@@ -232,16 +232,18 @@ struct LeaderboardSection: View {
         Section {
             if leaderboard.joined, let s = leaderboard.state {
                 StatusRow(
-                    state: s.lastError == nil ? .ok : .problem, title: "Leaderboard",
-                    value: "Joined as \(s.displayName ?? "–")", detail: detail(s)
+                    state: s.lastError == nil ? .ok : .problem, title: String(localized: "Leaderboard"),
+                    value: String(localized: "Joined as \(s.displayName ?? "–")"), detail: detail(s)
                 ) {
                     Button("Change Name…") { joining = true }.disabled(leaderboard.busy)
                     Button("Leave…") { confirmLeave = true }.disabled(leaderboard.busy)
                 }
             } else if leaderboard.needsSignIn {
                 StatusRow(
-                    state: .problem, title: "Leaderboard", value: "Leaving not finished",
-                    detail: "Reports are stopped. Your account is still on the leaderboard server; deleting it needs one more GitHub sign-in\(leaderboard.state?.githubLogin.map { " as @\($0)" } ?? "")."
+                    state: .problem, title: String(localized: "Leaderboard"), value: String(localized: "Leaving not finished"),
+                    detail: leaderboard.state?.githubLogin.map {
+                        String(localized: "Reports are stopped. Your account is still on the leaderboard server; deleting it needs one more GitHub sign-in as @\($0).")
+                    } ?? String(localized: "Reports are stopped. Your account is still on the leaderboard server; deleting it needs one more GitHub sign-in.")
                 ) {
                     Button("Sign In and Delete…") {
                         Task { await leaderboard.leave(helper: setup.helperURL, signIn: true) }
@@ -250,16 +252,16 @@ struct LeaderboardSection: View {
                 }
             } else if leaderboard.leavePending {
                 StatusRow(
-                    state: .problem, title: "Leaderboard", value: "Leaving not finished",
-                    detail: "Reports are stopped. Your account is still on the leaderboard server."
+                    state: .problem, title: String(localized: "Leaderboard"), value: String(localized: "Leaving not finished"),
+                    detail: String(localized: "Reports are stopped. Your account is still on the leaderboard server.")
                 ) {
                     Button("Leave Again") { Task { await leaderboard.leave(helper: setup.helperURL) } }
                         .disabled(leaderboard.busy)
                 }
             } else {
                 StatusRow(
-                    state: .off, title: "Leaderboard", value: "Not joined",
-                    detail: "Optional: compare your totals with other Claude Code users."
+                    state: .off, title: String(localized: "Leaderboard"), value: String(localized: "Not joined"),
+                    detail: String(localized: "Optional: compare your totals with other Claude Code users.")
                 ) {
                     Button("Join…") { joining = true }.disabled(leaderboard.busy)
                 }
@@ -270,7 +272,10 @@ struct LeaderboardSection: View {
                     Text("Waiting for GitHub and the leaderboard server…").font(.callout).foregroundStyle(.secondary)
                 }
             }
-            if let error = leaderboard.error ?? (leaderboard.joined ? nil : leaderboard.state?.lastError) {
+            if let error = leaderboard.error
+                ?? (leaderboard.joined ? nil : leaderboard.state?.lastError.map {
+                    LeaderboardProblem(kind: leaderboard.state?.lastErrorKind, message: $0).text
+                }) {
                 Text(error).font(.callout).foregroundStyle(.secondary)
             }
         }
@@ -286,17 +291,17 @@ struct LeaderboardSection: View {
 
     private func detail(_ s: LeaderboardState) -> String {
         var parts: [String] = []
-        if let login = s.githubLogin, !login.isEmpty { parts.append("GitHub @\(login)") }
+        if let login = s.githubLogin, !login.isEmpty { parts.append(String(localized: "GitHub @\(login)")) }
         if let error = s.lastError {
-            parts.append(error)
+            parts.append(LeaderboardProblem(kind: s.lastErrorKind, message: error).text)
         } else if let at = s.lastReportAt {
-            parts.append("Last report " + at.formatted(date: .omitted, time: .shortened))
+            parts.append(String(localized: "Last report \(at.formatted(date: .omitted, time: .shortened))"))
         } else {
-            parts.append("First report with the next update")
+            parts.append(String(localized: "First report with the next update"))
         }
         let unit = Selection.unit
         if let place = s.place(period: Selection.period, unit: unit.rawValue) {
-            parts.append("#\(place.rank ?? 0) of \(place.participants), \(Format.periodName(Selection.period).lowercased()), \(unit == .usd ? "USD" : "tokens")")
+            parts.append(String(localized: "#\(place.rank ?? 0) of \(place.participants) (\(Format.periodName(Selection.period)), \(Format.unitName(unit)))"))
         }
         return parts.joined(separator: " · ")
     }

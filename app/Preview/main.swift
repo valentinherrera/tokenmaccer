@@ -4,6 +4,7 @@ import SwiftUI
 // Renders the widget view to PNGs (light/dark, all sizes) without adding it to the desktop.
 // Build: swiftc app/Shared/*.swift app/Preview/main.swift -o render
 // Usage: render <widget.json> <output dir> [period ...] [-AppleLocale en_US]
+// widget.json "none": the state before the collector's first pass (no file yet).
 @MainActor
 func render() {
     let args = CommandLine.arguments
@@ -22,7 +23,7 @@ func render() {
         i += 1
     }
     if periods.isEmpty { periods = ["1D", "30D"] }
-    guard let data else {
+    if data == nil && args[1] != "none" {
         print("could not read \(args[1])")
         exit(1)
     }

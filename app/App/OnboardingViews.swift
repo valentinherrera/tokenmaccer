@@ -285,6 +285,18 @@ struct RankHero: View {
     }
 }
 
+/// The status window's empty state when no Claude Code transcripts were found.
+struct NoClaudeDataNote: View {
+    var body: some View {
+        Label {
+            Text("No Claude Code data yet. Claude Code writes its transcripts to ~/.claude/projects once you use it; if yours are somewhere else, choose that folder above.")
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: "doc.text.magnifyingglass")
+        }
+    }
+}
+
 // MARK: Onboarding
 
 /// Three steps for a new install: what it does, add the widget (checks off when the widget runs), the leaderboard

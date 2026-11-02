@@ -78,7 +78,7 @@ final class Setup {
             UserDefaults.standard.set(false, forKey: stoppedKey)
         } catch {
             // Registration that needs approval in System Settings also ends up here on some systems.
-            if agent.status != .requiresApproval { note = "Background updates could not start: \(error.localizedDescription)" }
+            if agent.status != .requiresApproval { note = String(localized: "Background updates could not start: \(error.localizedDescription)") }
         }
         refresh()
         if openSettings, agent.status == .requiresApproval { SMAppService.openSystemSettingsLoginItems() }
@@ -89,9 +89,9 @@ final class Setup {
         do {
             try agent.unregister()
             UserDefaults.standard.set(true, forKey: stoppedKey)
-            note = "Background updates are off. The widget keeps the last numbers."
+            note = String(localized: "Background updates are off. The widget keeps the last numbers.")
         } catch {
-            note = "Could not stop background updates: \(error.localizedDescription)"
+            note = String(localized: "Could not stop background updates: \(error.localizedDescription)")
         }
         refresh()
     }
@@ -107,8 +107,8 @@ final class Setup {
         panel.allowsMultipleSelection = false
         panel.showsHiddenFiles = true
         panel.directoryURL = URL(fileURLWithPath: home)
-        panel.message = "Choose the Claude Code folder that contains “projects” (usually ~/.claude)."
-        panel.prompt = "Choose"
+        panel.message = String(localized: "Choose the Claude Code folder that contains “projects” (usually ~/.claude).")
+        panel.prompt = String(localized: "Choose")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let dir = AppSettings.claudeDir(fromChosen: url.path)
         do {
@@ -116,7 +116,7 @@ final class Setup {
             claudeDir = dir
             note = nil
         } catch {
-            note = "Could not save the folder: \(error.localizedDescription)"
+            note = String(localized: "Could not save the folder: \(error.localizedDescription)")
         }
         refresh()
         Task { await updateNow() }
@@ -131,7 +131,7 @@ final class Setup {
     func removeEverything() {
         let failures = Self.remove(data: true)
         if let first = failures.first, first.hasPrefix("leaderboard:") {
-            note = "Nothing removed. " + first.dropFirst("leaderboard: ".count) + "."
+            note = String(localized: "Nothing removed. \(String(first.dropFirst("leaderboard: ".count))).")
             refresh()
             return
         }
@@ -145,8 +145,8 @@ final class Setup {
             }
         }
         note = failures.isEmpty
-            ? "Background updates stopped and data removed. Move TokenMaccer from Applications to the Trash to finish."
-            : "Could not remove everything: " + failures.joined(separator: "; ")
+            ? String(localized: "Background updates stopped and data removed. Move TokenMaccer from Applications to the Trash to finish.")
+            : String(localized: "Could not remove everything: \(failures.joined(separator: "; "))")
         refresh()
     }
 
@@ -160,7 +160,7 @@ final class Setup {
                 dataDir: home + "/Library/Application Support/TokenMaccer",
                 helper: Bundle.main.url(forAuxiliaryExecutable: "tokenmaccer-collector"))
             if !left.ok {
-                return ["leaderboard: \(left.error ?? "unknown error"). Leave the leaderboard first, then try again"]
+                return ["leaderboard: " + String(localized: "\(left.error ?? String(localized: "unknown error")). Leave the leaderboard first, then try again")]
             }
         }
         if let plist = Bundle.main.object(forInfoDictionaryKey: "TMAgentPlist") as? String {
@@ -168,7 +168,7 @@ final class Setup {
             do {
                 if agent.status != .notRegistered && agent.status != .notFound { try agent.unregister() }
             } catch {
-                failures.append("background updates: \(error.localizedDescription)")
+                failures.append(String(localized: "background updates: \(error.localizedDescription)"))
             }
         }
         guard data else { return failures }
@@ -217,6 +217,9 @@ final class Setup {
         exit(1)
     }
 
+    private static let alreadyRunning = String(localized: "An update is already running in the background; the numbers follow in a moment.")
+    private static let updateFailed = String(localized: "Update failed:")
+
     /// Runs the bundled collector once (same binary the background agent runs).
     func updateNow() async {
         guard !running, let helperURL else { return }
@@ -227,19 +230,19 @@ final class Setup {
         running = false
         let lines = output.split(separator: "\n").map(String.init)
         if lines.contains(where: { $0.hasPrefix("took over the history") }) {
-            note = "Took over the history of your install.sh setup."
+            note = String(localized: "Took over the history of your install.sh setup.")
         } else if let skipped = lines.first(where: { $0.hasPrefix("history not taken over") }) {
-            note = "Previous history not taken over: " + skipped.dropFirst("history not taken over: ".count)
+            note = String(localized: "Previous history not taken over: \(String(skipped.dropFirst("history not taken over: ".count)))")
         }
         if status == 0, output.hasPrefix("another collector run is in progress") {
-            note = "An update is already running in the background; the numbers follow in a moment."
+            note = Self.alreadyRunning
         } else if status == 0 {
-            if note?.hasPrefix("An update is already running") == true { note = nil }
+            if note == Self.alreadyRunning { note = nil }
             // last line "<n> new turns · …": reload the widget at once when something new came in
             if let n = Int(lines.last?.split(separator: " ").first ?? ""), n > 0 { WidgetCenter.shared.reloadAllTimelines() }
-            if note?.hasPrefix("Update failed") == true { note = nil }
+            if note?.hasPrefix(Self.updateFailed) == true { note = nil }
         } else {
-            note = "Update failed: " + (output.split(separator: "\n").last.map(String.init) ?? "exit \(status)")
+            note = Self.updateFailed + " " + (output.split(separator: "\n").last.map(String.init) ?? "exit \(status)")
         }
         refresh()
     }
@@ -325,20 +328,21 @@ struct SetupView: View {
             Form {
                 Section {
                     StatusRow(
-                        state: setup.transcriptsFound ? .ok : .problem, title: "Claude Code transcripts",
-                        value: setup.transcriptsFound ? "Found" : "Not found",
+                        state: setup.transcriptsFound ? .ok : .problem, title: String(localized: "Claude Code transcripts"),
+                        value: setup.transcriptsFound ? String(localized: "Found") : String(localized: "Not found"),
                         detail: abbreviate(setup.claudeDir + "/projects")
                     ) {
                         if !setup.transcriptsFound { Button("Choose Folder…") { setup.chooseFolder() } }
                     }
                     service
                     StatusRow(
-                        state: setup.lastUpdate == nil ? .off : .ok, title: "Last update",
-                        value: setup.lastUpdate.map { $0.formatted(date: .omitted, time: .shortened) } ?? "Not yet",
+                        state: setup.lastUpdate == nil ? .off : .ok, title: String(localized: "Last update"),
+                        value: setup.lastUpdate.map { $0.formatted(date: .omitted, time: .shortened) } ?? String(localized: "Not yet"),
                         detail: nil)
                     widget
                 }
                 Section {
+                    if !setup.transcriptsFound { NoClaudeDataNote() }
                     Label {
                         Text("Add the widget: right-click the desktop › Edit Widgets… › TokenMaccer.")
                     } icon: {
@@ -386,14 +390,14 @@ struct SetupView: View {
     @ViewBuilder private var service: some View {
         switch setup.service {
         case .enabled:
-            StatusRow(state: .ok, title: "Background updates", value: "On, every 5 minutes", detail: nil)
+            StatusRow(state: .ok, title: String(localized: "Background updates"), value: String(localized: "On, every 5 minutes"), detail: nil)
         case .requiresApproval:
-            StatusRow(state: .problem, title: "Background updates", value: "Needs your approval",
-                      detail: "Allow TokenMaccer in System Settings › General › Login Items.") {
+            StatusRow(state: .problem, title: String(localized: "Background updates"), value: String(localized: "Needs your approval"),
+                      detail: String(localized: "Allow TokenMaccer in System Settings › General › Login Items.")) {
                 Button("Open Login Items") { setup.openLoginItems() }
             }
         default:
-            StatusRow(state: .off, title: "Background updates", value: "Off", detail: nil) {
+            StatusRow(state: .off, title: String(localized: "Background updates"), value: String(localized: "Off"), detail: nil) {
                 Button("Turn On") { setup.register() }
             }
         }
@@ -402,21 +406,21 @@ struct SetupView: View {
     @ViewBuilder private var widget: some View {
         switch setup.widget {
         case .notSeen:
-            StatusRow(state: .off, title: "Widget", value: "Not added yet", detail: nil)
+            StatusRow(state: .off, title: String(localized: "Widget"), value: String(localized: "Not added yet"), detail: nil)
         case .showing(let read):
-            StatusRow(state: .ok, title: "Widget", value: "Showing your numbers",
-                      detail: "Read at " + read.formatted(date: .omitted, time: .shortened))
+            StatusRow(state: .ok, title: String(localized: "Widget"), value: String(localized: "Showing your numbers"),
+                      detail: String(localized: "Read at \(read.formatted(date: .omitted, time: .shortened))"))
         case .idle(let read):
-            StatusRow(state: .off, title: "Widget", value: "Not on the desktop",
-                      detail: "Last read " + read.formatted(date: .abbreviated, time: .shortened))
+            StatusRow(state: .off, title: String(localized: "Widget"), value: String(localized: "Not on the desktop"),
+                      detail: String(localized: "Last read \(read.formatted(date: .abbreviated, time: .shortened))"))
         case .failed(.missing, _):
-            StatusRow(state: .off, title: "Widget", value: "Waiting for data",
-                      detail: "The widget found no numbers yet; they follow after the next update.")
+            StatusRow(state: .off, title: String(localized: "Widget"), value: String(localized: "Waiting for data"),
+                      detail: String(localized: "The widget found no numbers yet; they follow after the next update."))
         case .failed(let result, _):
-            StatusRow(state: .problem, title: "Widget", value: "Cannot read the data",
+            StatusRow(state: .problem, title: String(localized: "Widget"), value: String(localized: "Cannot read the data"),
                       detail: result == .noContainer
-                        ? "macOS did not give the widget access to TokenMaccer's shared folder."
-                        : "The widget could not read widget.json.")
+                        ? String(localized: "macOS did not give the widget access to TokenMaccer's shared folder.")
+                        : String(localized: "The widget could not read widget.json."))
         }
     }
 

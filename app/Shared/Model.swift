@@ -44,11 +44,11 @@ struct Place: Codable, Hashable {
     /// What the widget shows: place, period and unit, so it is clear which board the number belongs to,
     /// e.g. "#3 · 7D · Tokens". The number of participants is in the accessibility label.
     func label(period: String, unit: Unit) -> String {
-        "#\(rank) · \(period) · \(unit == .usd ? "USD" : "Tokens")"
+        "#\(rank) · \(period) · \(Format.unitName(unit))"
     }
 
     func accessibilityLabel(period: String, unit: Unit) -> String {
-        "Leaderboard place \(rank) of \(of), \(Format.periodName(period).lowercased()), \(unit == .usd ? "USD" : "tokens")"
+        String(localized: "Leaderboard place \(rank) of \(of) (\(Format.periodName(period)), \(Format.unitName(unit)))")
     }
 }
 
@@ -141,12 +141,16 @@ enum Format {
     }
     static func periodName(_ k: String) -> String {
         switch k {
-        case "1D": return "Today"
-        case "7D": return "7 days"
-        case "30D": return "30 days"
-        case "YTD": return "Year to date"
-        case "1Y": return "1 year"
-        default: return "All time"
+        case "1D": return String(localized: "Today")
+        case "7D": return String(localized: "7 days")
+        case "30D": return String(localized: "30 days")
+        case "YTD": return String(localized: "Year to date")
+        case "1Y": return String(localized: "1 year")
+        default: return String(localized: "All time")
         }
+    }
+    /// "USD" or "Tokens" ("Token" in German), as the widget, the leaderboard and the share card name the unit.
+    static func unitName(_ unit: Unit) -> String {
+        unit == .usd ? "USD" : String(localized: "Tokens")
     }
 }

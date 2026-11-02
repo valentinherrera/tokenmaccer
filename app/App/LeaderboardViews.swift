@@ -35,6 +35,28 @@ enum PeriodPhrase {
     }
 }
 
+/// A leaderboard error as the app words it: offline and unreachable get their own text, in the app's language
+/// (the collector may have written its message in another one); anything else shows the collector's message.
+struct LeaderboardProblem: Equatable {
+    enum Kind: String { case offline, unreachable }  // LeaderboardErrorKind in the collector
+    var kind: Kind?
+    var message: String
+
+    init(kind: String?, message: String) {
+        self.kind = kind.flatMap(Kind.init(rawValue:))
+        self.message = message
+    }
+
+    var text: String {
+        switch kind {
+        case .offline: return String(localized: "You're offline. Your place updates when you're back online.")
+        case .unreachable:
+            return String(localized: "The leaderboard server can't be reached right now. TokenMaccer tries again on its own.")
+        case nil: return message
+        }
+    }
+}
+
 // MARK: Leaderboard window
 
 struct BoardRowValue: Equatable, Identifiable {
@@ -69,6 +91,8 @@ struct LeaderboardWindowView: View {
     @Binding var period: String
     @Binding var usd: Bool
     var updated: Date?
+    /// The last report failed for want of a connection: the board may be old (a banner) or not there yet.
+    var offline: LeaderboardProblem.Kind?
     var avatar: (String) -> NSImage? = { _ in nil }
     var share: () -> Void = {}
     var join: () -> Void = {}
@@ -77,6 +101,10 @@ struct LeaderboardWindowView: View {
         VStack(alignment: .leading, spacing: 0) {
             controls.padding([.horizontal, .top], 16).padding(.bottom, 12)
             Divider()
+            if let offline, case .board = state {
+                banner(offline)
+                Divider()
+            }
             content.frame(maxWidth: .infinity, maxHeight: .infinity)
             if case .board = state {
                 Divider()
@@ -125,6 +153,12 @@ struct LeaderboardWindowView: View {
                        detail: "Join the leaderboard to compare your totals with other Claude Code users. Only your period totals are shared.") {
                 Button("Join…", action: join).keyboardShortcut(.defaultAction)
             }
+        case .waiting where offline == .offline:
+            EmptyBoard(symbol: "wifi.slash", title: "You're offline",
+                       detail: "The ranking loads with the first report once this Mac is back online.") { EmptyView() }
+        case .waiting where offline == .unreachable:
+            EmptyBoard(symbol: "icloud.slash", title: "The server can't be reached",
+                       detail: "TokenMaccer tries again on its own, at most every 30 minutes. Your numbers on this Mac are not affected.") { EmptyView() }
         case .waiting:
             EmptyBoard(symbol: "hourglass", title: "The ranking is on its way",
                        detail: "It appears with the next report, within 30 minutes.") { ProgressView().controlSize(.small) }
@@ -147,6 +181,19 @@ struct LeaderboardWindowView: View {
                 .padding(.vertical, 8)
             }
         }
+    }
+
+    private func banner(_ kind: LeaderboardProblem.Kind) -> some View {
+        Label {
+            Text(verbatim: LeaderboardProblem(kind: kind.rawValue, message: "").text)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: kind == .offline ? "wifi.slash" : "icloud.slash")
+        }
+        .font(.callout).foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16).padding(.vertical, 8)
+        .background(Color.orange.opacity(0.08))
     }
 
     private func row(_ r: BoardRowValue) -> some View {
@@ -370,6 +417,8 @@ struct MenuBarValue: Equatable {
     var rank: Int?
     var participants: Int?
     var leaderboardAvailable = true
+    /// widget.json exists but nothing was ever counted (no Claude Code transcripts found, or none with usage).
+    var noUsage = false
     var canShare = false
     var canCheckForUpdates = true
 
@@ -411,6 +460,15 @@ struct MenuBarPanel: View {
                     Text("#\(rank) of \(of) today on the leaderboard")
                         .font(.callout.weight(.medium)).monospacedDigit()
                         .foregroundStyle(Brand.amber)
+                }
+                if value.todayTokens == nil {
+                    Text("Waiting for the first numbers. TokenMaccer counts every 5 minutes.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if value.noUsage {
+                    Text("No Claude Code usage found yet. Your tokens appear after your next session.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 10)

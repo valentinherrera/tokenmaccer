@@ -43,10 +43,18 @@ struct LeaderboardRenderer {
             ("leaderboard-not-joined", AnyView(window(.notJoined, period: "7D", usd: false, updated: nil))),
             ("leaderboard-waiting", AnyView(window(.waiting, period: "1D", usd: false, updated: nil))),
             ("leaderboard-empty-period", AnyView(window(.board(nil), period: "1D", usd: false, updated: updated))),
+            ("leaderboard-offline-board", AnyView(window(.board(inTop), period: "7D", usd: false, updated: updated,
+                                                          offline: .offline))),
+            ("leaderboard-offline-waiting", AnyView(window(.waiting, period: "1D", usd: false, updated: nil,
+                                                            offline: .offline))),
+            ("leaderboard-unreachable-waiting", AnyView(window(.waiting, period: "1D", usd: false, updated: nil,
+                                                                offline: .unreachable))),
             ("share-sheet", AnyView(ShareSheetView(card: card))),
             ("menubar-joined", AnyView(MenuBarPanel(value: MenuBarValue(
                 todayTokens: 2_350_000, todayUSD: 41.27, rank: 3, participants: 120, canShare: true)))),
             ("menubar-not-joined", AnyView(MenuBarPanel(value: MenuBarValue(todayTokens: 2_350_000, todayUSD: 41.27)))),
+            ("menubar-waiting", AnyView(MenuBarPanel(value: MenuBarValue()))),
+            ("menubar-no-claude-usage", AnyView(MenuBarPanel(value: MenuBarValue(todayTokens: 0, todayUSD: 0, noUsage: true)))),
             ("settings", AnyView(SettingsView(showInMenuBar: .constant(true)))),
         ]
         for (name, view) in scenes {
@@ -67,9 +75,10 @@ struct LeaderboardRenderer {
     static var lang: String { Bundle.main.preferredLocalizations.first ?? "en" }
 
     @MainActor
-    static func window(_ state: BoardState, period: String, usd: Bool, updated: Date?) -> some View {
+    static func window(_ state: BoardState, period: String, usd: Bool, updated: Date?,
+                       offline: LeaderboardProblem.Kind? = nil) -> some View {
         LeaderboardWindowView(state: state, period: .constant(period), usd: .constant(usd), updated: updated,
-                              avatar: avatar)
+                              offline: offline, avatar: avatar)
     }
 
     /// Made-up avatars: a coloured tile with a simple pattern, one per login (no GitHub picture is used).

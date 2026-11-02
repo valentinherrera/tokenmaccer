@@ -1,0 +1,2134 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "#%lld of %lld (%@, %@)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "#%1$lld von %2$lld (%3$@, %4$@)"
+          }
+        }
+      }
+    },
+    "#%lld of %lld today on the leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "#%1$lld von %2$lld heute im Leaderboard"
+          }
+        }
+      }
+    },
+    "%@ %@" : {
+      "shouldTranslate" : false
+    },
+    "%@ in" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ein"
+          }
+        }
+      }
+    },
+    "%@ out" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ aus"
+          }
+        }
+      }
+    },
+    "%@. Leave the leaderboard first, then try again" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@. Verlasse zuerst das Leaderboard und versuche es dann erneut"
+          }
+        }
+      }
+    },
+    "1 year" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 Jahr"
+          }
+        }
+      }
+    },
+    "1–32 characters" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1–32 Zeichen"
+          }
+        }
+      }
+    },
+    "30 days" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 Tage"
+          }
+        }
+      }
+    },
+    "7 days" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 Tage"
+          }
+        }
+      }
+    },
+    "Add the widget" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget hinzufügen"
+          }
+        }
+      }
+    },
+    "Add the widget: right-click the desktop › Edit Widgets… › TokenMaccer." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget hinzufügen: Rechtsklick auf den Schreibtisch › Widgets bearbeiten … › TokenMaccer."
+          }
+        }
+      }
+    },
+    "Add the widget: right-click the desktop, choose “Edit Widgets…”, search for “TokenMaccer”." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget hinzufügen: Rechtsklick auf den Schreibtisch, „Widgets bearbeiten …“ wählen, nach „TokenMaccer“ suchen."
+          }
+        }
+      }
+    },
+    "All time" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesamt"
+          }
+        }
+      }
+    },
+    "Allow TokenMaccer in System Settings › General › Login Items." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erlaube TokenMaccer in Systemeinstellungen › Allgemein › Anmeldeobjekte."
+          }
+        }
+      }
+    },
+    "An update is already running in the background; the numbers follow in a moment." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Im Hintergrund läuft schon ein Update; die Zahlen folgen gleich."
+          }
+        }
+      }
+    },
+    "Appears after your next session." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erscheint nach deiner nächsten Sitzung."
+          }
+        }
+      }
+    },
+    "At API prices, for today, 7 and 30 days, the year and all time. Updated every 5 minutes." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu API-Preisen, für heute, 7 und 30 Tage, das Jahr und gesamt. Alle 5 Minuten aktualisiert."
+          }
+        }
+      }
+    },
+    "At most every 30 minutes, TokenMaccer sends your token and USD totals per period. Never prompts, projects or file names." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Höchstens alle 30 Minuten sendet TokenMaccer deine Token- und USD-Summen je Zeitraum. Nie Prompts, Projekte oder Dateinamen."
+          }
+        }
+      }
+    },
+    "At most every 30 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Höchstens alle 30 Minuten sendet TokenMaccer deine Summen für heute, 7 Tage, 30 Tage, das laufende Jahr, 1 Jahr und gesamt: Eingabe- und Ausgabe-Token und ihren Wert in USD zu API-Preisen."
+          }
+        }
+      }
+    },
+    "Back" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück"
+          }
+        }
+      }
+    },
+    "Background updates" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates"
+          }
+        }
+      }
+    },
+    "Background updates are off. The widget keeps the last numbers." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates sind aus. Das Widget behält die letzten Zahlen."
+          }
+        }
+      }
+    },
+    "Background updates could not start: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates konnten nicht starten: %@"
+          }
+        }
+      }
+    },
+    "Background updates stopped and data removed. Move TokenMaccer from Applications to the Trash to finish." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates gestoppt und Daten entfernt. Lege TokenMaccer aus „Programme“ in den Papierkorb, um fertig zu werden."
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "Cannot read the data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kann die Daten nicht lesen"
+          }
+        }
+      }
+    },
+    "Change Name…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Namen ändern …"
+          }
+        }
+      }
+    },
+    "Check for Updates…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Updates suchen …"
+          }
+        }
+      }
+    },
+    "Choose" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wählen"
+          }
+        }
+      }
+    },
+    "Choose Folder…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner wählen …"
+          }
+        }
+      }
+    },
+    "Choose the Claude Code folder that contains “projects” (usually ~/.claude)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle den Claude-Code-Ordner, der „projects“ enthält (meist ~/.claude)."
+          }
+        }
+      }
+    },
+    "Claude Code" : {
+      "shouldTranslate" : false
+    },
+    "Claude Code leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Leaderboard"
+          }
+        }
+      }
+    },
+    "Claude Code token usage on your desktop. Everything stays on this Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Token-Verbrauch auf deinem Schreibtisch. Alles bleibt auf diesem Mac."
+          }
+        }
+      }
+    },
+    "Claude Code token usage on your desktop. Only your period totals go to the leaderboard." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Token-Verbrauch auf deinem Schreibtisch. Nur deine Summen je Zeitraum gehen ans Leaderboard."
+          }
+        }
+      }
+    },
+    "Claude Code token usage, ticker style: today, 7 and 30 days, year, all time." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Token-Verbrauch im Börsenticker-Stil: heute, 7 und 30 Tage, Jahr, gesamt."
+          }
+        }
+      }
+    },
+    "Claude Code transcripts" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Transkripte"
+          }
+        }
+      }
+    },
+    "Compare with others" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit anderen vergleichen"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter"
+          }
+        }
+      }
+    },
+    "Continue with GitHub" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter mit GitHub"
+          }
+        }
+      }
+    },
+    "Could not change the name: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name konnte nicht geändert werden: %@"
+          }
+        }
+      }
+    },
+    "Could not delete your entry on the server: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Eintrag auf dem Server konnte nicht gelöscht werden: %@"
+          }
+        }
+      }
+    },
+    "Could not join: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beitritt fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "Could not leave." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Austritt fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "Could not leave: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Austritt fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "Could not remove everything: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konnte nicht alles entfernen: %@"
+          }
+        }
+      }
+    },
+    "Could not save the folder: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner konnte nicht gespeichert werden: %@"
+          }
+        }
+      }
+    },
+    "Could not stop background updates: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates konnten nicht gestoppt werden: %@"
+          }
+        }
+      }
+    },
+    "Deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löscht deinen Token-Verlauf und die Zahlen des Widgets auf diesem Mac. Die Transkripte von Claude Code bleiben unberührt. Danach TokenMaccer in den Papierkorb legen."
+          }
+        }
+      }
+    },
+    "Details" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details"
+          }
+        }
+      }
+    },
+    "Display name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeigename"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "Drag a size you like onto the desktop." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zieh eine Größe deiner Wahl auf den Schreibtisch."
+          }
+        }
+      }
+    },
+    "Drag the widget from the gallery onto the desktop." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zieh das Widget aus der Galerie auf den Schreibtisch."
+          }
+        }
+      }
+    },
+    "Everything stays on this Mac" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alles bleibt auf diesem Mac"
+          }
+        }
+      }
+    },
+    "First report with the next update" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erste Meldung mit dem nächsten Update"
+          }
+        }
+      }
+    },
+    "Found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gefunden"
+          }
+        }
+      }
+    },
+    "GitHub @%@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub @%@"
+          }
+        }
+      }
+    },
+    "GitHub sign-in failed: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub-Anmeldung fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "I'm #%lld of %lld %@ on the TokenMaccer leaderboard for Claude Code. Get the app: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich bin #%1$lld von %2$lld %3$@ im TokenMaccer-Leaderboard für Claude Code. Hol dir die App: %4$@"
+          }
+        }
+      }
+    },
+    "In per out" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein pro aus"
+          }
+        }
+      }
+    },
+    "Input" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eingabe"
+          }
+        }
+      }
+    },
+    "It appears with the next report, within 30 minutes." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sie erscheint mit der nächsten Meldung, innerhalb von 30 Minuten."
+          }
+        }
+      }
+    },
+    "Join the Leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dem Leaderboard beitreten"
+          }
+        }
+      }
+    },
+    "Join the leaderboard to compare your totals with other Claude Code users. Only your period totals are shared." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt dem Leaderboard bei, um deine Summen mit anderen Claude-Code-Nutzern zu vergleichen. Geteilt werden nur deine Summen je Zeitraum."
+          }
+        }
+      }
+    },
+    "Joined as %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dabei als %@"
+          }
+        }
+      }
+    },
+    "Joining failed, and the account the sign-in created on the leaderboard server could not be deleted yet: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Beitritt ist fehlgeschlagen, und das Konto, das die Anmeldung auf dem Leaderboard-Server angelegt hat, konnte noch nicht gelöscht werden: %@"
+          }
+        }
+      }
+    },
+    "Join…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beitreten …"
+          }
+        }
+      }
+    },
+    "Last read %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuletzt gelesen %@"
+          }
+        }
+      }
+    },
+    "Last report %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Meldung %@"
+          }
+        }
+      }
+    },
+    "Last update" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Aktualisierung"
+          }
+        }
+      }
+    },
+    "Later" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Später"
+          }
+        }
+      }
+    },
+    "Leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaderboard"
+          }
+        }
+      }
+    },
+    "Leaderboard place %lld of %lld (%@, %@)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaderboard-Platz %1$lld von %2$lld (%3$@, %4$@)"
+          }
+        }
+      }
+    },
+    "Leave Again" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut austreten"
+          }
+        }
+      }
+    },
+    "Leave and Delete" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Austreten und löschen"
+          }
+        }
+      }
+    },
+    "Leave at any time: your account, your profile and all reported totals are deleted from the server. Only your GitHub user ID and the time of your last report stay a little longer (removed with the first report the server receives once they are an hour old), so leaving and joining again cannot get around the report limit." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kannst jederzeit austreten: Dein Konto, dein Profil und alle gemeldeten Summen werden vom Server gelöscht. Nur deine GitHub-Nutzer-ID und der Zeitpunkt deiner letzten Meldung bleiben etwas länger (entfernt mit der ersten Meldung, die der Server erhält, sobald sie eine Stunde alt sind), damit Austreten und erneutes Beitreten die Meldegrenze nicht umgehen."
+          }
+        }
+      }
+    },
+    "Leave the leaderboard?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaderboard verlassen?"
+          }
+        }
+      }
+    },
+    "Leaves the leaderboard (your profile and totals are deleted from the server) and deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlässt das Leaderboard (dein Profil und deine Summen werden auf dem Server gelöscht) und löscht deinen Token-Verlauf und die Zahlen des Widgets auf diesem Mac. Die Transkripte von Claude Code bleiben unberührt. Danach TokenMaccer in den Papierkorb legen."
+          }
+        }
+      }
+    },
+    "Leave…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Austreten …"
+          }
+        }
+      }
+    },
+    "Leaving not finished" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Austritt nicht abgeschlossen"
+          }
+        }
+      }
+    },
+    "Needs your approval" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Braucht deine Erlaubnis"
+          }
+        }
+      }
+    },
+    "Never projects, prompts, file names or any other content. Everything else stays on this Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie Projekte, Prompts, Dateinamen oder andere Inhalte. Alles andere bleibt auf diesem Mac."
+          }
+        }
+      }
+    },
+    "Next period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächster Zeitraum"
+          }
+        }
+      }
+    },
+    "No Claude Code data yet. Claude Code writes its transcripts to ~/.claude/projects once you use it; if yours are somewhere else, choose that folder above." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Claude-Code-Daten. Claude Code schreibt seine Transkripte nach ~/.claude/projects, sobald du es benutzt; liegen deine woanders, wähle oben diesen Ordner."
+          }
+        }
+      }
+    },
+    "No Claude Code usage found yet. Your tokens appear after your next session." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Claude-Code-Nutzung gefunden. Deine Token erscheinen nach deiner nächsten Sitzung."
+          }
+        }
+      }
+    },
+    "No Claude Code usage yet" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Claude-Code-Nutzung"
+          }
+        }
+      }
+    },
+    "No connection to the leaderboard server (%@)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Verbindung zum Leaderboard-Server (%@)."
+          }
+        }
+      }
+    },
+    "No internet connection. The next report follows when you're back online." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Internetverbindung. Die nächste Meldung folgt, sobald du wieder online bist."
+          }
+        }
+      }
+    },
+    "No leaderboard server configured." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Leaderboard-Server eingerichtet."
+          }
+        }
+      }
+    },
+    "No participant has a current total for this period." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für diesen Zeitraum hat noch niemand eine aktuelle Summe."
+          }
+        }
+      }
+    },
+    "Nobody here yet" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch niemand hier"
+          }
+        }
+      }
+    },
+    "Not added yet" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht hinzugefügt"
+          }
+        }
+      }
+    },
+    "Not found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht gefunden"
+          }
+        }
+      }
+    },
+    "Not joined" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht dabei"
+          }
+        }
+      }
+    },
+    "Not on the desktop" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht auf dem Schreibtisch"
+          }
+        }
+      }
+    },
+    "Not yet" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht"
+          }
+        }
+      }
+    },
+    "Nothing removed. %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nichts entfernt. %@."
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus"
+          }
+        }
+      }
+    },
+    "On, every 5 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An, alle 5 Minuten"
+          }
+        }
+      }
+    },
+    "Open Login Items" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmeldeobjekte öffnen"
+          }
+        }
+      }
+    },
+    "Open TokenMaccer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer öffnen"
+          }
+        }
+      }
+    },
+    "Optional. Join with your GitHub account, or skip and join later from the window." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional. Tritt mit deinem GitHub-Konto bei, oder überspring das und tritt später im Fenster bei."
+          }
+        }
+      }
+    },
+    "Optional: compare your totals with other Claude Code users." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional: Vergleiche deine Summen mit anderen Claude-Code-Nutzern."
+          }
+        }
+      }
+    },
+    "Other participants see your display name, your GitHub username and these totals." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere Teilnehmende sehen deinen Anzeigenamen, deinen GitHub-Benutzernamen und diese Summen."
+          }
+        }
+      }
+    },
+    "Others see your display name, your GitHub username and these totals. Leave at any time, and your account and totals are deleted from the server." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere sehen deinen Anzeigenamen, deinen GitHub-Benutzernamen und diese Summen. Du kannst jederzeit austreten, dann werden dein Konto und deine Summen vom Server gelöscht."
+          }
+        }
+      }
+    },
+    "Output" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausgabe"
+          }
+        }
+      }
+    },
+    "Period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum"
+          }
+        }
+      }
+    },
+    "Previous history not taken over: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bisheriger Verlauf nicht übernommen: %@"
+          }
+        }
+      }
+    },
+    "Privacy Notice" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutzhinweis"
+          }
+        }
+      }
+    },
+    "Quit TokenMaccer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer beenden"
+          }
+        }
+      }
+    },
+    "Read at %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelesen um %@"
+          }
+        }
+      }
+    },
+    "Reads Claude Code's transcripts on this Mac" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liest die Transkripte von Claude Code auf diesem Mac"
+          }
+        }
+      }
+    },
+    "Refreshed every 30 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle 30 Minuten neu"
+          }
+        }
+      }
+    },
+    "Remove Data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten entfernen"
+          }
+        }
+      }
+    },
+    "Reports are stopped. Your account is still on the leaderboard server." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meldungen sind gestoppt. Dein Konto ist noch auf dem Leaderboard-Server."
+          }
+        }
+      }
+    },
+    "Reports are stopped. Your account is still on the leaderboard server; deleting it needs one more GitHub sign-in as @%@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meldungen sind gestoppt. Dein Konto ist noch auf dem Leaderboard-Server; zum Löschen brauchst du noch eine GitHub-Anmeldung als @%@."
+          }
+        }
+      }
+    },
+    "Reports are stopped. Your account is still on the leaderboard server; deleting it needs one more GitHub sign-in." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meldungen sind gestoppt. Dein Konto ist noch auf dem Leaderboard-Server; zum Löschen brauchst du noch eine GitHub-Anmeldung."
+          }
+        }
+      }
+    },
+    "Right-click an empty spot on the desktop and choose “Edit Widgets…”." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick mit der rechten Maustaste auf eine freie Stelle des Schreibtischs und wähl „Widgets bearbeiten …“."
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichern"
+          }
+        }
+      }
+    },
+    "Search for “TokenMaccer”." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Such nach „TokenMaccer“."
+          }
+        }
+      }
+    },
+    "See where you stand" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sieh, wo du stehst"
+          }
+        }
+      }
+    },
+    "Select period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum wählen"
+          }
+        }
+      }
+    },
+    "Server error %lld: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverfehler %1$lld: %2$@"
+          }
+        }
+      }
+    },
+    "Settings…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen …"
+          }
+        }
+      }
+    },
+    "Share Your Place" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deinen Platz teilen"
+          }
+        }
+      }
+    },
+    "Share Your Place…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deinen Platz teilen …"
+          }
+        }
+      }
+    },
+    "Share…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen …"
+          }
+        }
+      }
+    },
+    "Show TokenMaccer in the menu bar" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer in der Menüleiste zeigen"
+          }
+        }
+      }
+    },
+    "Showing your numbers" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt deine Zahlen"
+          }
+        }
+      }
+    },
+    "Shown next to your GitHub username @%@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird neben deinem GitHub-Benutzernamen @%@ angezeigt."
+          }
+        }
+      }
+    },
+    "Shows your tokens and their value in USD" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt deine Token und ihren Wert in USD"
+          }
+        }
+      }
+    },
+    "Sign In and Delete…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden und löschen …"
+          }
+        }
+      }
+    },
+    "Signing in creates an account on the leaderboard server (Supabase, EU) with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the server sees these, apart from the username. Its sign-in and request logs record your IP address." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anmeldung legt auf dem Leaderboard-Server (Supabase, EU) ein Konto mit dem an, was GitHub weitergibt: deine GitHub-Nutzer-ID, Benutzername, Name, E-Mail-Adresse und Avatar-Link. Nur der Server sieht diese Angaben, außer dem Benutzernamen. Seine Anmelde- und Anfrage-Logs erfassen deine IP-Adresse."
+          }
+        }
+      }
+    },
+    "Skip" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Überspringen"
+          }
+        }
+      }
+    },
+    "Stop" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stoppen"
+          }
+        }
+      }
+    },
+    "Stop Background Updates" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates stoppen"
+          }
+        }
+      }
+    },
+    "Stop Background Updates & Remove Data…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates stoppen und Daten entfernen …"
+          }
+        }
+      }
+    },
+    "Stop background updates and remove TokenMaccer's data?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates stoppen und die Daten von TokenMaccer entfernen?"
+          }
+        }
+      }
+    },
+    "The background collector is missing from TokenMaccer.app." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Hintergrund-Sammler fehlt in TokenMaccer.app."
+          }
+        }
+      }
+    },
+    "The image and a link to the download page. Your token count is on the card; nothing else is." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bild und ein Link zur Download-Seite. Auf der Karte steht deine Token-Zahl, sonst nichts."
+          }
+        }
+      }
+    },
+    "The leaderboard server can't be reached right now. TokenMaccer tries again on its own." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Leaderboard-Server ist gerade nicht erreichbar. TokenMaccer versucht es von selbst erneut."
+          }
+        }
+      }
+    },
+    "The leaderboard window shows the participants' GitHub profile pictures, downloaded from GitHub (avatars.githubusercontent.com). GitHub sees your IP address, as with any download." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Leaderboard-Fenster zeigt die GitHub-Profilbilder der Teilnehmer, geladen von GitHub (avatars.githubusercontent.com). GitHub sieht dabei deine IP-Adresse, wie bei jedem Download."
+          }
+        }
+      }
+    },
+    "The ranking is on its way" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Rangliste ist unterwegs"
+          }
+        }
+      }
+    },
+    "The ranking loads with the first report once this Mac is back online." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Rangliste lädt mit der ersten Meldung, sobald dieser Mac wieder online ist."
+          }
+        }
+      }
+    },
+    "The server asks to wait %lld s before the next report." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server bittet, %lld s bis zur nächsten Meldung zu warten."
+          }
+        }
+      }
+    },
+    "The server can't be reached" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server ist nicht erreichbar"
+          }
+        }
+      }
+    },
+    "The sign-in expired. Choose Leave (you sign in with GitHub once more to delete your entry), then join again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anmeldung ist abgelaufen. Wähle „Austreten“ (du meldest dich dafür noch einmal mit GitHub an, um deinen Eintrag zu löschen) und tritt dann erneut bei."
+          }
+        }
+      }
+    },
+    "The widget could not read widget.json." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Widget konnte widget.json nicht lesen."
+          }
+        }
+      }
+    },
+    "The widget found no numbers yet; they follow after the next update." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Widget hat noch keine Zahlen gefunden; sie folgen nach dem nächsten Update."
+          }
+        }
+      }
+    },
+    "The widget is on the desktop." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Widget ist auf dem Schreibtisch."
+          }
+        }
+      }
+    },
+    "The widget is running." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Widget läuft."
+          }
+        }
+      }
+    },
+    "There is no sign-in for the leaderboard server on this Mac any more. Sign in with GitHub once more to delete your entry." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesem Mac gibt es keine Anmeldung für den Leaderboard-Server mehr. Melde dich noch einmal mit GitHub an, um deinen Eintrag zu löschen."
+          }
+        }
+      }
+    },
+    "This GitHub account is not the one that joined. Sign in with the account shown under Leaderboard." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses GitHub-Konto ist nicht das, mit dem du beigetreten bist. Melde dich mit dem Konto an, das unter „Leaderboard“ steht."
+          }
+        }
+      }
+    },
+    "Today" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "Today's tokens and, after you joined the leaderboard, your place, next to the clock." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Token von heute und, wenn du dem Leaderboard beigetreten bist, dein Platz, neben der Uhr."
+          }
+        }
+      }
+    },
+    "Token usage of Claude Code, on your Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Token auf deinem Mac."
+          }
+        }
+      }
+    },
+    "TokenMaccer" : {
+      "shouldTranslate" : false
+    },
+    "TokenMaccer counts every 5 minutes." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer zählt alle 5 Minuten."
+          }
+        }
+      }
+    },
+    "TokenMaccer tries again on its own, at most every 30 minutes. Your numbers on this Mac are not affected." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer versucht es von selbst erneut, höchstens alle 30 Minuten. Deine Zahlen auf diesem Mac sind nicht betroffen."
+          }
+        }
+      }
+    },
+    "Tokens" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Token"
+          }
+        }
+      }
+    },
+    "Tokens or USD" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Token oder USD"
+          }
+        }
+      }
+    },
+    "Took over the history of your install.sh setup." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf deiner install.sh-Installation übernommen."
+          }
+        }
+      }
+    },
+    "Trend, %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf, %@"
+          }
+        }
+      }
+    },
+    "Turn On" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einschalten"
+          }
+        }
+      }
+    },
+    "USD" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USD"
+          }
+        }
+      }
+    },
+    "Unit" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einheit"
+          }
+        }
+      }
+    },
+    "Unless you join the leaderboard in step 3; that is optional." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Außer du trittst in Schritt 3 dem Leaderboard bei; das ist optional."
+          }
+        }
+      }
+    },
+    "Update failed:" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update fehlgeschlagen:"
+          }
+        }
+      }
+    },
+    "Update now" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt aktualisieren"
+          }
+        }
+      }
+    },
+    "Updated %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiert %@"
+          }
+        }
+      }
+    },
+    "Updated %@ · refreshed every 30 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiert %@ · alle 30 Minuten neu"
+          }
+        }
+      }
+    },
+    "Waiting for GitHub and the leaderboard server…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf GitHub und den Leaderboard-Server …"
+          }
+        }
+      }
+    },
+    "Waiting for GitHub…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf GitHub …"
+          }
+        }
+      }
+    },
+    "Waiting for data" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf Daten"
+          }
+        }
+      }
+    },
+    "Waiting for the first numbers" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf die ersten Zahlen"
+          }
+        }
+      }
+    },
+    "Waiting for the first numbers. TokenMaccer counts every 5 minutes." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf die ersten Zahlen. TokenMaccer zählt alle 5 Minuten."
+          }
+        }
+      }
+    },
+    "Waiting for the widget… This step checks itself off." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf das Widget … Dieser Schritt hakt sich selbst ab."
+          }
+        }
+      }
+    },
+    "Welcome to TokenMaccer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Willkommen bei TokenMaccer"
+          }
+        }
+      }
+    },
+    "Welcome…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Willkommen …"
+          }
+        }
+      }
+    },
+    "What it does" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was es tut"
+          }
+        }
+      }
+    },
+    "Widget" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Widget"
+          }
+        }
+      }
+    },
+    "Year to date" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laufendes Jahr"
+          }
+        }
+      }
+    },
+    "You" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du"
+          }
+        }
+      }
+    },
+    "You're in. Your place appears after the first report." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist dabei. Dein Platz erscheint nach der ersten Meldung."
+          }
+        }
+      }
+    },
+    "You're offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist offline"
+          }
+        }
+      }
+    },
+    "You're offline. Your place updates when you're back online." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist offline. Dein Platz aktualisiert sich, sobald du wieder online bist."
+          }
+        }
+      }
+    },
+    "You're on the Leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist im Leaderboard"
+          }
+        }
+      }
+    },
+    "You're on the leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist im Leaderboard"
+          }
+        }
+      }
+    },
+    "You: #%lld of %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du: #%1$lld von %2$lld"
+          }
+        }
+      }
+    },
+    "Your Claude Code usage, on your desktop." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Claude-Code-Nutzung, auf deinem Schreibtisch."
+          }
+        }
+      }
+    },
+    "Your account on the leaderboard server could not be deleted (%@)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Konto auf dem Leaderboard-Server konnte nicht gelöscht werden (%@)."
+          }
+        }
+      }
+    },
+    "Your account, your profile and all reported totals are deleted from the leaderboard server, and the sign-in is removed from this Mac. Your history on this Mac stays." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Konto, dein Profil und alle gemeldeten Summen werden auf dem Leaderboard-Server gelöscht, und die Anmeldung wird von diesem Mac entfernt. Dein Verlauf auf diesem Mac bleibt."
+          }
+        }
+      }
+    },
+    "Your display name will be your GitHub username; you can change it right after." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Anzeigename wird dein GitHub-Benutzername; du kannst ihn gleich danach ändern."
+          }
+        }
+      }
+    },
+    "Your leaderboard entry no longer exists. Join again to take part." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Leaderboard-Eintrag existiert nicht mehr. Tritt erneut bei, um mitzumachen."
+          }
+        }
+      }
+    },
+    "Your profile and totals are deleted, but your account on the leaderboard server is not yet (%@)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Profil und deine Summen sind gelöscht, dein Konto auf dem Leaderboard-Server noch nicht (%@)."
+          }
+        }
+      }
+    },
+    "Your tokens appear here after your next Claude Code session. Nothing found? Open TokenMaccer." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Token erscheinen hier nach deiner nächsten Claude-Code-Sitzung. Nichts gefunden? Öffne TokenMaccer."
+          }
+        }
+      }
+    },
+    "all time" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "insgesamt"
+          }
+        }
+      }
+    },
+    "background updates: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund-Updates: %@"
+          }
+        }
+      }
+    },
+    "in the last 12 months" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in den letzten 12 Monaten"
+          }
+        }
+      }
+    },
+    "in the last 30 days" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in den letzten 30 Tagen"
+          }
+        }
+      }
+    },
+    "macOS did not give the widget access to TokenMaccer's shared folder." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS hat dem Widget keinen Zugriff auf den gemeinsamen Ordner von TokenMaccer gegeben."
+          }
+        }
+      }
+    },
+    "not found" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nicht gefunden"
+          }
+        }
+      }
+    },
+    "of %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "von %lld"
+          }
+        }
+      }
+    },
+    "of %lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "von %1$lld %2$@"
+          }
+        }
+      }
+    },
+    "s" : {
+      "shouldTranslate" : false
+    },
+    "t" : {
+      "shouldTranslate" : false
+    },
+    "the background collector is missing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "der Hintergrund-Sammler fehlt"
+          }
+        }
+      }
+    },
+    "the leaderboard server did not answer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "der Leaderboard-Server hat nicht geantwortet"
+          }
+        }
+      }
+    },
+    "the sign-in window could not open" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "das Anmeldefenster konnte nicht öffnen"
+          }
+        }
+      }
+    },
+    "this week" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "diese Woche"
+          }
+        }
+      }
+    },
+    "this year" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dieses Jahr"
+          }
+        }
+      }
+    },
+    "today" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "heute"
+          }
+        }
+      }
+    },
+    "tokens" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Token"
+          }
+        }
+      }
+    },
+    "unknown error" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unbekannter Fehler"
+          }
+        }
+      }
+    },
+    "v" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.0"
+}

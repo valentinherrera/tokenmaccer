@@ -26,6 +26,10 @@ struct OnboardingRenderer {
                                 participants: 120, period: "7D")
         let scenes: [(String, AnyView)] = [
             ("1-about", AnyView(onboarding(.about))),
+            ("1-about-no-claude-data", AnyView(onboarding(.about, transcripts: false))),
+            ("status-no-claude-data", AnyView(Form {
+                Section { NoClaudeDataNote() }
+            }.formStyle(.grouped).frame(width: 460).fixedSize(horizontal: false, vertical: true))),
             ("2-widget-waiting", AnyView(onboarding(.widget))),
             ("2-widget-running", AnyView(onboarding(.widget, widget: true))),
             ("3-leaderboard", AnyView(onboarding(.leaderboard, widget: true))),
@@ -50,8 +54,8 @@ struct OnboardingRenderer {
 
     @MainActor
     static func onboarding(_ step: OnboardingPlan.Step, widget: Bool = false, details: Bool = false,
-                           join: JoinStatus = JoinStatus()) -> some View {
-        OnboardingView(step: .constant(step), transcriptsFound: true, transcriptsPath: "~/.claude/projects",
+                           join: JoinStatus = JoinStatus(), transcripts: Bool = true) -> some View {
+        OnboardingView(step: .constant(step), transcriptsFound: transcripts, transcriptsPath: "~/.claude/projects",
                        widgetRunning: widget, join: join, privacyMarkdown: privacyMarkdown(lang), detailsOpen: details)
     }
 

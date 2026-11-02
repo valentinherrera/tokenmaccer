@@ -78,6 +78,9 @@ struct LeaderboardWindow: View {
         LeaderboardWindowView(
             state: store.state(joined: leaderboard.joined, period: period, unit: usd ? .usd : .tokens),
             period: $period, usd: $usd, updated: store.boards?.fetchedAt,
+            offline: leaderboard.joined
+                ? leaderboard.state.flatMap { s in s.lastError.flatMap { LeaderboardProblem(kind: s.lastErrorKind, message: $0).kind } }
+                : nil,
             avatar: { store.avatar($0) },
             share: { sharing = true },
             join: { joining = true })
@@ -155,6 +158,7 @@ final class MenuBarModel {
         let data = WidgetData.load()
         v.todayTokens = data?.periods["1D"]?.input
         v.todayUSD = data?.periods["1D"]?.usd
+        v.noUsage = TickerView.neverUsed(data)
         v.leaderboardAvailable = Edition.isApp
         if Edition.isApp, let state = LeaderboardState.load(dataDir: AppModels.dataDir), state.joined {
             // the same freshness rule as the widget: a place older than three hours is not shown

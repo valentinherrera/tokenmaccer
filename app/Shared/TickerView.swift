@@ -34,19 +34,48 @@ struct TickerView: View {
     }
 
     var body: some View {
-        if let p {
+        if let p, !Self.neverUsed(data) {
             switch size {
             case .small: small(p)
             case .medium: medium(p)
             case .large: large(p)
             }
         } else {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Claude Code").font(.headline)
-                Text("No data yet. The collector runs every 5 minutes.")
+            empty
+        }
+    }
+
+    /// Nothing counted ever: no Claude Code transcripts were found (or none with usage yet).
+    static func neverUsed(_ data: WidgetData?) -> Bool {
+        guard let data, let all = data.periods["ALL"] else { return false }
+        return all.input == 0 && all.output == 0
+    }
+
+    /// No widget.json yet (first minutes after the install), or nothing counted ever.
+    private var empty: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Claude Code").font(.headline)
+            Spacer(minLength: 0)
+            Image(systemName: data == nil ? "hourglass" : "doc.text.magnifyingglass")
+                .font(.system(size: size == .small ? 18 : 22)).foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            if data == nil {
+                Text("Waiting for the first numbers")
+                    .font(.system(size: 13, weight: .semibold))
+                Text("TokenMaccer counts every 5 minutes.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                Text("No Claude Code usage yet")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(size == .small
+                     ? "Appears after your next session."
+                     : "Your tokens appear here after your next Claude Code session. Nothing found? Open TokenMaccer.")
                     .font(.caption).foregroundStyle(.secondary)
             }
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .minimumScaleFactor(0.8)
     }
 
     // MARK: Building blocks
@@ -121,8 +150,8 @@ struct TickerView: View {
 
     private func subline(_ p: Period) -> some View {
         let parts = [
-            unit == .tokens ? Format.usd(p.usd) : Format.tokens(p.input) + " in",
-            Format.tokens(p.output) + " out",
+            unit == .tokens ? Format.usd(p.usd) : String(localized: "\(Format.tokens(p.input)) in"),
+            String(localized: "\(Format.tokens(p.output)) out"),
             p.ratio.map { "\($0):1" } ?? "–",
         ]
         return Text(parts.joined(separator: " · "))
@@ -217,10 +246,10 @@ struct TickerView: View {
         }
     }
 
-    private func stat(_ title: String, _ value: String) -> some View {
+    private func stat(_ title: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(title).font(.system(size: 11)).foregroundStyle(.secondary)
-            Text(value).font(.system(size: 13, weight: .semibold)).monospacedDigit()
+            Text(verbatim: value).font(.system(size: 13, weight: .semibold)).monospacedDigit()
                 .lineLimit(1).minimumScaleFactor(0.7)
         }
     }

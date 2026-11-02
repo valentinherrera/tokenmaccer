@@ -38,6 +38,11 @@ final class OfflineTransport: HTTPTransport, @unchecked Sendable {
     }
 }
 
+/// The Mac has no internet connection (URLSessionTransport maps URLError.notConnectedToInternet to this).
+final class NoInternetTransport: HTTPTransport, @unchecked Sendable {
+    func send(_ request: HTTPRequest) throws -> HTTPResponse { throw LeaderboardError.offline }
+}
+
 final class MemorySessionStore: SessionStore, @unchecked Sendable {
     private let lock = NSLock()
     private var session: LeaderboardSession?
@@ -142,7 +147,7 @@ extension CollectorTests {
         XCTAssertEqual(Place(rank: 3, of: 12).label(period: "7D", unit: .tokens), "#3 · 7D · Tokens")
         XCTAssertEqual(Place(rank: 1, of: 2).label(period: "ALL", unit: .usd), "#1 · ALL · USD")
         XCTAssertEqual(Place(rank: 3, of: 12).accessibilityLabel(period: "7D", unit: .tokens),
-                       "Leaderboard place 3 of 12, 7 days, tokens")
+                       "Leaderboard place 3 of 12 (7 days, Tokens)")
         XCTAssertEqual(decoded.place(period: "YTD", unit: .usd), Place(rank: 2, of: 12))
         let state = try XCTUnwrap(LeaderboardState.load(dataDir: data))
         XCTAssertNotNil(state.lastReportAt)
@@ -268,6 +273,7 @@ extension CollectorTests {
         XCTAssertTrue(try state().joined)
         let offlineError = try XCTUnwrap(try state().lastError)
         XCTAssertTrue(offlineError.contains("No connection"), offlineError)
+        XCTAssertEqual(try state().lastErrorKind, LeaderboardErrorKind.unreachable, "the app words it itself")
         XCTAssertNotNil(try state().lastAttemptAt, "the next attempt waits for the interval")
         _ = Collector.run(try config(), leaderboard: LeaderboardSync(
             dataDir: data, endpoint: endpoint, sessions: MemorySessionStore(validSession)) { offline })
@@ -285,6 +291,7 @@ extension CollectorTests {
         XCTAssertEqual(spy.requests.last?.headers["Authorization"], "Bearer access-2")
         XCTAssertTrue(try state().joined)
         XCTAssertEqual(try state().lastError, LeaderboardError.unauthorized.description)
+        XCTAssertNil(try state().lastErrorKind, "a sign-in problem needs the collector's message")
 
         // 401 and a dead refresh token (GoTrue answers 400): no second report, error kept
         try due()
@@ -303,6 +310,7 @@ extension CollectorTests {
         XCTAssertTrue(try state().joined)
         XCTAssertNil(try state().retryAfter)
         XCTAssertEqual(try state().lastError, LeaderboardError.server(422, "inconsistent periods: 1D exceeds 7D").description)
+        XCTAssertNil(try state().lastErrorKind)
 
         // 429 without Retry-After: waits 300 s; when my_ranks fails too, the error is kept and nothing breaks
         try due()
@@ -315,7 +323,31 @@ extension CollectorTests {
         XCTAssertTrue((295...310).contains(wait), "\(wait)")
         XCTAssertTrue(try state().joined)
         XCTAssertNotNil(try state().lastError)
+        XCTAssertEqual(try state().lastErrorKind, LeaderboardErrorKind.unreachable, "503 from my_ranks")
         XCTAssertNil(try widgetJSON()["ranks"])
+
+        // the Mac itself is offline: its own kind, and the next good report clears it
+        try due()
+        let noInternet = NoInternetTransport()
+        _ = Collector.run(try config(), leaderboard: LeaderboardSync(
+            dataDir: data, endpoint: endpoint, sessions: MemorySessionStore(validSession)) { noInternet })
+        XCTAssertEqual(try state().lastErrorKind, LeaderboardErrorKind.offline)
+        XCTAssertEqual(try state().lastError, LeaderboardError.offline.description)
+        try due()
+        spy.answer("/functions/v1/report", 200, ["ranks": ranksJSON(tokens1D: 1, of: 2)])
+        _ = Collector.run(try config(), leaderboard: sync(spy, store))
+        XCTAssertNil(try state().lastError)
+        XCTAssertNil(try state().lastErrorKind)
+    }
+
+    func testURLErrorsMapToOfflineOrUnreachable() {
+        XCTAssertEqual(LeaderboardError.from(URLError(.notConnectedToInternet)), .offline)
+        XCTAssertEqual(LeaderboardError.from(URLError(.networkConnectionLost)), .offline)
+        XCTAssertEqual(LeaderboardError.from(URLError(.timedOut)).kind, LeaderboardErrorKind.unreachable)
+        XCTAssertEqual(LeaderboardError.from(URLError(.cannotConnectToHost)).kind, LeaderboardErrorKind.unreachable)
+        XCTAssertEqual(LeaderboardError.server(502, "bad gateway").kind, LeaderboardErrorKind.unreachable)
+        XCTAssertNil(LeaderboardError.server(429, "x").kind)
+        XCTAssertNil(LeaderboardError.unauthorized.kind)
     }
 
     // MARK: Join and leave

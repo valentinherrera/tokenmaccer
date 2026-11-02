@@ -57,7 +57,7 @@ Without a certificate the installer still sets up the collector and tells you wh
 No Xcode, no Terminal, no Python: the app brings its own collector.
 
 1. Download `TokenMaccer-1.0.0.dmg` from the [latest release](https://github.com/valentinherrera/tokenmaccer/releases/latest) and open it.
-2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple, so macOS opens it without a warning.
+2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple. macOS asks once to confirm opening an app downloaded from the internet; click **Open**. No security warning appears.
 3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**.
 4. Right-click the desktop › **Edit Widgets…** › search for **TokenMaccer** and add it. Your numbers appear within a few minutes.
 

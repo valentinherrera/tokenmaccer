@@ -24,7 +24,9 @@
   }
   a { color: var(--color-accent); }
   a:focus-visible, button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  /* full width at every size: the side gutter grows with the window instead of a fixed column */
+  :root { --gutter: clamp(16px, 5vw, 96px); }
+  .wrap { padding: 0 var(--gutter); }
   header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--color-text); text-decoration: none; }
   .brand img { width: 32px; height: 32px; }
@@ -39,7 +41,7 @@
   .intro { padding: 56px 0 40px; }
   h1 {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: clamp(46px, 9vw, 104px); line-height: .98; letter-spacing: -0.045em; font-weight: 700;
+    font-size: clamp(46px, 8.4vw, 168px); line-height: .98; letter-spacing: -0.045em; font-weight: 700;
     margin: 0 0 22px;
   }
   h1 span { display: block; }
@@ -56,8 +58,8 @@
   .desk {
     position: relative; overflow: hidden; border-radius: 28px;
     background: var(--gradient-field);
-    height: 560px; margin: 0 0 72px;
-    box-shadow: 0 30px 80px rgba(28,28,30,.28);
+    height: clamp(560px, 46vw, 980px); margin: 0 calc(-1 * var(--gutter)) 72px;
+    border-radius: 0;
   }
   .menubar {
     position: absolute; inset: 0 0 auto 0; height: 32px; display: flex; align-items: center; gap: 22px;
@@ -74,17 +76,17 @@
   .menubar .ticker img { width: 16px; height: 16px; }
   .menubar .clock { font-variant-numeric: tabular-nums; white-space: nowrap; }
   .desk > img { position: absolute; height: auto; display: block; }
-  .w-usage { left: 6%; top: 78px; width: 330px; filter: drop-shadow(0 24px 40px rgba(0,0,0,.5)); }
-  .w-board { left: 37%; top: 262px; width: 364px; border-radius: 22px; box-shadow: 0 24px 40px rgba(0,0,0,.5); }
+  .w-usage { left: max(6%, var(--gutter)); top: calc(32px + 6%); width: clamp(300px, 24vw, 470px); filter: drop-shadow(0 24px 40px rgba(0,0,0,.5)); }
+  .w-board { left: 38%; top: 47%; width: clamp(330px, 27vw, 530px); border-radius: clamp(20px, 1.6vw, 32px); box-shadow: 0 24px 40px rgba(0,0,0,.5); }
   /* the menu bar panel opens under its item */
-  .w-panel { right: 18px; top: 38px; width: 280px; filter: drop-shadow(0 24px 40px rgba(0,0,0,.55)); }
+  .w-panel { right: max(18px, calc(var(--gutter) - 24px)); top: 38px; width: clamp(250px, 20vw, 390px); filter: drop-shadow(0 24px 40px rgba(0,0,0,.55)); }
   .desk .note {
-    position: absolute; right: 24px; bottom: 26px; margin: 0; max-width: 20em;
+    position: absolute; right: var(--gutter); bottom: 26px; margin: 0; max-width: 20em;
     font-size: 14px; color: var(--gray-300);
   }
 
   /* Below the desk: install and privacy, side by side */
-  .more { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; padding: 0 0 64px; }
+  .more { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(36px, 6vw, 120px); padding: 0 0 64px; }
   h2 { font-size: 26px; letter-spacing: -0.015em; margin: 0 0 14px; }
   .steps { margin: 0; padding-left: 1.3em; max-width: 30em; }
   .steps li { padding-left: 4px; }
@@ -100,6 +102,13 @@
   html[lang="en"] [data-lang="en"], html[lang="de"] [data-lang="de"] { display: revert; }
   html[lang="en"] .ticker[data-lang="en"], html[lang="de"] .ticker[data-lang="de"] { display: inline-flex; }
 
+  @media (min-width: 1280px) {
+    .intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); grid-template-areas: "h1 lede" "h1 cta";
+      column-gap: clamp(40px, 5vw, 120px); align-items: end; padding: clamp(56px, 6vw, 120px) 0 clamp(40px, 4vw, 80px); }
+    .intro h1 { grid-area: h1; margin: 0; font-size: clamp(84px, 6.8vw, 160px); }
+    .intro .lede { grid-area: lede; align-self: end; font-size: clamp(21px, 1.3vw, 26px); }
+    .intro .cta { grid-area: cta; align-self: start; }
+  }
   @media (max-width: 1000px) {
     .w-usage { left: 3%; width: 300px; }
     .w-board { left: auto; right: 3%; top: 330px; width: 330px; }
@@ -110,7 +119,7 @@
   @media (max-width: 700px) {
     .intro { padding: 28px 0 28px; }
     .lede { font-size: 18px; }
-    .desk { height: auto; padding: 56px 16px 20px; border-radius: 22px; margin-bottom: 48px; }
+    .desk { height: auto; padding: 56px 16px 20px; border-radius: 22px; margin: 0 0 48px; box-shadow: 0 30px 80px rgba(28,28,30,.28); }
     .desk > img { position: static; margin: 0 auto 18px; max-width: 100%; }
     .w-usage { width: 300px; }
     .w-board { width: 100%; max-width: 364px; border-radius: 18px; }

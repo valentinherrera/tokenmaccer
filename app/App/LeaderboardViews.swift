@@ -146,7 +146,7 @@ struct LeaderboardWindowView: View {
     @ViewBuilder private var content: some View {
         switch state {
         case .notJoined:
-            EmptyBoard(symbol: "trophy", title: "See where you stand",
+            EmptyBoard(symbol: "trophy", title: "Compare with others",
                        detail: "Join the leaderboard to compare your totals with other Claude Code users. Only your period totals are shared.") {
                 Button(action: join) { Text("Join…").primaryLabel() }
                     .buttonStyle(.borderedProminent).tint(Palette.buttonBackground).keyboardShortcut(.defaultAction)
@@ -158,7 +158,7 @@ struct LeaderboardWindowView: View {
             EmptyBoard(symbol: "icloud.slash", title: "The server can't be reached",
                        detail: "TokenMaccer tries again on its own, at most every 30 minutes. Your numbers on this Mac are not affected.") { EmptyView() }
         case .waiting:
-            EmptyBoard(symbol: "hourglass", title: "The ranking is on its way",
+            EmptyBoard(symbol: "hourglass", title: "The ranking is not loaded yet",
                        detail: "It appears with the next report, within 30 minutes.") { ProgressView().controlSize(.small) }
         case .board(nil):
             EmptyBoard(symbol: "person.3", title: "Nobody here yet",

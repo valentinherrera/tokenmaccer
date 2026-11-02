@@ -57,10 +57,10 @@ Without a certificate the installer still sets up the collector and tells you wh
 
 ## Download (app)
 
-No Xcode, no Terminal, no Python: the app brings its own collector.
+The app includes its own collector and needs no Xcode, Terminal or Python.
 
 1. Download [`TokenMaccer.dmg`](https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg) from the latest release and open it. (Homebrew: a cask is prepared in `packaging/homebrew/`; it needs a tap repository before `brew install --cask` works.)
-2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple. macOS asks once to confirm opening an app downloaded from the internet; click **Open**. No security warning appears.
+2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple. macOS asks once to confirm opening an app downloaded from the internet; click **Open**.
 3. On the first start a short welcome walks you through three steps: what TokenMaccer reads (it shows whether your Claude Code transcripts were found; if they live outside `~/.claude`, click **Choose Folder…**), adding the widget (right-click the desktop › **Edit Widgets…** › search for **TokenMaccer**; the step checks itself off as soon as the widget runs), and the optional [leaderboard](#leaderboard-and-privacy), which you can skip. **TokenMaccer › Welcome…** shows it again. Background updates run every 5 minutes, also after a restart. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
 4. Afterwards the window shows the status (transcripts, background updates, widget, leaderboard). Your numbers appear in the widget within a few minutes.
 
@@ -84,7 +84,7 @@ END PENDING RELEASE -->
 
 ### Leaderboard and privacy
 
-Optional, off by default. In step 3 of the welcome, or later with **Join…** under **Leaderboard** in the window, TokenMaccer shows in two lines what is shared (the full text under **Details**, and the privacy notice, which opens inside the app and needs no network) and one button, **Continue with GitHub**, which signs you in through [Supabase](https://supabase.com) Auth in a system sign-in window (PKCE). Your display name starts as your GitHub username; change it right there or later with **Change Name…**. Then your place appears, large (for example `#3 of 120`, 7 days, tokens), and the widget shows it quietly next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`. A click on it opens the **Leaderboard** window (also **Window › Leaderboard**, ⌘L): the first 50 places with GitHub profile pictures, your own row highlighted (and added below the list when you are further down), switchable between the six periods and tokens or USD. **Share…** there makes a card such as `#3 of 120 this week` and hands it, with a link to the download page, to the system share menu.
+Optional, off by default. In step 3 of the welcome, or later with **Join…** under **Leaderboard** in the window, TokenMaccer shows in two lines what is shared (the full text under **Details**, and the privacy notice, which opens inside the app and needs no network) and one button, **Continue with GitHub**, which signs you in through [Supabase](https://supabase.com) Auth in a system sign-in window (PKCE). Your display name starts as your GitHub username; change it right there or later with **Change Name…**. Then your place appears (for example `#3 of 120`, 7 days, tokens), and the widget shows it next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`. A click on it opens the **Leaderboard** window (also **Window › Leaderboard**, ⌘L): the first 50 places with GitHub profile pictures, your own row highlighted (and added below the list when you are further down), switchable between the six periods and tokens or USD. **Share…** there makes a card such as `#3 of 120 this week` and hands it, with a link to the download page, to the system share menu.
 
 The menu bar shows today's tokens and, once you joined, today's place; its panel opens the window, the leaderboard, sharing, the update check and **Settings…** (⌘,), where the menu bar item can be switched off.
 
@@ -99,7 +99,7 @@ The menu bar shows today's tokens and, once you joined, today's place; its panel
 
 Everything stored, where and for how long: [privacy notice](docs/privacy.md) ([Deutsch](docs/privacy.de.md)).
 
-### USD is the API-price value, not your bill
+### What the USD figures mean
 
 The USD figures, in the widget and on the leaderboard, are what your token usage would cost at Anthropic's public API list prices (`collector/prices.json`). They are not a bill: with a Claude subscription you pay your plan's price, and TokenMaccer never sees any billing data.
 

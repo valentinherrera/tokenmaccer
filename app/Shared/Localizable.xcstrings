@@ -1237,16 +1237,6 @@
         }
       }
     },
-    "See where you stand" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sieh, wo du stehst"
-          }
-        }
-      }
-    },
     "Select period" : {
       "localizations" : {
         "de" : {
@@ -1452,17 +1442,17 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das Leaderboard-Fenster zeigt die GitHub-Profilbilder der Teilnehmer, geladen von GitHub (avatars.githubusercontent.com). GitHub sieht dabei deine IP-Adresse, wie bei jedem Download."
+            "value" : "Das Leaderboard-Fenster zeigt die GitHub-Profilbilder der Teilnehmenden, geladen von GitHub (avatars.githubusercontent.com). GitHub sieht dabei deine IP-Adresse, wie bei jedem Download."
           }
         }
       }
     },
-    "The ranking is on its way" : {
+    "The ranking is not loaded yet" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Rangliste ist unterwegs"
+            "value" : "Die Rangliste ist noch nicht geladen"
           }
         }
       }

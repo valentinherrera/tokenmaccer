@@ -85,6 +85,39 @@
     font-size: 14px; color: var(--gray-300);
   }
 
+  /* Copy field: the brew command (and the page link on a phone) on one line that scrolls, with a 44 pt button */
+  .copy { display: flex; align-items: stretch; max-width: 100%; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+  .copy code { flex: 1 1 auto; min-width: 0; overflow-x: auto; white-space: nowrap; padding: 12px 14px; align-self: center; scrollbar-width: none; }
+  .copy code::-webkit-scrollbar { display: none; }
+  .copy button {
+    flex: none; min-height: 44px; min-width: 44px; padding: 0 16px; border: 0; border-left: 1px solid var(--color-border);
+    border-radius: 0 11px 11px 0; background: transparent; color: var(--color-accent); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .intro .copy { margin-top: 18px; width: min(100%, 34em); font-size: 15px; }
+  .more .copy { margin-top: 16px; font-size: 15px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  /* a phone cannot run the app: offer the link for the Mac instead (touch-only screens) */
+  .phone { display: none; margin: 18px 0 0; max-width: 34em; }
+  .phone p { margin: 0 0 8px; color: var(--color-text-secondary); font-size: 15px; }
+  @media (hover: none) and (pointer: coarse) {
+    .phone { display: block; }
+    .intro .copy.brew { display: none; }
+  }
+
+  /* Better with friends: four cards, each a real render on graphite and one line */
+  .friends { padding: 0 0 72px; }
+  .friends h2 { font-size: clamp(30px, 3.4vw, 52px); letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 28px; }
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 28px); margin: 0; padding: 0; list-style: none; }
+  .cards li { display: flex; flex-direction: column; }
+  .shot {
+    display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; padding: 8%;
+    background: var(--gradient-field); border-radius: 20px; overflow: hidden;
+  }
+  .shot img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; filter: drop-shadow(0 14px 24px rgba(0,0,0,.45)); }
+  .shot img.round { border-radius: clamp(10px, 1.2vw, 18px); }
+  .cards h3 { font-size: 19px; letter-spacing: -0.01em; margin: 16px 0 4px; }
+  .cards p { margin: 0; color: var(--color-text-secondary); font-size: 16px; line-height: 1.45; }
+
   /* Below the desk: install and privacy, side by side */
   .more { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(36px, 6vw, 120px); padding: 0 0 64px; }
   h2 { font-size: 26px; letter-spacing: -0.015em; margin: 0 0 14px; }
@@ -92,6 +125,7 @@
   .steps li { padding-left: 4px; }
   .steps li + li { margin-top: 8px; }
   .more p { margin: 0 0 12px; max-width: 32em; }
+  .more > section { min-width: 0; } /* else the one-line brew command widens the column past the screen */
   .quiet { color: var(--color-text-secondary); font-size: 15px; }
   code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92em; }
 
@@ -103,17 +137,19 @@
   html[lang="en"] .ticker[data-lang="en"], html[lang="de"] .ticker[data-lang="de"] { display: inline-flex; }
 
   @media (min-width: 1280px) {
-    .intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); grid-template-areas: "h1 lede" "h1 cta";
+    .intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); grid-template-areas: "h1 lede" "h1 cta" "h1 copy";
       column-gap: clamp(40px, 5vw, 120px); align-items: end; padding: clamp(56px, 6vw, 120px) 0 clamp(40px, 4vw, 80px); }
     .intro h1 { grid-area: h1; margin: 0; font-size: clamp(84px, 6.8vw, 160px); }
     .intro .lede { grid-area: lede; align-self: end; font-size: clamp(21px, 1.3vw, 26px); }
     .intro .cta { grid-area: cta; align-self: start; }
+    .intro .copy.brew, .intro .phone { grid-area: copy; align-self: start; }
   }
   @media (max-width: 1000px) {
     .w-usage { left: 3%; width: 300px; }
     .w-board { left: auto; right: 3%; top: 330px; width: 330px; }
     .w-panel { width: 250px; }
     .desk .note { left: 3%; right: auto; bottom: 22px; max-width: 18em; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 32px; }
   }
   /* phone: the widgets stack, the panel stays in the menu bar */
   @media (max-width: 700px) {
@@ -128,6 +164,9 @@
     html[lang] .menubar .menu { display: none; }
     .desk .note { position: static; text-align: center; margin: 4px auto 0; }
     .more { grid-template-columns: 1fr; gap: 36px; }
+    .lang button { min-height: 44px; min-width: 44px; font-size: 15px; }
+    .cards { grid-template-columns: 1fr; row-gap: 28px; }
+    .friends { padding-bottom: 56px; }
   }
 </style>
 </head>
@@ -155,6 +194,18 @@
         <span class="req" data-lang="en">Free and open source, macOS 15 or newer</span>
         <span class="req" data-lang="de">Kostenlos und Open Source, ab macOS 15</span>
       </div>
+      <div class="copy brew">
+        <code>brew install --cask valentinherrera/tap/tokenmaccer</code>
+        <button type="button" data-copy="brew install --cask valentinherrera/tap/tokenmaccer"><span data-lang="en">Copy</span><span data-lang="de">Kopieren</span></button>
+      </div>
+      <div class="phone">
+        <p data-lang="en">TokenMaccer runs on a Mac. Copy the link and open it there.</p>
+        <p data-lang="de">TokenMaccer läuft auf dem Mac. Kopier den Link und öffne ihn dort.</p>
+        <div class="copy">
+          <code>tokenmaccer.app</code>
+          <button type="button" data-copy="https://tokenmaccer.app"><span data-lang="en">Copy link</span><span data-lang="de">Link kopieren</span></button>
+        </div>
+      </div>
     </div>
 
     <div class="desk" role="img" aria-labelledby="desk-en desk-de">
@@ -176,6 +227,37 @@
       <p class="note" id="desk-de" data-lang="de">Auf deinem Schreibtisch: das Verbrauchs-Widget, das Leaderboard-Widget und die Token von heute in der Menüleiste. Demo-Zahlen, ausgedachte Namen.</p>
     </div>
 
+    <section class="friends" aria-labelledby="friends-en friends-de">
+      <h2 id="friends-en" data-lang="en">Better with friends.</h2>
+      <h2 id="friends-de" data-lang="de">Mit Freunden besser.</h2>
+      <ol class="cards">
+        <li>
+          <div class="shot"><img src="assets/widget-dark-en.png" data-i18n-src width="610" height="640" alt="" loading="lazy"></div>
+          <h3 data-lang="en">Read your chart</h3><h3 data-lang="de">Chart lesen</h3>
+          <p data-lang="en">Orange means more than the period before, green means less. The dotted line is where you were then.</p>
+          <p data-lang="de">Orange heißt mehr als im Zeitraum davor, grün weniger. Die gepunktete Linie zeigt, wo du damals warst.</p>
+        </li>
+        <li>
+          <div class="shot"><img class="round" src="assets/invite-card-en.png" data-i18n-src width="800" height="453" alt="" loading="lazy"></div>
+          <h3 data-lang="en">Start your own board</h3><h3 data-lang="de">Eigenes Leaderboard</h3>
+          <p data-lang="en">Create a group and send the link. Friends join with GitHub.</p>
+          <p data-lang="de">Leg eine Gruppe an und schick den Link. Freunde treten mit GitHub bei.</p>
+        </li>
+        <li>
+          <div class="shot"><img class="round" src="assets/group-widget-dark-en.png" data-i18n-src width="728" height="340" alt="" loading="lazy"></div>
+          <h3 data-lang="en">Your group in the widget</h3><h3 data-lang="de">Deine Gruppe im Widget</h3>
+          <p data-lang="en">Click the widget's title to switch between global and your groups.</p>
+          <p data-lang="de">Ein Klick auf den Titel im Widget wechselt zwischen global und deinen Gruppen.</p>
+        </li>
+        <li>
+          <div class="shot"><img class="round" src="assets/share-card-en.png" data-i18n-src width="800" height="453" alt="" loading="lazy"></div>
+          <h3 data-lang="en">Rank globally, share it</h3><h3 data-lang="de">Global vergleichen, teilen</h3>
+          <p data-lang="en">See your place among everyone and share it as a card.</p>
+          <p data-lang="de">Sieh deinen Platz unter allen und teile ihn als Karte.</p>
+        </li>
+      </ol>
+    </section>
+
     <div class="more">
       <section>
         <h2 data-lang="en">Get started</h2>
@@ -192,8 +274,12 @@
         </ol>
         <!-- The cask lives in github.com/valentinherrera/homebrew-tap (Casks/tokenmaccer.rb), generated by
              scripts/release.sh from packaging/homebrew/tokenmaccer.rb. -->
-        <p class="quiet" data-lang="en" style="margin-top:16px">Homebrew: <code style="overflow-wrap:anywhere">brew install --cask valentinherrera/tap/tokenmaccer</code>. Updates install themselves when you quit the app.</p>
-        <p class="quiet" data-lang="de" style="margin-top:16px">Homebrew: <code style="overflow-wrap:anywhere">brew install --cask valentinherrera/tap/tokenmaccer</code>. Updates installieren sich selbst, wenn du die App beendest.</p>
+        <div class="copy">
+          <code>brew install --cask valentinherrera/tap/tokenmaccer</code>
+          <button type="button" data-copy="brew install --cask valentinherrera/tap/tokenmaccer"><span data-lang="en">Copy</span><span data-lang="de">Kopieren</span></button>
+        </div>
+        <p class="quiet" data-lang="en" style="margin-top:12px">Or with Homebrew. Updates install themselves when you quit the app.</p>
+        <p class="quiet" data-lang="de" style="margin-top:12px">Oder mit Homebrew. Updates installieren sich selbst, wenn du die App beendest.</p>
       </section>
       <section id="privacy">
         <h2 data-lang="en">Stays on your Mac</h2>
@@ -214,6 +300,7 @@
     <p data-lang="de">Ein Projekt der PAUS UG (haftungsbeschränkt), Düsseldorf.</p>
   </footer>
 </div>
+<p class="sr" id="copied" aria-live="polite"></p>
 <script>
   // Language: ?lang=de|en, then a choice made here before, then the browser's language. The choice is kept in
   // localStorage (this browser only); nothing leaves the page.
@@ -240,6 +327,35 @@
     set(lang, false);
     document.querySelectorAll('[data-set-lang]').forEach(function (b) {
       b.addEventListener('click', function () { set(b.getAttribute('data-set-lang'), true); });
+    });
+  })();
+  // Copy buttons: the clipboard API, else select the text so it can be copied by hand. The result is announced
+  // through the live region and shown on the button for two seconds.
+  (function () {
+    var live = document.getElementById('copied');
+    var words = { en: ['Copied', 'Select and copy'], de: ['Kopiert', 'Markieren und kopieren'] };
+    document.querySelectorAll('[data-copy]').forEach(function (b) {
+      var original = b.innerHTML;
+      function show(ok) {
+        var w = words[document.documentElement.lang] || words.en;
+        b.textContent = ok ? w[0] : w[1];
+        live.textContent = '';
+        setTimeout(function () { live.textContent = ok ? w[0] : w[1]; }, 50);
+        clearTimeout(b._t);
+        b._t = setTimeout(function () { b.innerHTML = original; }, 2000);
+      }
+      function select() {
+        var code = b.parentNode.querySelector('code');
+        var r = document.createRange(); r.selectNodeContents(code);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        show(false);
+      }
+      b.addEventListener('click', function () {
+        var text = b.getAttribute('data-copy');
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(function () { show(true); }, select);
+        } else { select(); }
+      });
     });
   })();
 </script>

@@ -16,3 +16,4 @@ backups/
 app/build-appedition/
 dist/
 app/build-release/
+.venv/

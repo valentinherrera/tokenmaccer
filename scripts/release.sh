@@ -133,6 +133,9 @@ sparkle_tools() {
   echo "$SPARKLE_TOOLS"
 }
 
+step "Preflight (lint, types, tests, both builds with warnings as errors)"
+"$ROOT/scripts/preflight.sh" || die "preflight failed; nothing was built"
+
 step "TokenMaccer $VERSION, team $TEAM, notary profile $PROFILE"
 rm -rf "$BUILD"
 mkdir -p "$BUILD" "$DIST"

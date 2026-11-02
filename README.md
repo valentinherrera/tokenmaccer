@@ -177,8 +177,8 @@ END PENDING RELEASE -->
 ## Development
 
 ```sh
-python3 -m unittest discover -s tests     # collector tests with made-up transcripts
-ruff check . && mypy collector tests       # lint and types
+scripts/preflight.sh                       # the full check chain CI and release.sh run (brew install xcodegen shellcheck deno)
+scripts/preflight.sh python shell deno     # the fast part only: ruff, mypy strict (repo venv), tests, shellcheck, deno
 
 # preview the widget as PNGs with demo data, without installing anything
 python3 scripts/make_demo.py /tmp/tm-demo/claude

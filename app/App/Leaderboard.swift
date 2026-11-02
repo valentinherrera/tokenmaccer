@@ -327,7 +327,8 @@ struct JoinSheet: View {
             HStack {
                 Spacer()
                 if status.phase == .joined {
-                    Button("Done", action: close).keyboardShortcut(.defaultAction)
+                    Button(action: close) { Text("Done").primaryLabel() }
+                        .buttonStyle(.borderedProminent).tint(Palette.buttonBackground).keyboardShortcut(.defaultAction)
                 } else {
                     Button("Cancel", role: .cancel, action: close)
                         .keyboardShortcut(.cancelAction)

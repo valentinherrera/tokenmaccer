@@ -12,16 +12,13 @@ struct TickerView: View {
     let size: Size
 
     @Environment(\.widgetRenderingMode) private var mode
-    @Environment(\.colorScheme) private var scheme
 
     private var p: Period? { data?.periods[period] }
 
-    /// Pill color with enough contrast for white text: darker (increased-contrast) variants in light mode,
-    /// system colors in dark mode.
+    /// Pill color (Palette, light/dark/Increase Contrast); its label is Palette.onAccent, white in light and
+    /// graphite in dark, so both pills keep 4.5:1.
     private var pillColor: Color {
-        let up = (change ?? 0) > 0
-        if scheme == .dark { return up ? Color(nsColor: .systemOrange) : Color(nsColor: .systemGreen) }
-        return up ? Color(red: 0.788, green: 0.204, blue: 0) : Color(red: 0.141, green: 0.541, blue: 0.239)
+        (change ?? 0) > 0 ? Palette.trendUp : Palette.success
     }
 
     private var change: Double? {
@@ -30,7 +27,7 @@ struct TickerView: View {
 
     private var trendColor: Color {
         guard let c = change else { return Color.primary.opacity(0.6) }
-        return c > 0 ? Color(nsColor: .systemOrange) : Color(nsColor: .systemGreen)
+        return c > 0 ? Palette.trendUp : Color(nsColor: .systemGreen)
     }
 
     var body: some View {
@@ -115,7 +112,7 @@ struct TickerView: View {
                 .font(.system(size: 13, weight: .semibold))
                 .monospacedDigit()
             if mode == .fullColor {
-                text.foregroundStyle(.white)
+                text.foregroundStyle(Palette.onAccent)
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(RoundedRectangle(cornerRadius: 6).fill(pillColor))
             } else {
@@ -133,7 +130,7 @@ struct TickerView: View {
                 Text(place.label(period: period, unit: unit))
                     .font(.system(size: 11, weight: .medium))
                     .monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.accent)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }

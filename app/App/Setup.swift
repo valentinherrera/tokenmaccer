@@ -377,7 +377,8 @@ struct SetupView: View {
                 CheckForUpdatesButton()
                 Spacer()
                 if setup.running { ProgressView().controlSize(.small) }
-                Button("Update now") { Task { await setup.updateNow() } }
+                Button { Task { await setup.updateNow() } } label: { Text("Update now").primaryLabel() }
+                    .buttonStyle(.borderedProminent).tint(Palette.buttonBackground)
                     .keyboardShortcut(.defaultAction)
                     .disabled(setup.running || setup.helperURL == nil)
             }
@@ -455,8 +456,8 @@ struct StatusRow<Accessory: View>: View {
 
     @ViewBuilder private var symbol: some View {
         switch state {
-        case .ok: Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-        case .problem: Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+        case .ok: Image(systemName: "checkmark.circle.fill").foregroundStyle(Palette.success)
+        case .problem: Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Palette.warning)
         case .off: Image(systemName: "minus.circle.fill").foregroundStyle(.secondary)
         }
     }

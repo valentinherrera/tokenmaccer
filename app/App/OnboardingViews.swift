@@ -63,7 +63,8 @@ struct PrivacyNoticeSheet: View {
             Divider()
             HStack {
                 Spacer()
-                Button("Done", action: close).keyboardShortcut(.defaultAction)
+                Button(action: close) { Text("Done").primaryLabel() }
+                    .buttonStyle(.borderedProminent).tint(Palette.buttonBackground).keyboardShortcut(.defaultAction)
             }
             .padding(16)
         }
@@ -155,9 +156,11 @@ struct JoinPanel: View {
                         if status.phase == .busy { ProgressView().controlSize(.small) }
                         Text(status.phase == .busy ? "Waiting for GitHub…" : "Continue with GitHub")
                     }
+                    .primaryLabel()
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(Palette.buttonBackground)
                 .controlSize(.large)
                 // Return joins, here and in the onboarding's last step (whose footer has no default button then)
                 .keyboardShortcut(.defaultAction)
@@ -168,7 +171,7 @@ struct JoinPanel: View {
             }
             if let error = status.error {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout).foregroundStyle(.orange)
+                    .font(.callout).foregroundStyle(Palette.warning)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -230,7 +233,7 @@ struct JoinedView: View {
             }
             if let error = status.error {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout).foregroundStyle(.orange)
+                    .font(.callout).foregroundStyle(Palette.warning)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -349,7 +352,7 @@ struct OnboardingView: View {
                         detail: nil) {
                     HStack(spacing: 6) {
                         Image(systemName: transcriptsFound ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                            .foregroundStyle(transcriptsFound ? .green : .orange)
+                            .foregroundStyle(transcriptsFound ? Palette.success : Palette.warning)
                         Text(verbatim: transcriptsPath).textSelection(.enabled)
                         if !transcriptsFound {
                             Text("not found")
@@ -387,7 +390,7 @@ struct OnboardingView: View {
             Group {
                 if widgetRunning {
                     Label("The widget is running.", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Palette.success)
                 } else {
                     HStack(spacing: 8) {
                         ProgressView().controlSize(.small)
@@ -427,12 +430,17 @@ struct OnboardingView: View {
                 if step == .widget && !widgetRunning {
                     Button("Later") { step = .leaderboard }
                 }
-                Button("Continue") { step = OnboardingPlan.Step(rawValue: step.rawValue + 1) ?? .leaderboard }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(step == .widget && !widgetRunning)
+                Button { step = OnboardingPlan.Step(rawValue: step.rawValue + 1) ?? .leaderboard } label: {
+                    Text("Continue").primaryLabel()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Palette.buttonBackground)
+                .keyboardShortcut(.defaultAction)
+                .disabled(step == .widget && !widgetRunning)
             case .leaderboard:
                 if join.phase == .joined {
-                    Button("Done", action: finish).keyboardShortcut(.defaultAction)
+                    Button(action: finish) { Text("Done").primaryLabel() }
+                        .buttonStyle(.borderedProminent).tint(Palette.buttonBackground).keyboardShortcut(.defaultAction)
                 } else {
                     Button("Skip", action: finish).disabled(join.phase == .busy)
                 }
@@ -460,12 +468,12 @@ struct StepIndicator: View {
     private func item(_ s: OnboardingPlan.Step, _ title: LocalizedStringKey, done: Bool) -> some View {
         HStack(spacing: 5) {
             ZStack {
-                Circle().fill(done ? Color.green : s == step ? Color.accentColor : Color.secondary.opacity(0.25))
+                Circle().fill(done ? Palette.success : s == step ? Palette.accent : Color.secondary.opacity(0.25))
                 if done {
-                    Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(.white)
+                    Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(Palette.onAccent)
                 } else {
                     Text(verbatim: "\(s.rawValue + 1)").font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(s == step ? .white : .secondary)
+                        .foregroundStyle(s == step ? AnyShapeStyle(Palette.onAccent) : AnyShapeStyle(.secondary))
                 }
             }
             .frame(width: 18, height: 18)
@@ -581,7 +589,7 @@ struct WidgetIllustration: View {
             }
             .overlay(alignment: .topTrailing) {
                 if done {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.white, .green)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(Palette.onAccent, Palette.success)
                         .offset(x: 6, y: -6)
                 }
             }

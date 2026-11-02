@@ -6,11 +6,8 @@ import SwiftUI
 // from fixtures. Nothing here touches files, defaults or the network. Strings are LocalizedStringKeys, German in
 // Localizable.xcstrings.
 
-/// The colours of the app icon: a graphite body with an amber number display.
+/// Where the app points people to. Its colours live in Palette (Shared/Palette.swift, Shared/Colors.xcassets).
 enum Brand {
-    static let amber = Color(red: 0.98, green: 0.64, blue: 0.0)
-    static let graphite = Color(red: 0.16, green: 0.16, blue: 0.17)
-    static let graphiteDeep = Color(red: 0.09, green: 0.09, blue: 0.10)
     /// Where a shared card invites people to: the public repository, whose README leads to the download (answers
     /// HTTP 200 today, checked 02.11.2026). Switch to the download page only once it is published (W4, GitHub
     /// Pages); a link on a shared card must never end on a 404.
@@ -151,7 +148,8 @@ struct LeaderboardWindowView: View {
         case .notJoined:
             EmptyBoard(symbol: "trophy", title: "See where you stand",
                        detail: "Join the leaderboard to compare your totals with other Claude Code users. Only your period totals are shared.") {
-                Button("Join…", action: join).keyboardShortcut(.defaultAction)
+                Button(action: join) { Text("Join…").primaryLabel() }
+                    .buttonStyle(.borderedProminent).tint(Palette.buttonBackground).keyboardShortcut(.defaultAction)
             }
         case .waiting where offline == .offline:
             EmptyBoard(symbol: "wifi.slash", title: "You're offline",
@@ -193,7 +191,7 @@ struct LeaderboardWindowView: View {
         .font(.callout).foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16).padding(.vertical, 8)
-        .background(Color.orange.opacity(0.08))
+        .background(Palette.warning.opacity(0.08))
     }
 
     private func row(_ r: BoardRowValue) -> some View {
@@ -210,7 +208,7 @@ struct LeaderboardWindowView: View {
                         Text("You")
                             .font(.caption2.weight(.semibold))
                             .padding(.horizontal, 5).padding(.vertical, 1)
-                            .background(Capsule().fill(Brand.amber.opacity(0.25)))
+                            .background(Capsule().fill(Palette.accent.opacity(0.25)))
                     }
                 }
                 if let login = r.login, !login.isEmpty, login != r.name {
@@ -224,8 +222,8 @@ struct LeaderboardWindowView: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
-        .background(RoundedRectangle(cornerRadius: 7).fill(r.isMe ? Brand.amber.opacity(0.16) : .clear))
-        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(r.isMe ? Brand.amber.opacity(0.55) : .clear))
+        .background(RoundedRectangle(cornerRadius: 7).fill(r.isMe ? Palette.accent.opacity(0.16) : .clear))
+        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(r.isMe ? Palette.accent.opacity(0.7) : .clear))
         .accessibilityElement(children: .combine)
     }
 
@@ -300,7 +298,7 @@ struct ShareCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: 4).fill(Brand.amber).frame(width: 14, height: 14)
+                RoundedRectangle(cornerRadius: 4).fill(Palette.accent).frame(width: 14, height: 14)
                 Text(verbatim: "TokenMaccer").font(.system(size: 17, weight: .semibold))
                 Spacer()
                 Text("Claude Code leaderboard").font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.6))
@@ -310,7 +308,7 @@ struct ShareCard: View {
                 Text(verbatim: "#\(card.rank)")
                     .font(.system(size: 76, weight: .semibold, design: .rounded))
                     .monospacedDigit()
-                    .foregroundStyle(Brand.amber)
+                    .foregroundStyle(Palette.accent)
                     .padding(.horizontal, 22).padding(.vertical, 4)
                     .background(Capsule().fill(Color.black.opacity(0.85)))
                     .overlay(Capsule().strokeBorder(.white.opacity(0.85), lineWidth: 5))
@@ -328,7 +326,7 @@ struct ShareCard: View {
                 Text("Token usage of Claude Code, on your Mac.").foregroundStyle(.white.opacity(0.6))
                 Spacer(minLength: 12)
                 // The link must stay on one line so it can be typed off the picture; the tagline gives way.
-                Text(verbatim: Brand.inviteHost).foregroundStyle(Brand.amber.opacity(0.9))
+                Text(verbatim: Brand.inviteHost).foregroundStyle(Palette.accent.opacity(0.9))
                     .fixedSize()
             }
             .font(.system(size: 14, weight: .medium))
@@ -336,7 +334,7 @@ struct ShareCard: View {
         .foregroundStyle(.white)
         .padding(28)
         .frame(width: Self.size.width, height: Self.size.height)
-        .background(LinearGradient(colors: [Brand.graphite, Brand.graphiteDeep], startPoint: .top, endPoint: .bottom))
+        .background(Palette.fieldGradient)
         .environment(\.colorScheme, .dark)
     }
 
@@ -382,7 +380,8 @@ struct ShareSheetView: View {
             HStack {
                 Spacer()
                 Button("Done", action: close).keyboardShortcut(.cancelAction)
-                Button("Share…") { if let v = anchor.view { share(v) } }
+                Button { if let v = anchor.view { share(v) } } label: { Text("Share…").primaryLabel() }
+                    .buttonStyle(.borderedProminent).tint(Palette.buttonBackground)
                     .keyboardShortcut(.defaultAction)
                     .background(AnchorView(box: anchor))
             }
@@ -459,7 +458,7 @@ struct MenuBarPanel: View {
                 if let rank = value.rank, let of = value.participants {
                     Text("#\(rank) of \(of) today on the leaderboard")
                         .font(.callout.weight(.medium)).monospacedDigit()
-                        .foregroundStyle(Brand.amber)
+                        .foregroundStyle(Palette.accent)
                 }
                 if value.todayTokens == nil {
                     Text("Waiting for the first numbers. TokenMaccer counts every 5 minutes.")
@@ -512,13 +511,13 @@ struct MenuRow: View {
                 Spacer()
                 if let shortcut {
                     Text(verbatim: shortcut)
-                        .foregroundStyle(hover && enabled ? AnyShapeStyle(.white.opacity(0.8)) : AnyShapeStyle(.secondary))
+                        .foregroundStyle(hover && enabled ? AnyShapeStyle(Palette.onAccent.opacity(0.8)) : AnyShapeStyle(.secondary))
                 }
             }
-            .foregroundStyle(hover && enabled ? AnyShapeStyle(.white) : enabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+            .foregroundStyle(hover && enabled ? AnyShapeStyle(Palette.onAccent) : enabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
             .padding(.horizontal, 9).padding(.vertical, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 5).fill(hover && enabled ? Color.accentColor : .clear))
+            .background(RoundedRectangle(cornerRadius: 5).fill(hover && enabled ? Palette.accent : .clear))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

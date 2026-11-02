@@ -3,9 +3,12 @@
 #
 #   scripts/release.sh [VERSION]      VERSION defaults to MARKETING_VERSION in app/project.yml
 #
-# Output in dist/: TokenMaccer-VERSION.dmg (signed, notarized, stapled), the Sparkle update archive
-# TokenMaccer-VERSION-BUILD.zip (the notarized, stapled app), appcast.xml (EdDSA-signed entry for that archive)
-# and notarization-VERSION.txt. Upload the DMG, the zip and appcast.xml to the GitHub release vVERSION.
+# Output in dist/: TokenMaccer-VERSION.dmg (signed, notarized, stapled) and the same file as TokenMaccer.dmg (the
+# stable name behind releases/latest/download/TokenMaccer.dmg, which the download page links), the Sparkle update
+# archive TokenMaccer-VERSION-BUILD.zip (the notarized, stapled app), appcast.xml (EdDSA-signed entry for that
+# archive, with the release notes from docs/release-notes/VERSION.md), tokenmaccer.rb (the Homebrew cask from
+# packaging/homebrew with version and sha256 filled in) and notarization-VERSION.txt. Upload both DMGs, the zip and
+# appcast.xml to the GitHub release vVERSION.
 # Needs Xcode, xcodegen, a "Developer ID Application" certificate in the keychain and a notarytool
 # keychain profile (xcrun notarytool store-credentials). Override for your own account:
 #   TM_SIGN_IDENTITY   default "Developer ID Application: Valentin Melchior Herrera-Schäfer (3KM85F22L8)"
@@ -16,8 +19,12 @@
 #   TM_DOWNLOAD_URL_PREFIX  where the update archive will be downloaded from, default
 #                      https://github.com/valentinherrera/tokenmaccer/releases/download/vVERSION/
 # Sparkle's EdDSA private key must be in the login keychain (Sparkle's generate_keys, run once per maintainer);
-# its public key is TM_SPARKLE_PUBLIC_KEY in app/project.yml. generate_appcast signs with the keychain key;
-# on its first run macOS asks to let generate_appcast use that key (Always Allow), so run it unlocked.
+# its public key is TM_SPARKLE_PUBLIC_KEY in app/project.yml. generate_appcast signs with the keychain key.
+# macOS asks once to let generate_appcast use that key (Always Allow), and remembers that for one program at one
+# path: so the script runs a fixed copy of Sparkle's tools from TM_SPARKLE_TOOLS (default ~/dev/signing/sparkle-bin),
+# not the one SwiftPM unpacks into the build folder (deleted and recreated on every run). The copy is renewed only
+# when the Sparkle version in app/project.yml changes (then macOS asks once more); it is checked against the hashes
+# recorded with it on every run.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -37,6 +44,9 @@ DIST="$ROOT/dist"
 [ "$NOTARIZE" = 1 ] || DIST="$ROOT/dist/test"
 APP_NAME="TokenMaccer.app"
 DMG="$DIST/TokenMaccer-$VERSION.dmg"
+DMG_LATEST="$DIST/TokenMaccer.dmg"   # same file, stable name for releases/latest/download/TokenMaccer.dmg
+RELEASE_NOTES="$ROOT/docs/release-notes/$VERSION.md"
+SPARKLE_TOOLS="${TM_SPARKLE_TOOLS:-$HOME/dev/signing/sparkle-bin}"
 NOTES="$DIST/notarization-$VERSION.txt"
 URL_PREFIX="${TM_DOWNLOAD_URL_PREFIX:-https://github.com/valentinherrera/tokenmaccer/releases/download/v$VERSION/}"
 
@@ -44,6 +54,8 @@ step() { printf '\n==> %s\n' "$*"; }
 die() { echo "error: $*" >&2; exit 1; }
 
 command -v xcodegen >/dev/null || die "xcodegen missing: brew install xcodegen"
+# the appcast entry carries the release notes; Sparkle shows them with the update
+[ -s "$RELEASE_NOTES" ] || die "release notes missing: write docs/release-notes/$VERSION.md (a few short lines)"
 # The DMG must match a commit: refuse a dirty tree unless TM_ALLOW_DIRTY=1.
 if [ "${TM_ALLOW_DIRTY:-0}" != 1 ] && [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then
   die "uncommitted changes; commit first (or TM_ALLOW_DIRTY=1 for a test build)"
@@ -94,10 +106,37 @@ check_macho() {
   printf '  ok  %-34s %s\n' "$ident" "$(lipo -archs "$bin")"
 }
 
+# Sparkle's generate_appcast and sign_update at a fixed path (see the header). Prints the folder.
+sparkle_tools() {
+  local src="$BUILD/derived/SourcePackages/artifacts/sparkle/Sparkle/bin" want stamp tool line
+  want="$(sed -n 's/^ *exactVersion: *"\{0,1\}\([0-9.]*\)"\{0,1\}$/\1/p' "$ROOT/app/project.yml" | head -1)"
+  [ -n "$want" ] || die "no Sparkle exactVersion in app/project.yml"
+  stamp="$SPARKLE_TOOLS/VERSION"
+  if [ "$(head -1 "$stamp" 2>/dev/null)" != "sparkle $want" ]; then
+    for tool in generate_appcast sign_update; do
+      [ -x "$src/$tool" ] || die "Sparkle tools not found in $src"
+    done
+    mkdir -p "$SPARKLE_TOOLS"
+    for tool in generate_appcast sign_update; do ditto "$src/$tool" "$SPARKLE_TOOLS/$tool"; done
+    { echo "sparkle $want"; (cd "$SPARKLE_TOOLS" && shasum -a 256 generate_appcast sign_update); } >"$stamp"
+    echo "Sparkle tools $want copied to $SPARKLE_TOOLS: macOS asks once to let generate_appcast use the signing key (Always Allow)" >&2
+  fi
+  # the copy must still be what was recorded, and the same build SwiftPM ships for this version
+  (cd "$SPARKLE_TOOLS" && tail -n +2 "$stamp" | shasum -a 256 -c --status) \
+    || die "$SPARKLE_TOOLS does not match its recorded hashes; delete the folder to copy the tools again"
+  while read -r line; do
+    tool="${line##* }"
+    if [ -e "$src/$tool" ] && [ "$(shasum -a 256 "$src/$tool" | cut -d' ' -f1)" != "${line%% *}" ]; then
+      die "$src/$tool differs from the copy in $SPARKLE_TOOLS for Sparkle $want; check it, then delete the folder"
+    fi
+  done < <(tail -n +2 "$stamp")
+  echo "$SPARKLE_TOOLS"
+}
+
 step "TokenMaccer $VERSION, team $TEAM, notary profile $PROFILE"
 rm -rf "$BUILD"
 mkdir -p "$BUILD" "$DIST"
-rm -f "$DMG" "$NOTES"
+rm -f "$DMG" "$DMG_LATEST" "$NOTES"
 echo "commit $COMMIT$([ "${TM_ALLOW_DIRTY:-0}" = 1 ] && echo " (dirty allowed)")" > "$NOTES"
 
 step "Archive (clean, app edition, universal)"
@@ -148,6 +187,10 @@ FEED="$(plutil -extract SUFeedURL raw "$APP/Contents/Info.plist")"
 EDKEY="$(plutil -extract SUPublicEDKey raw "$APP/Contents/Info.plist")"
 [[ "$FEED" == https://* ]] || die "SUFeedURL is not https: $FEED"
 [[ "$EDKEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || die "SUPublicEDKey missing or malformed"
+# silent updates (README, "Updates"): daily check without asking, download and install on quit
+for key in SUEnableAutomaticChecks SUAutomaticallyUpdate; do
+  [ "$(plutil -extract "$key" raw "$APP/Contents/Info.plist" 2>/dev/null)" = true ] || die "Info.plist: $key is not true"
+done
 echo "  ok  build $BUILD_NUMBER, feed $FEED"
 # Sparkle offers an update only for a higher build, and the self-heal records the build: never release a
 # build number twice. Compare with the last local appcast and the live feed (404 before the first release).
@@ -186,19 +229,21 @@ if [ "$NOTARIZE" = 1 ]; then
 fi
 
 step "Sparkle update archive and appcast"
-SPARKLE_BIN="$BUILD/derived/SourcePackages/artifacts/sparkle/Sparkle/bin"
-[ -x "$SPARKLE_BIN/generate_appcast" ] || die "Sparkle tools not found in $SPARKLE_BIN"
+SPARKLE_BIN="$(sparkle_tools)"
 UPDATES="$BUILD/updates"
 ZIP="TokenMaccer-$VERSION-$BUILD_NUMBER.zip"
 mkdir -p "$UPDATES"
 # the app was stapled above, so the update installs offline without a Gatekeeper round trip
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$UPDATES/$ZIP"
-"$SPARKLE_BIN/generate_appcast" --download-url-prefix "$URL_PREFIX" --maximum-versions 1 \
+# release notes next to the archive, same name: generate_appcast embeds them in the entry's description
+cp "$RELEASE_NOTES" "$UPDATES/${ZIP%.zip}.md"
+"$SPARKLE_BIN/generate_appcast" --download-url-prefix "$URL_PREFIX" --maximum-versions 1 --embed-release-notes \
   -o "$UPDATES/appcast.xml" "$UPDATES"
 grep -q "sparkle:edSignature=" "$UPDATES/appcast.xml" || die "appcast entry is not EdDSA-signed"
 grep -q "<sparkle:version>$BUILD_NUMBER</sparkle:version>" "$UPDATES/appcast.xml" \
   || die "appcast does not announce build $BUILD_NUMBER"
 grep -qF "url=\"$URL_PREFIX$ZIP\"" "$UPDATES/appcast.xml" || die "appcast does not point at $URL_PREFIX$ZIP"
+grep -q "<description" "$UPDATES/appcast.xml" || die "appcast entry has no release notes"
 # The app installs an update only if its signature matches SUPublicEDKey. generate_appcast signs with whatever
 # key the keychain holds, so check the signature against the public key in the built app (public key only).
 SIGNATURES="$(grep -oE 'sparkle:edSignature="[^"]+"' "$UPDATES/appcast.xml" | cut -d'"' -f2)"
@@ -220,7 +265,11 @@ if [ "$NOTARIZE" = 1 ]; then
     || die "Gatekeeper does not report the app as Notarized Developer ID"
 fi
 
+cp "$DMG" "$DMG_LATEST"
 SHA="$(shasum -a 256 "$DMG" | cut -d' ' -f1)"
-echo "sha256 $SHA  $(basename "$DMG")" | tee -a "$NOTES"
+echo "sha256 $SHA  $(basename "$DMG") = $(basename "$DMG_LATEST")" | tee -a "$NOTES"
 echo "sha256 $(shasum -a 256 "$DIST/$ZIP" | cut -d' ' -f1)  $ZIP" | tee -a "$NOTES"
+# the Homebrew cask for this release (a tap repository takes it as Casks/tokenmaccer.rb)
+sed -e "s/@VERSION@/$VERSION/" -e "s/@SHA256@/$SHA/" "$ROOT/packaging/homebrew/tokenmaccer.rb" >"$DIST/tokenmaccer.rb"
+echo "cask $DIST/tokenmaccer.rb: version $VERSION, sha256 $SHA" | tee -a "$NOTES"
 step "Done: $DMG"

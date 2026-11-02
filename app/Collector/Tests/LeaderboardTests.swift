@@ -36,6 +36,7 @@ final class MemorySessionStore: SessionStore, @unchecked Sendable {
     func load() -> LeaderboardSession? { lock.withLock { session } }
     func save(_ s: LeaderboardSession) throws { lock.withLock { session = s } }
     func delete() { lock.withLock { session = nil } }
+    func session(_ s: LeaderboardSession?) { lock.withLock { session = s } }
 }
 
 extension CollectorTests {
@@ -262,6 +263,148 @@ extension CollectorTests {
         XCTAssertNil(store.load(), "tokens deleted")
         XCTAssertNil(LeaderboardState.load(dataDir: data), "state deleted")
         XCTAssertEqual(spy.paths.last, "/functions/v1/delete-account")
+    }
+
+    /// A JWT-shaped access token with the given `sub` (signature irrelevant for the client).
+    func jwt(sub: String) -> String {
+        let payload = try! JSONSerialization.data(withJSONObject: ["sub": sub, "role": "authenticated"])
+        return "eyJhbGciOiJIUzI1NiJ9." + PKCE.base64url(payload) + ".sig"
+    }
+
+    func testUserIdFromAccessToken() {
+        XCTAssertEqual(LeaderboardClient.userId(fromAccessToken: jwt(sub: "11111111-2222-3333-4444-555555555555")),
+                       "11111111-2222-3333-4444-555555555555")
+        XCTAssertNil(LeaderboardClient.userId(fromAccessToken: "a"))
+        XCTAssertNil(LeaderboardClient.userId(fromAccessToken: "x.%%%.y"))
+    }
+
+    /// delete-account failing while leave_leaderboard works is NOT a finished leave: the auth account stays.
+    func testLeaveFallbackToLeaveRPCIsNotSuccess() throws {
+        try joinedState()
+        let spy = SpyTransport()
+        let store = MemorySessionStore(validSession)
+        let lb = sync(spy, store)
+        spy.answer("/functions/v1/delete-account", 503, ["error": "down"])
+        spy.answer("/rest/v1/rpc/leave_leaderboard", 200, ["result": true])
+        XCTAssertThrowsError(try lb.leave()) { e in
+            guard case LeaderboardError.accountNotDeleted(entryRemoved: true, _) = e else {
+                return XCTFail("expected accountNotDeleted(entryRemoved: true), got \(e)")
+            }
+        }
+        XCTAssertEqual(spy.paths, ["/functions/v1/delete-account", "/rest/v1/rpc/leave_leaderboard"])
+        let pending = try XCTUnwrap(LeaderboardState.load(dataDir: data), "state kept")
+        XCTAssertTrue(pending.leavePending)
+        XCTAssertFalse(pending.needsSignIn, "the sign-in still works: Leave Again")
+        XCTAssertNotNil(store.load(), "tokens kept for Leave Again")
+
+        spy.answer("/functions/v1/delete-account", 404, ["error": "no such function"])
+        spy.answer("/rest/v1/rpc/leave_leaderboard", 200, ["result": true])
+        XCTAssertThrowsError(try lb.leave())
+        XCTAssertNotNil(LeaderboardState.load(dataDir: data), "404 is not success either")
+
+        spy.answer("/functions/v1/delete-account", 200, ["deleted": true])
+        try lb.leave()
+        XCTAssertNil(store.load())
+        XCTAssertNil(LeaderboardState.load(dataDir: data))
+    }
+
+    /// No keychain item: leave does not pretend; it asks for a sign-in, which then deletes the account.
+    func testLeaveWithoutSessionAsksForSignInThenDeletes() throws {
+        let uid = "aaaaaaaa-0000-0000-0000-000000000001"
+        var s = LeaderboardState(joined: true, displayName: "synth", githubLogin: "synth-gh", joinedAt: Date())
+        s.userId = uid
+        try s.save(dataDir: data)
+        let spy = SpyTransport()
+        let store = MemorySessionStore()
+        let lb = sync(spy, store)
+        XCTAssertThrowsError(try lb.leave()) { XCTAssertEqual($0 as? LeaderboardError, .notSignedIn) }
+        XCTAssertEqual(spy.requests.count, 0)
+        let pending = try XCTUnwrap(LeaderboardState.load(dataDir: data), "state kept, not silently removed")
+        XCTAssertTrue(pending.needsSignIn)
+        XCTAssertFalse(pending.joined)
+
+        // a second try without a sign-in stays honest
+        XCTAssertThrowsError(try lb.leave())
+        XCTAssertTrue(try XCTUnwrap(LeaderboardState.load(dataDir: data)).needsSignIn)
+
+        // sign-in with another GitHub account: refused, nothing deleted, tokens of that account not kept
+        spy.answer("/auth/v1/token", 200, ["access_token": jwt(sub: "bbbbbbbb-0000-0000-0000-000000000002"),
+                                          "refresh_token": "r2", "expires_in": 3600])
+        XCTAssertThrowsError(try lb.leave(signIn: ("code-x", "ver-x"))) {
+            XCTAssertEqual($0 as? LeaderboardError, .otherAccount)
+        }
+        XCTAssertEqual(spy.paths, ["/auth/v1/token"])
+        XCTAssertNil(store.load())
+        XCTAssertTrue(try XCTUnwrap(LeaderboardState.load(dataDir: data)).needsSignIn)
+
+        // sign-in with the right account: exchange, delete-account, everything gone
+        let right = jwt(sub: uid)
+        spy.answer("/auth/v1/token", 200, ["access_token": right, "refresh_token": "r1", "expires_in": 3600])
+        spy.answer("/functions/v1/delete-account", 200, ["deleted": true])
+        try lb.leave(signIn: ("code-1", "ver-1"))
+        XCTAssertEqual(spy.requests[1].url.query, "grant_type=pkce")
+        XCTAssertEqual(spy.paths.suffix(2), ["/auth/v1/token", "/functions/v1/delete-account"])
+        XCTAssertEqual(spy.requests.last?.headers["Authorization"], "Bearer " + right)
+        XCTAssertNil(store.load())
+        XCTAssertNil(LeaderboardState.load(dataDir: data))
+    }
+
+    /// Dead refresh token: Leave Again would fail forever; instead the dead sign-in goes and a new one is asked for.
+    func testLeaveWithDeadRefreshTokenAsksForSignIn() throws {
+        try joinedState()
+        let spy = SpyTransport()
+        let store = MemorySessionStore(
+            LeaderboardSession(accessToken: "old", refreshToken: "dead", expiresAt: Date().addingTimeInterval(-10)))
+        let lb = sync(spy, store)
+        spy.answer("/auth/v1/token", 400, ["error": "invalid_grant", "error_description": "Invalid Refresh Token"])
+        XCTAssertThrowsError(try lb.leave()) { XCTAssertEqual($0 as? LeaderboardError, .unauthorized) }
+        XCTAssertEqual(spy.paths, ["/auth/v1/token"])
+        XCTAssertNil(store.load(), "the dead sign-in is removed")
+        let pending = try XCTUnwrap(LeaderboardState.load(dataDir: data))
+        XCTAssertTrue(pending.needsSignIn)
+
+        // also a 401 from delete-account twice (refresh in between works, token still refused)
+        try joinedState()
+        store.session(validSession)
+        spy.answer("/functions/v1/delete-account", 401, ["error": "invalid token"])
+        spy.answer("/auth/v1/token", 200, ["access_token": "a2", "refresh_token": "r2", "expires_in": 3600])
+        spy.answer("/functions/v1/delete-account", 401, ["error": "invalid token"])
+        XCTAssertThrowsError(try lb.leave())
+        XCTAssertTrue(try XCTUnwrap(LeaderboardState.load(dataDir: data)).needsSignIn)
+    }
+
+    /// Never joined, nothing in the keychain: nothing to do, no request.
+    func testLeaveWhenNeverJoinedIsANoOp() throws {
+        let spy = SpyTransport()
+        try sync(spy, MemorySessionStore()).leave()
+        XCTAssertEqual(spy.requests.count, 0)
+        XCTAssertNil(LeaderboardState.load(dataDir: data))
+    }
+
+    /// Join failing after the code exchange deletes the account the sign-in created.
+    func testJoinFailureDeletesTheNewAccount() throws {
+        let spy = SpyTransport()
+        let store = MemorySessionStore()
+        let lb = sync(spy, store)
+        spy.answer("/auth/v1/token", 200, ["access_token": "a", "refresh_token": "r", "expires_in": 3600])
+        spy.answer("/rest/v1/rpc/join_leaderboard", 400, ["message": "display name longer than 32 characters"])
+        spy.answer("/functions/v1/delete-account", 200, ["deleted": true])
+        XCTAssertThrowsError(try lb.join(code: "c", verifier: "v", displayName: "Synth"))
+        XCTAssertEqual(spy.paths, ["/auth/v1/token", "/rest/v1/rpc/join_leaderboard", "/functions/v1/delete-account"])
+        XCTAssertEqual(spy.requests.last?.headers["Authorization"], "Bearer a")
+        XCTAssertNil(store.load())
+        XCTAssertNil(LeaderboardState.load(dataDir: data))
+
+        // the clean-up fails too: the account is not forgotten, the app offers Leave Again
+        spy.answer("/auth/v1/token", 200, ["access_token": "b", "refresh_token": "r", "expires_in": 3600])
+        spy.answer("/rest/v1/rpc/join_leaderboard", 503, ["message": "down"])
+        spy.answer("/functions/v1/delete-account", 503, ["error": "down"])
+        XCTAssertThrowsError(try lb.join(code: "c", verifier: "v", displayName: "Synth"))
+        let pending = try XCTUnwrap(LeaderboardState.load(dataDir: data))
+        XCTAssertTrue(pending.leavePending)
+        XCTAssertFalse(pending.joined)
+        XCTAssertFalse(pending.needsSignIn)
+        XCTAssertEqual(store.load()?.accessToken, "b", "tokens kept for Leave Again")
     }
 
     // MARK: PKCE and endpoint

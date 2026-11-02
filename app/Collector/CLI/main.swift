@@ -5,7 +5,7 @@ import WidgetKit
 // One collection pass, then exit (the app registers this as a background agent with a 300 s interval).
 // No long-lived process: every run starts with the current time zone and price table.
 //
-// `tokenmaccer-collector leaderboard join|leave [--display-name NAME] [--data-dir P] [--app-group G]` is the
+// `tokenmaccer-collector leaderboard join|leave [--display-name NAME] [--sign-in] [--data-dir P] [--app-group G]` is the
 // app's way into the opt-in leaderboard: join reads {"code": …, "verifier": …} from stdin (the result of the
 // GitHub sign-in), both print one JSON line {"ok": true|false, …}. The sign-in tokens stay in this
 // program's keychain item.
@@ -42,6 +42,8 @@ if args.first == "leaderboard" {
         displayName = rest[i + 1]
         rest.removeSubrange(i...(i + 1))
     }
+    let wantsSignIn = rest.contains("--sign-in")
+    rest.removeAll { $0 == "--sign-in" }
     let config: CollectorConfig
     do {
         config = try Collector.configuration(arguments: rest, environment: env, appGroup: hostGroup)
@@ -66,8 +68,17 @@ if args.first == "leaderboard" {
             reply(["ok": false, "error": "\(error)"])
         }
     case "leave":
+        // --sign-in: a fresh GitHub sign-in ({"code": …, "verifier": …} on stdin) for a lost or dead one
+        var signIn: (code: String, verifier: String)?
+        if wantsSignIn {
+            let input = FileHandle.standardInput.readDataToEndOfFile()
+            guard let obj = try? JSONSerialization.jsonObject(with: input) as? [String: String],
+                let code = obj["code"], let verifier = obj["verifier"]
+            else { reply(["ok": false, "error": "expected {\"code\": …, \"verifier\": …} on stdin"]) }
+            signIn = (code, verifier)
+        }
         do {
-            try sync.leave()
+            try sync.leave(signIn: signIn)
             reply(["ok": true])
         } catch {
             reply(["ok": false, "error": "\(error)"])

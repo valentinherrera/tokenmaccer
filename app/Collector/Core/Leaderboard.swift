@@ -192,16 +192,28 @@ public enum LeaderboardError: Error, Equatable, CustomStringConvertible {
     case server(Int, String)
     case notSignedIn
     case noServer
+    /// delete-account failed; `entryRemoved`: leave_leaderboard at least deleted profile and totals.
+    case accountNotDeleted(entryRemoved: Bool, String)
+    /// A sign-in for leaving belongs to another account than the one that joined.
+    case otherAccount
 
     public var description: String {
         switch self {
         case .network(let why): return "No connection to the leaderboard server (\(why))."
-        case .unauthorized: return "The sign-in expired. Leave and join again."
+        case .unauthorized:
+            return "The sign-in expired. Choose Leave (you sign in with GitHub once more to delete your entry), then join again."
         case .notParticipant: return "Your leaderboard entry no longer exists. Join again to take part."
         case .rateLimited(let s): return "The server asks to wait \(s) s before the next report."
         case .server(let status, let why): return status == 0 ? why : "Server error \(status): \(why)"
-        case .notSignedIn: return "Not signed in."
+        case .notSignedIn:
+            return "There is no sign-in for the leaderboard server on this Mac any more. Sign in with GitHub once more to delete your entry."
         case .noServer: return "No leaderboard server configured."
+        case .accountNotDeleted(let removed, let why):
+            return (removed
+                ? "Your profile and totals are deleted, but your account on the leaderboard server is not yet"
+                : "Your account on the leaderboard server could not be deleted") + " (\(why))."
+        case .otherAccount:
+            return "This GitHub account is not the one that joined. Sign in with the account shown under Leaderboard."
         }
     }
 }
@@ -315,6 +327,11 @@ public struct LeaderboardState: Codable, Equatable, Sendable {
     public var lastError: String?
     /// Leave failed on the server: no more reports, the app offers Leave again.
     public var leavePending: Bool
+    /// With `leavePending`: the collector has no usable sign-in (keychain item gone, refresh token dead),
+    /// so leaving needs a fresh GitHub sign-in first. Nil means false.
+    public var signInRequired: Bool?
+    /// The auth account (JWT `sub`) that joined; a sign-in for leaving must match it.
+    public var userId: String?
 
     public init(joined: Bool, displayName: String? = nil, githubLogin: String? = nil, joinedAt: Date? = nil) {
         self.joined = joined
@@ -339,6 +356,8 @@ public struct LeaderboardState: Codable, Equatable, Sendable {
     public static func remove(dataDir: String) {
         try? FileManager.default.removeItem(atPath: path(dataDir: dataDir))
     }
+
+    public var needsSignIn: Bool { leavePending && signInRequired == true }
 
     public func place(period: String, unit: String) -> LeaderboardPlace? {
         ranks.first { $0.period == period && $0.unit == unit && $0.rank != nil }
@@ -420,6 +439,18 @@ public struct LeaderboardClient: Sendable {
         let expires = (obj["expires_at"] as? Double).map { Date(timeIntervalSince1970: $0) }
             ?? now.addingTimeInterval((obj["expires_in"] as? Double) ?? 3600)
         return LeaderboardSession(accessToken: access, refreshToken: refresh, expiresAt: expires)
+    }
+
+    /// The `sub` claim of a Supabase access token (the auth user id); nil if it is not a readable JWT.
+    public static func userId(fromAccessToken token: String) -> String? {
+        let parts = token.split(separator: ".")
+        guard parts.count == 3 else { return nil }
+        var b64 = parts[1].replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        while b64.count % 4 != 0 { b64 += "=" }
+        guard let data = Data(base64Encoded: b64),
+            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return nil }
+        return (obj["sub"] as? String).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     /// PKCE code exchange after the GitHub sign-in.
@@ -530,8 +561,10 @@ public struct LeaderboardSync: Sendable {
 
     /// Runs `body` with a valid access token; after a 401 it refreshes once and tries again.
     private func authorized<T>(_ c: LeaderboardClient, now: Date, _ body: (String) throws -> T) throws -> T {
+        // a failing refresh is final (no second refresh); only a 401 from `body` earns one more try
+        let session = try validSession(c, now: now)
         do {
-            return try body(try validSession(c, now: now).accessToken)
+            return try body(session.accessToken)
         } catch LeaderboardError.unauthorized {
             return try body(try validSession(c, now: now, forceRefresh: true).accessToken)
         }
@@ -543,50 +576,94 @@ public struct LeaderboardSync: Sendable {
     }
 
     /// After the GitHub sign-in: exchange the code, keep the tokens, join. The first report follows with
-    /// the next collector pass (no waiting: lastAttemptAt is empty).
+    /// the next collector pass (no waiting: lastAttemptAt is empty). The sign-in itself creates an account on
+    /// the server; when joining fails after it, that account is deleted again (or, if the server cannot be
+    /// reached, kept as a pending leave so the app offers Leave Again instead of forgetting it).
     public func join(code: String, verifier: String, displayName: String, now: Date = Date()) throws -> LeaderboardState {
         guard let name = Self.cleanDisplayName(displayName) else {
             throw LeaderboardError.server(0, "The display name needs 1 to 32 characters.")
         }
         let c = try client()
         let session = try c.exchange(code: code, verifier: verifier, now: now)
-        try sessions.save(session)
+        let userId = LeaderboardClient.userId(fromAccessToken: session.accessToken)
         do {
+            try sessions.save(session)
             let joined = try c.join(displayName: name, token: session.accessToken)
             var state = LeaderboardState(joined: true, displayName: joined.name, githubLogin: joined.login, joinedAt: now)
+            state.userId = userId
             state.lastError = nil
             try state.save(dataDir: dataDir)
             return state
         } catch {
-            sessions.delete()
+            do {
+                try c.deleteAccount(token: session.accessToken)
+                sessions.delete()
+            } catch let cleanup {
+                var state = LeaderboardState(joined: false, joinedAt: now)
+                state.userId = userId
+                state.leavePending = true
+                state.signInRequired = sessions.load() == nil
+                state.lastError = "Joining failed, and the account the sign-in created on the leaderboard server could not be deleted yet: \(cleanup)"
+                try? state.save(dataDir: dataDir)
+            }
             throw error
         }
     }
 
     /// Deletes the account on the server (profile and totals go with it), then the local tokens and state.
-    /// When the server cannot be reached the reports stop anyway and the app offers Leave again.
-    public func leave(now: Date = Date()) throws {
-        guard sessions.load() != nil else {
-            LeaderboardState.remove(dataDir: dataDir)
-            return
-        }
+    /// Succeeds only when delete-account confirmed it, or when this Mac never joined. Otherwise the reports
+    /// stop, the state says leavePending, and the app offers Leave Again; without a usable sign-in
+    /// (keychain item gone, refresh token dead) it asks for a fresh GitHub sign-in, whose code and verifier
+    /// come in as `signIn`.
+    public func leave(signIn: (code: String, verifier: String)? = nil, now: Date = Date()) throws {
+        let state = LeaderboardState.load(dataDir: dataDir)
         do {
+            if let signIn {
+                let c = try client()
+                let fresh = try c.exchange(code: signIn.code, verifier: signIn.verifier, now: now)
+                if let expected = state?.userId, let got = LeaderboardClient.userId(fromAccessToken: fresh.accessToken),
+                    expected != got
+                {
+                    throw LeaderboardError.otherAccount
+                }
+                try sessions.save(fresh)
+            }
+            guard sessions.load() != nil else {
+                // nothing to authenticate with: done only if this Mac never joined
+                guard let state, state.joined || state.leavePending else {
+                    LeaderboardState.remove(dataDir: dataDir)
+                    return
+                }
+                throw LeaderboardError.notSignedIn
+            }
             let c = try client()
             try authorized(c, now: now) { token in
                 do {
                     try c.deleteAccount(token: token)
-                } catch LeaderboardError.server(let status, _) where status == 404 || status >= 500 {
-                    try c.leave(token: token)  // the function is missing or failing: at least leave
+                } catch LeaderboardError.server(let status, let why) where status == 404 || status >= 500 {
+                    // the function is missing or failing: delete profile and totals at least, but the account
+                    // stays, so this is not a finished leave
+                    let removed = (try? c.leave(token: token)) != nil
+                    throw LeaderboardError.accountNotDeleted(entryRemoved: removed, "\(status) \(why)")
                 }
             }
         } catch {
-            var state = LeaderboardState.load(dataDir: dataDir) ?? LeaderboardState(joined: false)
-            state.joined = false
-            state.leavePending = true
-            state.ranks = []
-            state.ranksAt = nil
-            state.lastError = "Could not delete your entry on the server: \(error)"
-            try? state.save(dataDir: dataDir)
+            var pending = state ?? LeaderboardState(joined: false)
+            pending.joined = false
+            pending.leavePending = true
+            pending.ranks = []
+            pending.ranksAt = nil
+            switch error {
+            case LeaderboardError.unauthorized, LeaderboardError.notSignedIn:
+                sessions.delete()  // a dead sign-in: the next try starts with a fresh one
+                pending.signInRequired = true
+            case LeaderboardError.otherAccount:
+                pending.signInRequired = true
+            default:
+                pending.signInRequired = sessions.load() == nil
+            }
+            pending.lastError = "Could not delete your entry on the server: \(error)"
+            try? pending.save(dataDir: dataDir)
             throw error
         }
         sessions.delete()

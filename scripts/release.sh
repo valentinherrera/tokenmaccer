@@ -48,6 +48,13 @@ command -v xcodegen >/dev/null || die "xcodegen missing: brew install xcodegen"
 if [ "${TM_ALLOW_DIRTY:-0}" != 1 ] && [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then
   die "uncommitted changes; commit first (or TM_ALLOW_DIRTY=1 for a test build)"
 fi
+# The app talks to the hosted project in supabase/app-config.json. A public build must not ship before that
+# project has the schema and the functions (join, report and leave would fail for every user): set
+# "remote_schema_deployed" to true only after `supabase db push` and the function deploys went through.
+if [ "$NOTARIZE" = 1 ]; then
+  [ "$(plutil -extract remote_schema_deployed raw "$ROOT/supabase/app-config.json" 2>/dev/null)" = true ] \
+    || die "supabase/app-config.json: remote_schema_deployed is not true; deploy the leaderboard schema and functions first (TM_NOTARIZE=0 for a local test build)"
+fi
 COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
 [ -d "$DEVELOPER_DIR" ] || die "Xcode not found at $DEVELOPER_DIR"
 security find-identity -v -p codesigning | grep -qF "\"$IDENTITY\"" || die "signing identity not in keychain: $IDENTITY"

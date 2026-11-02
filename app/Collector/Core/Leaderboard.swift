@@ -415,7 +415,7 @@ public struct LeaderboardClient: Sendable {
         self.transport = transport
     }
 
-    private func call(_ method: String, _ path: String, token: String?, json: Any?) throws -> HTTPResponse {
+    func call(_ method: String, _ path: String, token: String?, json: Any?) throws -> HTTPResponse {
         var headers = ["apikey": endpoint.key, "Content-Type": "application/json", "Accept": "application/json"]
         headers["Authorization"] = "Bearer " + (token ?? endpoint.key)
         let body = try json.map { try JSONSerialization.data(withJSONObject: $0) }
@@ -433,7 +433,7 @@ public struct LeaderboardClient: Sendable {
         return String(decoding: r.body.prefix(200), as: UTF8.self)
     }
 
-    private static func check(_ r: HTTPResponse) throws {
+    static func check(_ r: HTTPResponse) throws {
         switch r.status {
         case 200..<300: return
         case 401: throw LeaderboardError.unauthorized
@@ -715,10 +715,18 @@ public struct LeaderboardSync: Sendable {
             }
             pending.lastError = "Could not delete your entry on the server: \(error)"
             try? pending.save(dataDir: dataDir)
+            Self.removeBoards(dataDir: dataDir)
             throw error
         }
         sessions.delete()
         LeaderboardState.remove(dataDir: dataDir)
+        Self.removeBoards(dataDir: dataDir)
+    }
+
+    /// The boards and avatars of the leaderboard window: gone with the participation.
+    static func removeBoards(dataDir: String) {
+        LeaderboardBoards.remove(dataDir: dataDir)
+        AvatarCache.remove(dataDir: dataDir)
     }
 
     /// Six period totals as /functions/v1/report expects them, from the widget data.
@@ -779,11 +787,17 @@ public struct LeaderboardSync: Sendable {
                 state.ranksAt = now
                 state.lastError = nil
                 log = "leaderboard: reported, \(places.filter { $0.rank != nil }.count) places"
+                // the app's leaderboard window: the boards, then the avatars of who is on them (best effort)
+                if let boards = try? authorized(c, now: now, { try c.top(token: $0, now: now) }) {
+                    try? boards.save(dataDir: dataDir)
+                    AvatarCache(dataDir: dataDir).refresh(boards.logins, transport: c.transport, now: now)
+                }
             } catch LeaderboardError.notParticipant {
                 state.joined = false
                 state.ranks = []
                 state.ranksAt = nil
                 state.lastError = LeaderboardError.notParticipant.description
+                Self.removeBoards(dataDir: dataDir)
                 log = "leaderboard: no longer a participant"
             } catch {
                 state.lastError = "\(error)"

@@ -79,13 +79,13 @@ def psql(sql):
     return r.stdout.strip()
 
 
-def helper(args, data_dir, stdin=None, url=URL):
+def helper(args, data_dir, stdin=None, url=URL, service=KEYCHAIN_SERVICE):
     env = {
         'PATH': '/usr/bin:/bin',
         'HOME': os.environ['HOME'],
         'TOKENMACCER_LEADERBOARD_URL': url,
         'TOKENMACCER_LEADERBOARD_KEY': ANON,
-        'TOKENMACCER_KEYCHAIN_SERVICE': KEYCHAIN_SERVICE,
+        'TOKENMACCER_KEYCHAIN_SERVICE': service,
         'TOKENMACCER_DATA_DIR': data_dir,
     }
     r = subprocess.run([HELPER] + args, input=stdin, capture_output=True, text=True, timeout=120, env=env, check=False)
@@ -111,7 +111,7 @@ def widget(data_dir):
         return json.load(f)
 
 
-def new_user(n):
+def new_user(n, github=True):
     email = f'test-e2e-{n}-{RUN}@example.com'
     password = secrets.token_urlsafe(18)
     st, body = call(
@@ -121,6 +121,8 @@ def new_user(n):
         raise RuntimeError(f'create user {n}: {st} {body}')
     uid = body['id']
     login = f'synth-gh-{n}-{RUN}'
+    if not github:
+        return uid, email, password, None
     psql(
         'insert into auth.identities '
         '(provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) '
@@ -138,6 +140,23 @@ def add_flow_state(uid, code, challenge):
         'auth_code_issued_at, email_optional) values '
         f"(gen_random_uuid(), '{uid}', '{code}', 's256', '{challenge}', 'github', '', '', 'oauth', "
         'now(), now(), now(), false)'
+    )
+
+
+def pkce_flow(uid):
+    """A fresh GitHub sign-in for `uid` as the helper gets it on stdin: flow state in GoTrue, code + verifier."""
+    verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=').decode()
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
+    code = secrets.token_hex(16)
+    add_flow_state(uid, code, challenge)
+    return json.dumps({'code': code, 'verifier': verifier})
+
+
+def server_rows(uid):
+    return psql(
+        f"select (select count(*) from auth.users where id = '{uid}') || ',' || "
+        f"(select count(*) from public.profiles where id = '{uid}') || ',' || "
+        f"(select count(*) from public.totals where user_id = '{uid}')"
     )
 
 
@@ -303,8 +322,51 @@ def main():
         with open(os.path.join(a_dir, 'leaderboard.json'), 'w') as f:
             json.dump({'joined': True, 'ranks': [], 'leavePending': False}, f)
         rc, out, err = collect(a_dir, claude)
-        check('keychain item deleted (helper: not signed in)', 'Not signed in' in out, out)
+        check('keychain item deleted (helper: not signed in)', 'no sign-in for the leaderboard server' in out, out)
         os.remove(os.path.join(a_dir, 'leaderboard.json'))
+
+        # D: the sign-in on this Mac is lost (simulated: another keychain service name). Leave must not
+        # pretend; it asks for a fresh sign-in, refuses another GitHub account, and then deletes the account.
+        d_dir = os.path.join(tmp, 'd')
+        d_uid, _, _, _ = new_user(4)
+        users.append(d_uid)
+        e_uid, _, _, _ = new_user(5)
+        users.append(e_uid)
+        rc, out, err = helper(['leaderboard', 'join', '--display-name', 'Synth D'], d_dir, stdin=pkce_flow(d_uid))
+        check('D joined through the helper', rc == 0 and '"ok":true' in out, (rc, out, err))
+        lost = KEYCHAIN_SERVICE + '-lost'
+        rc, out, err = helper(['leaderboard', 'leave'], d_dir, service=lost)
+        sd = state(d_dir) or {}
+        check('lost sign-in: leave is not ok', rc == 1 and '"ok":false' in out, (rc, out))
+        check(
+            'lost sign-in: state says leave pending, sign-in required',
+            sd.get('leavePending') is True and sd.get('signInRequired') is True and sd.get('joined') is False,
+            sd,
+        )
+        check('lost sign-in: account still on the server (not silently dropped)', server_rows(d_uid) == '1,1,0')
+        rc, out, err = helper(['leaderboard', 'leave', '--sign-in'], d_dir, stdin=pkce_flow(e_uid), service=lost)
+        check('sign-in as another account is refused', rc == 1 and 'not the one that joined' in out, (rc, out))
+        check('other account: D untouched', server_rows(d_uid) == '1,1,0')
+        rc, out, err = helper(['leaderboard', 'leave', '--sign-in'], d_dir, stdin=pkce_flow(d_uid), service=lost)
+        check('fresh sign-in + leave: ok', rc == 0 and '"ok":true' in out, (rc, out, err))
+        check('fresh sign-in + leave: user, profile, totals deleted', server_rows(d_uid) == '0,0,0', server_rows(d_uid))
+        check('fresh sign-in + leave: state removed', state(d_dir) is None)
+        helper(['leaderboard', 'leave'], d_dir)  # drop D's original keychain item (its account is gone already)
+
+        # F: joining fails after the code exchange (no GitHub identity -> join_leaderboard refuses):
+        # the account the sign-in created is deleted again
+        f_dir = os.path.join(tmp, 'f')
+        f_uid, _, _, _ = new_user(6, github=False)
+        users.append(f_uid)
+        rc, out, err = helper(['leaderboard', 'join', '--display-name', 'Synth F'], f_dir, stdin=pkce_flow(f_uid))
+        check('join without GitHub identity fails', rc == 1 and '"ok":false' in out, (rc, out))
+        check('failed join: the new account is deleted', server_rows(f_uid) == '0,0,0', server_rows(f_uid))
+        check('failed join: no state left', state(f_dir) is None, state(f_dir))
+        ips = psql(
+            "select count(*) || ',' || count(*) filter (where coalesce(ip_address, '') <> '') "
+            'from auth.audit_log_entries where created_at > now() - interval \'10 minutes\''
+        )
+        print('info auth.audit_log_entries last 10 min (all, with ip_address): ' + ips)
     finally:
         helper(['leaderboard', 'leave'], a_dir)  # removes a left-over keychain item of this run, if any
         for uid in users:

@@ -12,6 +12,7 @@ import TokenMaccerCore
 final class Leaderboard {
     private(set) var state: LeaderboardState?
     private(set) var busy = false
+    private(set) var renaming = false
     var error: String?
 
     @ObservationIgnored private let dataDir: String
@@ -38,7 +39,8 @@ final class Leaderboard {
     }
 
     /// Sign in with GitHub, then let the collector join; `afterJoin` runs a collection pass (first report).
-    func join(displayName: String, helper: URL?, afterJoin: @escaping () async -> Void) async {
+    /// Without a display name the server takes the GitHub username (changed afterwards with `rename`).
+    func join(displayName: String? = nil, helper: URL?, afterJoin: @escaping () async -> Void) async {
         guard !busy else { return }
         guard let helper else { error = "The background collector is missing from TokenMaccer.app."; return }
         guard let endpoint else { error = LeaderboardError.noServer.description; return }
@@ -46,7 +48,8 @@ final class Leaderboard {
         busy = true
         defer { busy = false }
         guard let input = await gitHubSignIn(endpoint) else { return }
-        let answer = await Self.helper(helper, ["leaderboard", "join", "--display-name", displayName], stdin: input)
+        let answer = await Self.helper(
+            helper, ["leaderboard", "join"] + (displayName.map { ["--display-name", $0] } ?? []), stdin: input)
         refresh()
         if answer.ok {
             await afterJoin()
@@ -54,6 +57,34 @@ final class Leaderboard {
         } else {
             error = "Could not join: " + (answer.error ?? "unknown error")
         }
+    }
+
+    /// Changes the display name on the server (the collector's sign-in; no GitHub window).
+    func rename(_ displayName: String, helper: URL?) async {
+        guard !renaming, let helper else { return }
+        error = nil
+        renaming = true
+        defer { renaming = false }
+        let answer = await Self.helper(helper, ["leaderboard", "rename", "--display-name", displayName], stdin: nil)
+        refresh()
+        if !answer.ok { error = "Could not change the name: " + (answer.error ?? "unknown error") }
+    }
+
+    /// What the join panel shows (onboarding step 3 and the Join sheet), for the widget's period and unit.
+    var joinStatus: JoinStatus {
+        var s = JoinStatus()
+        s.phase = busy ? .busy : joined ? .joined : .idle
+        s.error = error
+        s.displayName = state?.displayName
+        s.githubLogin = state?.githubLogin
+        s.period = Selection.period
+        s.usd = Selection.unit == .usd
+        if let place = state?.place(period: s.period, unit: Selection.unit.rawValue) {
+            s.rank = place.rank
+            s.participants = place.participants
+        }
+        s.renaming = renaming
+        return s
     }
 
     /// The GitHub sign-in as stdin for the collector ({"code", "verifier"}); nil when cancelled or failed
@@ -204,6 +235,7 @@ struct LeaderboardSection: View {
                     state: s.lastError == nil ? .ok : .problem, title: "Leaderboard",
                     value: "Joined as \(s.displayName ?? "–")", detail: detail(s)
                 ) {
+                    Button("Change Name…") { joining = true }.disabled(leaderboard.busy)
                     Button("Leave…") { confirmLeave = true }.disabled(leaderboard.busy)
                 }
             } else if leaderboard.needsSignIn {
@@ -243,12 +275,7 @@ struct LeaderboardSection: View {
             }
         }
         .sheet(isPresented: $joining) {
-            JoinLeaderboardSheet { name in
-                joining = false
-                Task { await leaderboard.join(displayName: name, helper: setup.helperURL) { await setup.updateNow() } }
-            } cancel: {
-                joining = false
-            }
+            JoinSheet(leaderboard: leaderboard, setup: setup) { joining = false }
         }
         .confirmationDialog("Leave the leaderboard?", isPresented: $confirmLeave) {
             Button("Leave and Delete", role: .destructive) { Task { await leaderboard.leave(helper: setup.helperURL) } }
@@ -275,62 +302,35 @@ struct LeaderboardSection: View {
     }
 }
 
-/// Consent and display name before the GitHub sign-in.
-struct JoinLeaderboardSheet: View {
-    /// docs/privacy.md in the public repository (German: docs/privacy.de.md, linked from there).
-    static let privacyURL = URL(string: "https://github.com/valentinherrera/tokenmaccer/blob/main/docs/privacy.md")!
-
-    let join: (String) -> Void
-    let cancel: () -> Void
-    @State private var name = ""
-
-    private var cleaned: String? { LeaderboardSync.cleanDisplayName(name) }
+/// The one-button join (JoinPanel) in a sheet; after joining it shows the place and the name, and "Change Name…"
+/// opens it there directly.
+struct JoinSheet: View {
+    let leaderboard: Leaderboard
+    let setup: Setup
+    let close: () -> Void
 
     var body: some View {
+        let status = leaderboard.joinStatus
         VStack(alignment: .leading, spacing: 14) {
-            Text("Join the Leaderboard").font(.title3.weight(.semibold))
-            VStack(alignment: .leading, spacing: 8) {
-                consent("arrow.up.circle",
-                        "At most every 30 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices.")
-                consent("lock",
-                        "Never projects, prompts, file names or any other content. Everything else stays on this Mac.")
-                consent("person.2",
-                        "Other participants see your display name, your GitHub username and these totals.")
-                consent("person.crop.circle",
-                        "Signing in creates an account on the leaderboard server (Supabase, EU) with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the server sees these, apart from the username. Its sign-in and request logs record your IP address.")
-                consent("trash",
-                        "Leave at any time: your account, your profile and all reported totals are deleted from the server. Only your GitHub user ID and the time of your last report stay a little longer (removed with the first report the server receives once they are an hour old), so leaving and joining again cannot get around the report limit.")
-                Link("Privacy notice", destination: Self.privacyURL)
-                    .font(.callout)
-            }
-            .font(.callout)
-            .fixedSize(horizontal: false, vertical: true)
-            VStack(alignment: .leading, spacing: 4) {
-                TextField("Display name", text: $name, prompt: Text("Display name (1–32 characters)"))
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit { if let cleaned { join(cleaned) } }
-                Text("Sign-in with GitHub through Supabase Auth, in a system sign-in window. The sign-in is kept in your keychain.")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            Text(status.phase == .joined ? "You're on the Leaderboard" : "Join the Leaderboard")
+                .font(.title3.weight(.semibold))
+            JoinPanel(status: status) {
+                Task { await leaderboard.join(helper: setup.helperURL) { await setup.updateNow() } }
+            } rename: { name in
+                Task { await leaderboard.rename(name, helper: setup.helperURL) }
             }
             HStack {
                 Spacer()
-                Button("Cancel", role: .cancel) { cancel() }
-                    .keyboardShortcut(.cancelAction)
-                Button("Continue with GitHub") { if let cleaned { join(cleaned) } }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(cleaned == nil)
+                if status.phase == .joined {
+                    Button("Done", action: close).keyboardShortcut(.defaultAction)
+                } else {
+                    Button("Cancel", role: .cancel, action: close)
+                        .keyboardShortcut(.cancelAction)
+                        .disabled(status.phase == .busy)
+                }
             }
         }
         .padding(20)
-        .frame(width: 420)
-    }
-
-    private func consent(_ symbol: String, _ text: String) -> some View {
-        Label {
-            Text(text)
-        } icon: {
-            Image(systemName: symbol).foregroundStyle(.secondary)
-        }
+        .frame(width: 440)
     }
 }

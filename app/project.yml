@@ -11,6 +11,8 @@ name: TokenMaccer
 options:
   deploymentTarget:
     macOS: "15.0"
+  # English source strings, German from App/Localizable.xcstrings (String Catalog)
+  developmentLanguage: en
 # Sparkle 2 (updates for the app edition; the source edition links it but never starts the updater)
 packages:
   Sparkle:
@@ -25,7 +27,7 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "13"
+    CURRENT_PROJECT_VERSION: "14"
     ENABLE_HARDENED_RUNTIME: YES
     TM_EDITION: source
     TM_APP_ENTITLEMENTS: App/App.entitlements
@@ -50,6 +52,10 @@ targets:
         CFBundleDisplayName: TokenMaccer
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # English is the source language (no en.lproj is built from the String Catalog): without this list an
+        # English system would fall through to the only lproj there is, German
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, de]
         LSApplicationCategoryType: public.app-category.developer-tools
         TMAppGroup: $(DEVELOPMENT_TEAM).tokenmaccer
         TMEdition: $(TM_EDITION)
@@ -201,6 +207,7 @@ targets:
       - Shared/Model.swift
       - Shared/WidgetHealth.swift
       - Shared/SelfHealPlan.swift
+      - Shared/OnboardingPlan.swift
       - path: ../collector/prices.json
         buildPhase: resources
     dependencies:

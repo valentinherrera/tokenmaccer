@@ -18,6 +18,8 @@ final class Setup {
     private(set) var lastUpdate: Date?
     /// What the widget itself reported after its last read (not what the collector wrote).
     private(set) var widget: WidgetStatus = .notSeen
+    /// The widget read within the last 30 minutes (onboarding step 2 checks off).
+    private(set) var widgetRunning = false
     private(set) var running = false
     private(set) var note: String?
 
@@ -66,6 +68,7 @@ final class Setup {
         service = agent?.status ?? .notFound
         lastUpdate = WidgetData.load()?.updatedDate
         widget = WidgetHealth.status(in: Selection.defaults)
+        widgetRunning = OnboardingPlan.widgetRunning(in: Selection.defaults)
     }
 
     func register(openSettings: Bool = true) {
@@ -270,9 +273,41 @@ struct SetupView: View {
     @State private var leaderboard = Leaderboard(
         dataDir: (WidgetData.realHome ?? NSHomeDirectory()) + "/Library/Application Support/TokenMaccer")
     @State private var confirmRemoval = false
+    @State private var welcome = Welcome.shared
+    @State private var step: OnboardingPlan.Step = .about
     private let tick = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    /// Faster while the onboarding waits for the widget, so the step checks off within seconds.
+    private let fastTick = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
     var body: some View {
+        Group {
+            if welcome.visible { onboarding } else { status }
+        }
+        .onAppear { setup.start() }
+        .onReceive(tick) { _ in
+            setup.refresh()
+            leaderboard.refresh()
+        }
+        .onReceive(fastTick) { _ in
+            if welcome.visible && step == .widget && !setup.widgetRunning { setup.refresh() }
+        }
+    }
+
+    private var onboarding: some View {
+        OnboardingView(
+            step: $step, transcriptsFound: setup.transcriptsFound,
+            transcriptsPath: abbreviate(setup.claudeDir + "/projects"), widgetRunning: setup.widgetRunning,
+            join: leaderboard.joinStatus,
+            chooseFolder: { setup.chooseFolder() },
+            joinAction: { Task { await leaderboard.join(helper: setup.helperURL) { await setup.updateNow() } } },
+            rename: { name in Task { await leaderboard.rename(name, helper: setup.helperURL) } },
+            finish: {
+                welcome.finish()
+                step = .about
+            })
+    }
+
+    private var status: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
                 Image(nsImage: NSApp.applicationIconImage)
@@ -347,11 +382,6 @@ struct SetupView: View {
         }
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
-        .onAppear { setup.start() }
-        .onReceive(tick) { _ in
-            setup.refresh()
-            leaderboard.refresh()
-        }
     }
 
     @ViewBuilder private var service: some View {

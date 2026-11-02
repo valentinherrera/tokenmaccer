@@ -9,7 +9,7 @@
 #
 #   scripts/check_hosted_release.sh
 # Overrides, for testing against the local stack or another project:
-#   TM_PRIVACY_URL        default: privacyURL in app/App/Leaderboard.swift
+#   TM_PRIVACY_URL        default: privacyURL in app/App/OnboardingViews.swift
 #   TM_AUTH_URL TM_AUTH_KEY  default: url and publishable_key in supabase/app-config.json
 #   TM_MIGRATION_LIST     a file with the output of `supabase migration list` instead of running it
 #   TM_MIGRATION_ARGS     default: --project-ref <project_ref from app-config.json>; e.g. --local
@@ -26,9 +26,9 @@ ok() { echo "ok   $*"; }
 bad() { echo "FAIL $*"; fail=1; }
 
 # 1. Privacy notice links
-PRIVACY="${TM_PRIVACY_URL:-$(sed -n 's/.*privacyURL = URL(string: "\([^"]*\)")!.*/\1/p' "$ROOT/app/App/Leaderboard.swift" | head -1)}"
+PRIVACY="${TM_PRIVACY_URL:-$(sed -n 's/.*privacyURL = URL(string: "\([^"]*\)")!.*/\1/p' "$ROOT/app/App/OnboardingViews.swift" | head -1)}"
 if [ -z "$PRIVACY" ]; then
-  bad "privacy link: no privacyURL found in app/App/Leaderboard.swift"
+  bad "privacy link: no privacyURL found in app/App/OnboardingViews.swift"
 else
   for link in "$PRIVACY" "${PRIVACY%.md}.de.md"; do
     code="$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 20 "$link" 2>/dev/null || true)"

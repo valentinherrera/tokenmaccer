@@ -60,8 +60,8 @@ No Xcode, no Terminal, no Python: the app brings its own collector.
 
 1. Download `TokenMaccer-1.0.0.dmg` from the [latest release](https://github.com/valentinherrera/tokenmaccer/releases/latest) and open it.
 2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple. macOS asks once to confirm opening an app downloaded from the internet; click **Open**. No security warning appears.
-3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
-4. Right-click the desktop › **Edit Widgets…** › search for **TokenMaccer** and add it. Your numbers appear within a few minutes.
+3. On the first start a short welcome walks you through three steps: what TokenMaccer reads (it shows whether your Claude Code transcripts were found; if they live outside `~/.claude`, click **Choose Folder…**), adding the widget (right-click the desktop › **Edit Widgets…** › search for **TokenMaccer**; the step checks itself off as soon as the widget runs), and the optional [leaderboard](#leaderboard-and-privacy), which you can skip. **TokenMaccer › Welcome…** shows it again. Background updates run every 5 minutes, also after a restart. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
+4. Afterwards the window shows the status (transcripts, background updates, widget, leaderboard). Your numbers appear in the widget within a few minutes.
 
 No account is needed and your numbers stay on your Mac: without joining the optional [leaderboard](#leaderboard-and-privacy), the app's only network request is Sparkle's update check (below). Details: [privacy notice](docs/privacy.md) ([Deutsch](docs/privacy.de.md)).
 
@@ -83,7 +83,7 @@ END PENDING RELEASE -->
 
 ### Leaderboard and privacy
 
-Optional, off by default. In the window, **Join…** under **Leaderboard** shows what is shared, asks for a display name of your choice and signs you in with GitHub (through [Supabase](https://supabase.com) Auth, in a system sign-in window, PKCE). Afterwards the widget shows your place quietly next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`.
+Optional, off by default. In step 3 of the welcome, or later with **Join…** under **Leaderboard** in the window, TokenMaccer shows in two lines what is shared (the full text under **Details**, and a link to the privacy notice) and one button, **Continue with GitHub**, which signs you in through [Supabase](https://supabase.com) Auth in a system sign-in window (PKCE). Your display name starts as your GitHub username; change it right there or later with **Change Name…**. Then your place appears, large (for example `#3 of 120`, 7 days, tokens), and the widget shows it quietly next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`.
 
 - **What is sent:** at most every 30 minutes, the six period totals the widget shows (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their USD value at API prices, and the first day of each period. Never project names, prompts, file names, models or any other content.
 - **Who sees what:** other participants see your display name, your GitHub username and these totals.
@@ -181,7 +181,14 @@ python3 scripts/make_demo.py /tmp/tm-demo/claude
 TOKENMACCER_CLAUDE_DIR=/tmp/tm-demo/claude TOKENMACCER_DATA_DIR=/tmp/tm-demo/data python3 collector/collector.py
 xcrun swiftc app/Shared/*.swift app/Preview/main.swift -o /tmp/tm-render
 /tmp/tm-render /tmp/tm-demo/data/widget.json /tmp/tm-demo 30D -AppleLocale en_US
+
+# render the welcome steps and the join panel (light and dark) from fixtures, without the app or its data
+xcrun swiftc -parse-as-library app/Shared/*.swift app/App/OnboardingViews.swift app/Preview/Onboarding/main.swift \
+  -o /tmp/tm-onboarding
+/tmp/tm-onboarding /tmp/tm-shots
 ```
+
+German screenshots: put the binary into an `.app` (`Contents/MacOS/`, an `Info.plist` with `CFBundleLocalizations` en and de) together with `Contents/Resources/de.lproj` from a built TokenMaccer.app and start it with `-AppleLanguages '(de)'`. A Debug build of the app edition opens the welcome at every start with the launch argument `-TMForceOnboarding` (it never marks it as done); a new install shows it once on its own, an existing one (history or leaderboard state present) never does.
 
 The collector uses only the Python standard library and runs on the macOS system Python (3.9).
 

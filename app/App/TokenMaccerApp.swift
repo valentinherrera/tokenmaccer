@@ -1,5 +1,7 @@
+import AppKit
 import Sparkle
 import SwiftUI
+import TokenMaccerCore
 import WidgetKit
 
 @main
@@ -14,7 +16,7 @@ struct TokenMaccerApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("TokenMaccer") {
+        WindowGroup("TokenMaccer", id: "main") {
             if Edition.isApp {
                 SetupView()
             } else {
@@ -24,7 +26,10 @@ struct TokenMaccerApp: App {
         .windowResizability(.contentSize)
         .commands {
             if Edition.isApp {
-                CommandGroup(after: .appInfo) { CheckForUpdatesButton() }
+                CommandGroup(after: .appInfo) {
+                    WelcomeButton()
+                    CheckForUpdatesButton()
+                }
             }
         }
     }
@@ -47,6 +52,54 @@ struct CheckForUpdatesButton: View {
         Button("Check for Updates…") { Updates.controller.checkForUpdates(nil) }
             .disabled(!canCheck)
             .onReceive(changes) { canCheck = $0 }
+    }
+}
+
+/// App edition: whether the window shows the first-run onboarding (OnboardingPlan says who gets it).
+@MainActor @Observable
+final class Welcome {
+    static let shared = Welcome()
+    private(set) var visible: Bool
+    /// Debug builds with -TMForceOnboarding: shown at every launch, the "done" flag is never written.
+    private let forced: Bool
+
+    private init() {
+        #if DEBUG
+        forced = CommandLine.arguments.contains(OnboardingPlan.forceArgument)
+        #else
+        forced = false
+        #endif
+        guard Edition.isApp else {
+            visible = false
+            return
+        }
+        let home = WidgetData.realHome ?? NSHomeDirectory()
+        let existing = OnboardingPlan.existingInstall(
+            dataDir: home + "/Library/Application Support/TokenMaccer",
+            legacyDir: LegacyMigration.legacyDataDir(home: home),
+            fileExists: { FileManager.default.fileExists(atPath: $0) })
+        visible = OnboardingPlan.shouldShow(
+            done: UserDefaults.standard.bool(forKey: OnboardingPlan.doneKey), existingInstall: existing, forced: forced)
+    }
+
+    func show() { visible = true }
+
+    func finish() {
+        visible = false
+        if !forced { UserDefaults.standard.set(true, forKey: OnboardingPlan.doneKey) }
+    }
+}
+
+/// "Welcome…" in the app menu: the onboarding again, in the open window or a new one.
+struct WelcomeButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Welcome…") {
+            Welcome.shared.show()
+            if !NSApp.windows.contains(where: { $0.isVisible && $0.canBecomeMain }) { openWindow(id: "main") }
+            NSApp.activate()
+        }
     }
 }
 

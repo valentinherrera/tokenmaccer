@@ -31,7 +31,7 @@ settings:
     # with the String Catalog, so a new string without German fails CI
     SWIFT_EMIT_LOC_STRINGS: YES
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "28"
+    CURRENT_PROJECT_VERSION: "29"
     ENABLE_HARDENED_RUNTIME: YES
     TM_EDITION: source
     TM_APP_ENTITLEMENTS: App/App.entitlements

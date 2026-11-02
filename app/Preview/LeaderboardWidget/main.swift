@@ -16,7 +16,9 @@ func render() {
 
     let names = ["Mara Lindqvist", "octo-dev", "Jonas", "Priya Raman", "Theo", "Ana Sofía Castellanos de la Vega",
                  "kenji", "Lena B.", "Sam", "Ruth"]
-    func fixture(meRank: Int, count: Int = 120, fetched: Bool = true, avatars: Bool = true) -> LeaderboardWidgetData? {
+    func fixture(meRank: Int, count: Int = 120, fetched: Bool = true, avatars: Bool = true, groups: Bool = false)
+        -> LeaderboardWidgetData?
+    {
         var boards: [[String: Any]] = []
         var pics: [String: String] = [:]
         for p in Selection.periods {
@@ -35,27 +37,32 @@ func render() {
         }
         var obj: [String: Any] = ["boards": fetched ? boards : [], "avatars": fetched ? pics : [:]]
         if fetched { obj["fetchedAt"] = 1_793_000_000 }
+        // two groups: the title shows the switch symbol and a click goes global → groups → global
+        if groups { obj["groups"] = [["id": "g1", "name": "Friday Hackers", "boards": boards],
+                                      ["id": "g2", "name": "Team", "boards": boards]] }
         return LeaderboardWidgetData.decode(try! JSONSerialization.data(withJSONObject: obj))
     }
     let empty = LeaderboardWidgetData.decode(Data(#"{"fetchedAt": 1793000000, "boards": [], "avatars": {}}"#.utf8))
 
-    let scenes: [(String, LeaderboardWidgetData?, Unit)] = [
-        ("outside", fixture(meRank: 23), .tokens),
-        ("inside", fixture(meRank: 2), .usd),
-        ("fifth", fixture(meRank: 5, avatars: false), .tokens),
-        ("waiting", fixture(meRank: 1, fetched: false), .tokens),
-        ("empty", empty, .tokens),
-        ("notjoined", nil, .tokens),
+    let scenes: [(String, LeaderboardWidgetData?, Unit, String?)] = [
+        ("outside", fixture(meRank: 23), .tokens, nil),
+        ("inside", fixture(meRank: 2), .usd, nil),
+        ("fifth", fixture(meRank: 5, avatars: false), .tokens, nil),
+        ("waiting", fixture(meRank: 1, fetched: false), .tokens, nil),
+        ("empty", empty, .tokens, nil),
+        ("notjoined", nil, .tokens, nil),
+        ("globalgroups", fixture(meRank: 23, groups: true), .tokens, nil),
+        ("group", fixture(meRank: 2, groups: true), .tokens, "g1"),
     ]
     let sizes: [(String, Size, CGSize)] = [
         ("medium", .medium, CGSize(width: 364, height: 170)),
         ("large", .large, CGSize(width: 364, height: 382)),
     ]
     var n = 0
-    for (name, data, unit) in scenes {
+    for (name, data, unit, group) in scenes {
         for (sizeName, size, frame) in sizes {
             for scheme in [ColorScheme.light, .dark] {
-                let v = LeaderboardWidgetView(data: data, period: "7D", unit: unit, size: size)
+                let v = LeaderboardWidgetView(data: data, group: group, period: "7D", unit: unit, size: size)
                     .padding(14)
                     .frame(width: frame.width, height: frame.height)
                     .background(scheme == .dark ? Color(white: 0.17) : Color(white: 0.95))

@@ -13,7 +13,10 @@ struct TokenMaccerApp: App {
         if Edition.isApp, CommandLine.arguments.contains("--unregister") {
             Setup.unregisterFromCommandLine(removeData: CommandLine.arguments.contains("--remove-data"))
         }
-        SelfHeal.runAtLaunch()
+        // outside the Applications folder: the move is offered right after launch; until then, and after "Not Now",
+        // nothing registers this copy (no Launch Services, no collector), so no second TokenMaccer appears
+        MoveToApplications.checkAtLaunch()
+        if !MoveToApplications.runningOutside { SelfHeal.runAtLaunch() }
         if Edition.isApp { _ = Updates.controller }
     }
 

@@ -690,6 +690,16 @@
         }
       }
     },
+    "Drag TokenMaccer into the Applications folder in Finder and open it from there. (%@)" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zieh TokenMaccer im Finder in den Programme-Ordner und öffne es von dort. (%@)"
+          }
+        }
+      }
+    },
     "Drag a size you like onto the desktop." : {
       "localizations" : {
         "de" : {
@@ -1270,6 +1280,26 @@
         }
       }
     },
+    "Move TokenMaccer to the Applications folder?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer in den Programme-Ordner verschieben?"
+          }
+        }
+      }
+    },
+    "Move to Applications" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Programme verschieben"
+          }
+        }
+      }
+    },
     "Name" : {
       "localizations" : {
         "de" : {
@@ -1446,6 +1476,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Noch niemand hier"
+          }
+        }
+      }
+    },
+    "Not Now" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht jetzt"
           }
         }
       }
@@ -2353,12 +2393,42 @@
         }
       }
     },
+    "TokenMaccer could not move itself" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer konnte sich nicht verschieben"
+          }
+        }
+      }
+    },
     "TokenMaccer counts every 5 minutes." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "TokenMaccer zählt alle 5 Minuten."
+          }
+        }
+      }
+    },
+    "TokenMaccer is not in the Applications folder, so background updates are off. Quit it and open it again to move it there." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer liegt nicht im Programme-Ordner, daher sind die Hintergrund-Updates aus. Beende die App und öffne sie erneut, um sie dorthin zu verschieben."
+          }
+        }
+      }
+    },
+    "TokenMaccer is running from outside the Applications folder. The widget and the background updates only work from there. TokenMaccer copies itself to Applications, replaces an older version there and starts again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer läuft außerhalb des Programme-Ordners. Das Widget und die Hintergrund-Updates funktionieren nur von dort. TokenMaccer kopiert sich in den Programme-Ordner, ersetzt dort eine ältere Version und startet neu."
           }
         }
       }

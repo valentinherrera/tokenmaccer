@@ -30,8 +30,8 @@ settings:
     # every build writes the localizable strings it finds (.stringsdata); scripts/check_strings.py compares them
     # with the String Catalog, so a new string without German fails CI
     SWIFT_EMIT_LOC_STRINGS: YES
-    MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "29"
+    MARKETING_VERSION: "1.0.1"
+    CURRENT_PROJECT_VERSION: "30"
     ENABLE_HARDENED_RUNTIME: YES
     TM_EDITION: source
     TM_APP_ENTITLEMENTS: App/App.entitlements
@@ -229,6 +229,7 @@ targets:
       - Shared/Model.swift
       - Shared/WidgetHealth.swift
       - Shared/SelfHealPlan.swift
+      - Shared/InstallLocationPlan.swift
       - Shared/OnboardingPlan.swift
       - Shared/PrivacyText.swift
       - Shared/LeaderboardWidgetData.swift

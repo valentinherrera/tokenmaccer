@@ -56,7 +56,12 @@ final class Setup {
     func start() {
         guard !started else { return }
         started = true
-        if !UserDefaults.standard.bool(forKey: stoppedKey), agent?.status != .enabled { register() }
+        if MoveToApplications.runningOutside {
+            // "Not Now" in the move dialog: the agent would point at this copy (a DMG that goes away)
+            note = String(localized: "TokenMaccer is not in the Applications folder, so background updates are off. Quit it and open it again to move it there.")
+        } else if !UserDefaults.standard.bool(forKey: stoppedKey), agent?.status != .enabled {
+            register()
+        }
         refresh()
         Task { await updateNow() }
     }
@@ -72,7 +77,7 @@ final class Setup {
     }
 
     func register(openSettings: Bool = true) {
-        guard let agent else { return }
+        guard let agent, !MoveToApplications.runningOutside else { return }
         do {
             if agent.status != .enabled { try agent.register() }
             UserDefaults.standard.set(false, forKey: stoppedKey)

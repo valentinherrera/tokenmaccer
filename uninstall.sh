@@ -19,6 +19,7 @@ done
 launchctl bootout "gui/$(id -u)/$LABEL" 2>/dev/null || true
 rm -f "$HOME/Library/LaunchAgents/$LABEL.plist"
 pkill -x TokenMaccer 2>/dev/null || true
+pkill -x TokenMaccerWidget 2>/dev/null || true
 rm -rf "$HOME/Applications/TokenMaccer.app"
 echo "Removed launchd job and app."
 

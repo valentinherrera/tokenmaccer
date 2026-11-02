@@ -117,9 +117,12 @@ xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Rel
 
 say "Installing to $APP_DIR/TokenMaccer.app"
 mkdir -p "$APP_DIR"
+# Stop the app and the running widget extension, otherwise the desktop keeps the old code in memory
 pkill -x TokenMaccer 2>/dev/null || true
+pkill -x TokenMaccerWidget 2>/dev/null || true
 rm -rf "$APP_DIR/TokenMaccer.app"
 cp -R build/Build/Products/Release/TokenMaccer.app "$APP_DIR/"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$REPO/app/build/Build/Products/Release/TokenMaccer.app" 2>/dev/null || true
 open "$APP_DIR/TokenMaccer.app"
 
 say "Done. Add the widget: right-click the desktop > Edit Widgets... > search \"TokenMaccer\"."

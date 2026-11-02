@@ -480,6 +480,16 @@
         }
       }
     },
+    "Configured board" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gewähltes Board"
+          }
+        }
+      }
+    },
     "Continue" : {
       "localizations" : {
         "de" : {
@@ -1320,6 +1330,16 @@
         }
       }
     },
+    "Next leaderboard board" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächstes Leaderboard-Board"
+          }
+        }
+      }
+    },
     "Next period" : {
       "localizations" : {
         "de" : {
@@ -1926,6 +1946,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wird neben deinem GitHub-Benutzernamen @%@ angezeigt."
+          }
+        }
+      }
+    },
+    "Shows the next board: global or one of your groups" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt das nächste Board: global oder eine deiner Gruppen"
           }
         }
       }

@@ -150,4 +150,40 @@ enum BoardSelection {
         get { Unit(rawValue: Selection.defaults.string(forKey: "boardUnit") ?? "tokens") ?? .tokens }
         set { Selection.defaults.set(newValue.rawValue, forKey: "boardUnit") }
     }
+
+    // MARK: Board switched with a click on the widget's title
+
+    /// Stored value for the global board (nil cannot be stored as "chosen").
+    static let globalKey = "global"
+
+    /// A widget has no id of its own, so the clicked board is kept per board chosen with "Edit Widget": widgets with the
+    /// same choice switch together, and choosing another board with Edit Widget starts from that board.
+    private static func overrideKey(_ configured: String?) -> String {
+        "boardClicked." + (configured?.lowercased() ?? globalKey)
+    }
+
+    /// The board a widget shows: the clicked one, else its Edit Widget choice. nil = global, else a group's id. A
+    /// clicked group the user is no longer in falls back to the choice (the choice itself still shows "no longer in
+    /// this group").
+    static func board(configured: String?, defaults: UserDefaults = Selection.defaults,
+                      groups: [String]?) -> String?
+    {
+        guard let stored = defaults.string(forKey: overrideKey(configured)) else { return configured }
+        if stored == globalKey { return nil }
+        if let groups, !groups.contains(where: { $0.lowercased() == stored.lowercased() }) { return configured }
+        return stored
+    }
+
+    /// The board after `current` in the order global → the user's groups → global. A current board that is no longer in
+    /// the list goes back to global.
+    static func next(after current: String?, groups: [String]) -> String? {
+        guard let current else { return groups.first }
+        guard let i = groups.firstIndex(where: { $0.lowercased() == current.lowercased() }), i + 1 < groups.count
+        else { return nil }
+        return groups[i + 1]
+    }
+
+    static func setBoard(_ board: String?, configured: String?, defaults: UserDefaults = Selection.defaults) {
+        defaults.set(board ?? globalKey, forKey: overrideKey(configured))
+    }
 }

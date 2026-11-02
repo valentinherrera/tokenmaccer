@@ -75,8 +75,10 @@ struct TokenMaccerWidget: Widget {
 struct BoardEntry: TimelineEntry {
     let date: Date
     let data: LeaderboardWidgetData?
-    /// The chosen group's id; nil for the global board.
+    /// The shown group's id (clicked on the title, else the Edit Widget choice); nil for the global board.
     let group: String?
+    /// The Edit Widget choice, the key the title click keeps its board under; nil for global.
+    var configured: String? = nil
     let period: String
     let unit: Unit
 }
@@ -100,8 +102,11 @@ struct BoardProvider: AppIntentTimelineProvider {
     }
 
     private func current(_ configuration: LeaderboardScopeIntent) -> BoardEntry {
-        BoardEntry(date: .now, data: LeaderboardWidgetData.load(), group: configuration.scope?.groupID,
-                   period: BoardSelection.period, unit: BoardSelection.unit)
+        let data = LeaderboardWidgetData.load()
+        let configured = configuration.scope?.groupID
+        let shown = BoardSelection.board(configured: configured, groups: data?.groups?.map(\.id))
+        return BoardEntry(date: .now, data: data, group: shown, configured: configured,
+                          period: BoardSelection.period, unit: BoardSelection.unit)
     }
 }
 
@@ -124,7 +129,8 @@ struct LeaderboardWidgetEntryView: View {
     let entry: BoardEntry
 
     var body: some View {
-        LeaderboardWidgetView(data: entry.data, group: entry.group, period: entry.period, unit: entry.unit,
+        LeaderboardWidgetView(data: entry.data, group: entry.group, configured: entry.configured,
+                              period: entry.period, unit: entry.unit,
                               size: family == .systemLarge ? .large : .medium)
             .containerBackground(.background, for: .widget)
     }

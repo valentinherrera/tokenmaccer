@@ -28,6 +28,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# build copies of the app (derived data, archive, DMG stage) leave Launch Services on every exit
+trap '"$ROOT/scripts/unregister_build_apps.sh" >/dev/null 2>&1 || true' EXIT
 IDENTITY="${TM_SIGN_IDENTITY:-Developer ID Application: Valentin Melchior Herrera-Schäfer (3KM85F22L8)}"
 TEAM="${TM_TEAM:-3KM85F22L8}"
 PREFIX="${TM_BUNDLE_ID_PREFIX:-io.github.valentinherrera}"

@@ -10,7 +10,8 @@
 #   shell   bash -n and shellcheck on every shell script
 #   deno    deno check and deno lint on the Supabase edge functions
 #   swift   both app editions with warnings as errors, XCTest, Swift/Python collector parity, German for
-#           every string, Sparkle signature checker, release endpoint lock, preview render
+#           every string, Sparkle signature checker, release endpoint lock, preview render, build copies
+#           unregistered from Launch Services (scripts/unregister_build_apps.sh)
 #
 # Tools: xcodegen, shellcheck, deno (brew install xcodegen shellcheck deno). The venv is created on first
 # run (needs the network once); TM_VENV points elsewhere if wanted.
@@ -29,7 +30,7 @@ die() { echo "preflight FAILED: $*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null || die "$1 missing: brew install $1"; }
 
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/tokenmaccer-preflight.XXXXXX")"
-trap 'rm -rf "$TMP"' EXIT
+trap 'rm -rf "$TMP"; "$ROOT/scripts/unregister_build_apps.sh" >/dev/null 2>&1 || true' EXIT
 
 ensure_venv() {
   if [ "$("$VENV/bin/ruff" --version 2>/dev/null)" != "ruff $RUFF_VERSION" ] \
@@ -117,6 +118,9 @@ swift_checks() {
   local n
   n="$(find "$TMP/png" -name '*.png' | wc -l | tr -d ' ')"
   [ "$n" -eq 12 ] || die "preview render wrote $n images, expected 12"
+  step "build copies of TokenMaccer.app unregistered (widget gallery shows only the installed app)"
+  scripts/unregister_build_apps.sh
+  scripts/unregister_build_apps.sh --check || die "a build copy is still registered with Launch Services"
 }
 
 sections=("$@")

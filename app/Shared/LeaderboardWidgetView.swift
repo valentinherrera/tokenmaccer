@@ -4,12 +4,15 @@ import SwiftUI
 
 /// The leaderboard widget: medium shows the first three places, large the first eight, each with the own row
 /// below a gap when it comes later. Period (chip row) and unit (header) are its own (BoardSelection); the board
-/// (global or one of the user's groups) is the widget's configuration ("Edit Widget"). A click anywhere else opens the
+/// (global or one of the user's groups) starts from the widget's configuration ("Edit Widget"); with groups, a click
+/// on the title shows the next board. A click anywhere else opens the
 /// app's leaderboard window on the same board. Reads only leaderboard-widget.json (LeaderboardWidgetData), never the
 /// network.
 struct LeaderboardWidgetView: View {
     let data: LeaderboardWidgetData?
     var group: String? = nil
+    /// The Edit Widget choice; the title click keeps its board under it (nil = global).
+    var configured: String? = nil
     let period: String
     let unit: Unit
     let size: Size
@@ -49,13 +52,33 @@ struct LeaderboardWidgetView: View {
 
     // MARK: Parts
 
-    private var header: some View {
-        HStack(spacing: 6) {
+    /// With groups, a click on the title shows the next board (global → groups → global).
+    private var canSwitch: Bool { !(data?.groups ?? []).isEmpty }
+
+    @ViewBuilder private var title: some View {
+        HStack(spacing: 4) {
             if let name = data?.group(group)?.name {
                 Label { Text(verbatim: name) } icon: { Image(systemName: "person.2.fill") }
-                    .font(.system(size: 13, weight: .semibold))
             } else {
-                Text("Leaderboard").font(.system(size: 13, weight: .semibold))
+                Text("Leaderboard")
+            }
+            if canSwitch {
+                Image(systemName: "arrow.left.arrow.right")
+                    .font(.system(size: 9, weight: .semibold)).foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .font(.system(size: 13, weight: .semibold))
+    }
+
+    private var header: some View {
+        HStack(spacing: 6) {
+            if canSwitch {
+                Button(intent: NextBoard(configured: configured)) { title }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(Text("Shows the next board: global or one of your groups"))
+            } else {
+                title
             }
             Spacer(minLength: 4)
             Button(intent: ToggleBoardUnit()) {

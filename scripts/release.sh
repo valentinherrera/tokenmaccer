@@ -33,6 +33,11 @@ step() { printf '\n==> %s\n' "$*"; }
 die() { echo "error: $*" >&2; exit 1; }
 
 command -v xcodegen >/dev/null || die "xcodegen missing: brew install xcodegen"
+# The DMG must match a commit: refuse a dirty tree unless TM_ALLOW_DIRTY=1.
+if [ "${TM_ALLOW_DIRTY:-0}" != 1 ] && [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then
+  die "uncommitted changes; commit first (or TM_ALLOW_DIRTY=1 for a test build)"
+fi
+COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
 [ -d "$DEVELOPER_DIR" ] || die "Xcode not found at $DEVELOPER_DIR"
 security find-identity -v -p codesigning | grep -qF "\"$IDENTITY\"" || die "signing identity not in keychain: $IDENTITY"
 
@@ -71,6 +76,7 @@ step "TokenMaccer $VERSION, team $TEAM, notary profile $PROFILE"
 rm -rf "$BUILD"
 mkdir -p "$BUILD" "$DIST"
 rm -f "$DMG" "$NOTES"
+echo "commit $COMMIT$([ "${TM_ALLOW_DIRTY:-0}" = 1 ] && echo " (dirty allowed)")" > "$NOTES"
 
 step "Archive (clean, app edition, universal)"
 cd "$ROOT/app"

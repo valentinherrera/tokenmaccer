@@ -1,0 +1,65 @@
+/* Source: farbsystem-graphit-amber.css, the "Graphite & Amber" colour system (Valentin, 02.11.2026), copied unchanged below.
+   docs/index.html uses only its semantic roles (--color-*); change the palette there, not in the page. */
+
+/* Farbsystem: Graphit & Amber
+   Abgeleitet vom App-Icon (Farbsystem B) und von Apples Systemfarben.
+   Amber nur auf dunklem Grund; auf hellem Grund --amber-text verwenden. */
+
+:root {
+  /* Palette */
+  --graphite-900: #1C1C1E;
+  --graphite-800: #2C2C2E;
+  --graphite-700: #3A3A3C;
+  --graphite-600: #48484A;
+  --gray-500: #636366;
+  --gray-400: #8E8E93;
+  --gray-300: #AEAEB2;
+  --gray-200: #C7C7CC;
+  --gray-100: #D1D1D6;
+  --gray-50: #E5E5EA;
+  --gray-25: #F2F2F7;
+  --white: #FFFFFF;
+  --amber: #FF9F0A;
+  --amber-text: #C93400;
+
+  /* Verläufe aus dem Icon */
+  --gradient-field: linear-gradient(180deg, #48484A 0%, #1C1C1E 100%);
+  --gradient-frame: linear-gradient(180deg, #E5E5EA 0%, #AEAEB2 100%);
+  --gradient-display: linear-gradient(180deg, #FFFFFF 0%, #E5E5EA 100%);
+
+  /* Semantische Rollen – Light */
+  --color-bg: var(--gray-25);
+  --color-surface: var(--white);
+  --color-text: var(--graphite-900);
+  --color-text-secondary: var(--gray-500);
+  --color-border: var(--gray-100);
+  --color-accent: var(--amber-text);
+  --color-button-bg: var(--graphite-900);
+  --color-button-text: var(--amber);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: var(--graphite-900);
+    --color-surface: var(--graphite-800);
+    --color-text: var(--white);
+    --color-text-secondary: var(--gray-300);
+    --color-border: var(--graphite-700);
+    --color-accent: var(--amber);
+    --color-button-bg: var(--amber);
+    --color-button-text: var(--graphite-900);
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg: var(--graphite-900);
+  --color-surface: var(--graphite-800);
+  --color-text: var(--white);
+  --color-text-secondary: var(--gray-300);
+  --color-border: var(--graphite-700);
+  --color-accent: var(--amber);
+  --color-button-bg: var(--amber);
+  --color-button-text: var(--graphite-900);
+}

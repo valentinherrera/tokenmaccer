@@ -10,92 +10,70 @@
 <!-- Static page for GitHub Pages (source: main, /docs). No build step, no external requests: no web fonts, no
      analytics, no third-party scripts. Screenshots are rendered from made-up demo data (scripts/make_demo.py and the
      fixtures in app/Preview), never from anyone's real usage. -->
+<link rel="stylesheet" href="assets/colors.css">
 <style>
-  :root {
-    --bg: #f6f5f2;
-    --surface: #ffffff;
-    --text: #1d1d1f;
-    --muted: #5e5e63;
-    --line: #e2e0da;
-    --amber: #b86e00;      /* the icon's amber, darkened for text on light backgrounds (contrast >= 4.5:1) */
-    --amber-fill: #faa300; /* the icon's amber as a fill */
-    --button-text: #1a1a1b;
-    --code-bg: #efede7;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #161617;
-      --surface: #1f1f21;
-      --text: #f2f2f4;
-      --muted: #a5a5ab;
-      --line: #313134;
-      --amber: #ffb53d;
-      --amber-fill: #faa300;
-      --button-text: #1a1a1b;
-      --code-bg: #29292c;
-    }
-  }
+  /* colours: only the semantic roles of assets/colors.css (Graphite & Amber), no values of its own */
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
+    background: var(--color-bg);
+    color: var(--color-text);
     font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
-  a { color: var(--amber); }
+  a { color: var(--color-accent); }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
   header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--text); text-decoration: none; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--color-text); text-decoration: none; }
   .brand img { width: 32px; height: 32px; }
-  .lang { display: flex; gap: 2px; background: var(--code-bg); border-radius: 8px; padding: 2px; }
+  .lang { display: flex; gap: 2px; background: var(--color-surface); border-radius: 8px; padding: 2px; }
   .lang button {
-    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; font-weight: 600;
+    border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 14px; font-weight: 600;
     padding: 4px 10px; border-radius: 6px; cursor: pointer;
   }
-  .lang button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .lang button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 
   .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 40px 0 56px; }
   h1 { font-size: 52px; line-height: 1.06; letter-spacing: -0.02em; margin: 0 0 18px; }
-  h1 em { font-style: normal; color: var(--amber); }
-  .lede { font-size: 20px; color: var(--muted); margin: 0 0 28px; max-width: 34em; }
+  h1 em { font-style: normal; color: var(--color-accent); }
+  .lede { font-size: 20px; color: var(--color-text-secondary); margin: 0 0 28px; max-width: 34em; }
   .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
   .download {
-    display: inline-flex; align-items: center; gap: 10px; background: var(--amber-fill); color: var(--button-text);
+    display: inline-flex; align-items: center; gap: 10px; background: var(--color-button-bg); color: var(--color-button-text);
     font-weight: 650; font-size: 18px; padding: 14px 24px; border-radius: 12px; text-decoration: none;
   }
   .download:hover { filter: brightness(1.05); }
-  .download:focus-visible, .lang button:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
-  .req { color: var(--muted); font-size: 14px; }
+  .download:focus-visible, .lang button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+  .req { color: var(--color-text-secondary); font-size: 14px; }
   /* no display on .steps itself: the language switch shows it with display: revert */
   .steps { list-style: none; counter-reset: step; margin: 26px 0 0; padding: 0; max-width: 34em; }
   .steps li + li { margin-top: 10px; }
   .steps li { counter-increment: step; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: baseline; font-size: 16px; }
   .steps li::before {
     content: counter(step); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
-    background: var(--code-bg); color: var(--text); font-weight: 650; font-size: 14px;
+    background: var(--color-surface); color: var(--color-text); font-weight: 650; font-size: 14px;
   }
   .steps strong { font-weight: 650; }
-  .soon { display: inline-block; font-size: 13px; font-weight: 650; color: var(--muted); background: var(--code-bg);
+  .soon { display: inline-block; font-size: 13px; font-weight: 650; color: var(--color-text-secondary); background: var(--color-surface);
     border-radius: 6px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; letter-spacing: 0; }
   .hero figure { margin: 0; justify-self: center; }
   .hero img { width: 100%; max-width: 420px; height: auto; display: block; border-radius: 26px; box-shadow: 0 18px 50px rgba(0,0,0,.18); }
 
-  section { padding: 48px 0; border-top: 1px solid var(--line); }
+  section { padding: 48px 0; border-top: 1px solid var(--color-border); }
   h2 { font-size: 30px; letter-spacing: -0.01em; margin: 0 0 12px; }
-  .sub { color: var(--muted); margin: 0 0 28px; max-width: 40em; }
+  .sub { color: var(--color-text-secondary); margin: 0 0 28px; max-width: 40em; }
   .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
-  .shot { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .shot { margin: 0; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 18px; }
   .shot img { width: 100%; height: auto; display: block; border-radius: 10px; }
-  .shot figcaption { margin-top: 12px; font-size: 15px; color: var(--muted); }
-  .shot figcaption strong { color: var(--text); display: block; font-size: 16px; }
+  .shot figcaption { margin-top: 12px; font-size: 15px; color: var(--color-text-secondary); }
+  .shot figcaption strong { color: var(--color-text); display: block; font-size: 16px; }
   .card img { width: 100%; max-width: 640px; height: auto; display: block; border-radius: 14px; }
 
   .privacy p { max-width: 44em; margin: 0 0 12px; }
-  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 15px; margin: 0 0 10px; }
+  pre { background: var(--color-surface); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 15px; margin: 0 0 10px; }
   code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
-  .note { color: var(--muted); font-size: 15px; }
-  footer { border-top: 1px solid var(--line); padding: 28px 0 44px; color: var(--muted); font-size: 14px; }
+  .note { color: var(--color-text-secondary); font-size: 15px; }
+  footer { border-top: 1px solid var(--color-border); padding: 28px 0 44px; color: var(--color-text-secondary); font-size: 14px; }
   footer p { margin: 0 0 6px; }
 
   [data-lang] { display: none; }

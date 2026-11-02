@@ -5,7 +5,13 @@ Creates three synthetic users (test-<n>-<run>@example.com) through the admin API
 report, read ranks, hit the plausibility and rate limits, leave and delete their account, and
 deletes every user it created at the end, also on failure. Prints nothing secret.
 
-    SB_URL=... SB_ANON=... SB_SERVICE=... python3 -I supabase/tests/smoke_leaderboard.py
+join_leaderboard reads the GitHub login from auth.identities, which no HTTP API lets anyone write
+(the admin API creates email identities only). Users 1 and 2 therefore get a synthetic GitHub
+identity through psql in the local database container named by SB_DB_CONTAINER; user 3 gets none
+and must be refused. Against the hosted project, test joining with a real GitHub sign-in instead.
+
+    SB_URL=... SB_ANON=... SB_SERVICE=... SB_DB_CONTAINER=supabase_db_tokenmaccer \
+        python3 -I supabase/tests/smoke_leaderboard.py
 
 SB_SERVICE is read from the environment only and never printed.
 """
@@ -14,6 +20,7 @@ import datetime as dt
 import json
 import os
 import secrets
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -21,6 +28,7 @@ import urllib.request
 URL = os.environ["SB_URL"].rstrip("/")
 ANON = os.environ["SB_ANON"]
 SERVICE = os.environ["SB_SERVICE"]
+DB_CONTAINER = os.environ.get("SB_DB_CONTAINER", "")
 RUN = secrets.token_hex(3)
 CHECKS = []
 
@@ -40,6 +48,16 @@ def call(method, path, key, token=None, body=None):
         except ValueError:
             parsed = raw.decode(errors="replace")[:200]
         return e.code, parsed, dict(e.headers)
+
+
+def add_github_identity(uid, login, provider_id):
+    """Insert a GitHub identity row as the auth server would at sign-in (local stack only)."""
+    sql = ("insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) "
+           f"values ('{provider_id}', '{uid}', jsonb_build_object('sub', '{provider_id}', 'user_name', '{login}', "
+           f"'preferred_username', '{login}'), 'github', now(), now(), now())")
+    r = subprocess.run(["docker", "exec", DB_CONTAINER, "psql", "-U", "postgres", "-v", "ON_ERROR_STOP=1", "-qc", sql],
+                       capture_output=True, text=True, timeout=60)
+    return r.returncode == 0
 
 
 def check(name, cond, info=""):
@@ -62,6 +80,9 @@ def report(scale, usd):
 
 
 def main():
+    if not DB_CONTAINER:
+        print("SB_DB_CONTAINER not set: GitHub identities cannot be created over HTTP, nothing run")
+        return 2
     created = []
     try:
         users = []
@@ -71,10 +92,13 @@ def main():
             st, body, _ = call("POST", "/auth/v1/admin/users", SERVICE, body={
                 "email": email, "password": password, "email_confirm": True,
                 "app_metadata": {"provider": "github", "providers": ["github"]},
-                "user_metadata": {"user_name": f"test-{n}-{RUN}"},
+                "user_metadata": {},
             })
             check(f"admin creates synthetic user {n}", st == 200 and body and body.get("id"), st)
             created.append(body["id"])
+            if n < 3:
+                check(f"user {n} gets a synthetic GitHub identity",
+                      add_github_identity(body["id"], f"test-{n}-{RUN}", f"{RUN}{n}"))
             st, tok, _ = call("POST", "/auth/v1/token?grant_type=password", ANON,
                               body={"email": email, "password": password})
             check(f"user {n} signs in", st == 200 and tok and tok.get("access_token"), st)
@@ -89,9 +113,20 @@ def main():
         st, body, _ = call("POST", "/functions/v1/report", ANON, a, report(1, 5))
         check("report before joining is refused (403)", st == 403, (st, body))
 
+        # User 1 writes user 2's login into the own user metadata, as any signed-in user may.
+        st, body, _ = call("PUT", "/auth/v1/user", ANON, a,
+                           {"data": {"user_name": f"test-2-{RUN}", "preferred_username": f"test-2-{RUN}"}})
+        check("user 1 can change the own user metadata (the forgery path)", st == 200
+              and (body or {}).get("user_metadata", {}).get("user_name") == f"test-2-{RUN}", (st, body))
+
         for tok, name in ((a, "Alpha"), (b, "")):
             st, body, _ = call("POST", "/rest/v1/rpc/join_leaderboard", ANON, tok, {"p_display_name": name})
             check(f"join as {name or 'login'}", st == 200, (st, body))
+        st, body, _ = call("GET", f"/rest/v1/profiles?select=github_login&id=eq.{created[0]}", SERVICE)
+        check("forged metadata is ignored: user 1 keeps the own GitHub login",
+              st == 200 and body == [{"github_login": f"test-1-{RUN}"}], body)
+        st, body, _ = call("POST", "/rest/v1/rpc/join_leaderboard", ANON, c, {"p_display_name": "Gamma"})
+        check("an account without a GitHub identity cannot join (403)", st == 403, (st, body))
 
         st, body, _ = call("POST", "/rest/v1/totals", ANON, a, {
             "user_id": created[1], "period": "1D", "tokens_input": 1, "tokens_output": 1, "usd": 1,

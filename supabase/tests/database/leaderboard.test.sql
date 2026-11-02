@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(47);
+select plan(49);
 
 -- Fixtures: synthetic users only -----------------------------------------------------------------
 insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -15,7 +15,20 @@ values
   ('00000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'test-c@example.com', '{"provider":"github","providers":["github"]}', '{"user_name":"test-c"}', now(), now()),
   ('00000000-0000-0000-0000-00000000000e', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'test-e@example.com', '{"provider":"email","providers":["email"]}', '{}', now(), now());
+   'test-e@example.com', '{"provider":"email","providers":["email"]}', '{}', now(), now()),
+  -- d claims GitHub in its metadata but has no GitHub identity.
+  ('00000000-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'test-d@example.com', '{"provider":"github","providers":["github"]}', '{"user_name":"test-d"}', now(), now());
+
+-- GitHub identities as the auth server writes them at sign-in (not writable by the user).
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+values
+  ('9000000001', '00000000-0000-0000-0000-00000000000a',
+   '{"sub":"9000000001","user_name":"test-a","preferred_username":"test-a"}', 'github', now(), now(), now()),
+  ('9000000002', '00000000-0000-0000-0000-00000000000b',
+   '{"sub":"9000000002","user_name":"test-b","preferred_username":"test-b"}', 'github', now(), now(), now()),
+  ('9000000003', '00000000-0000-0000-0000-00000000000c',
+   '{"sub":"9000000003","user_name":"test-c","preferred_username":"test-c"}', 'github', now(), now(), now());
 
 -- A consistent report: 1D <= 7D <= 30D <= 1Y <= ALL, YTD between 1D and ALL.
 create function pg_temp.report(p_scale numeric, p_usd numeric) returns jsonb language sql as $$
@@ -38,10 +51,20 @@ grant execute on function pg_temp.as_user(uuid) to authenticated, anon;
 -- Join ---------------------------------------------------------------------------------------------
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
 select is((select github_login from join_leaderboard('Alpha')), 'test-a', 'join takes the GitHub login from the auth record');
+-- A forges a foreign login into the own user metadata (what PUT /auth/v1/user with `data` allows).
+reset role;
+update auth.users set raw_user_meta_data = '{"user_name":"test-b","preferred_username":"test-b"}'
+ where id = '00000000-0000-0000-0000-00000000000a';
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select is((select github_login from join_leaderboard('Alpha')), 'test-a',
+  'a login forged into user metadata is ignored; the GitHub identity wins');
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
 select is((select display_name from join_leaderboard('  ')), 'test-b', 'blank display name falls back to the login');
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000e');
 select throws_ok($$select join_leaderboard('Mail')$$, '42501', 'GitHub sign-in required', 'an email account cannot join');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000d');
+select throws_ok($$select join_leaderboard('Claim')$$, '42501', 'GitHub sign-in required',
+  'GitHub in the metadata without a GitHub identity cannot join');
 select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
 select throws_ok($$select join_leaderboard(repeat('x', 33))$$, '22023', null, 'display names longer than 32 characters are refused');
 

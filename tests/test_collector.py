@@ -192,9 +192,12 @@ class CollectorTest(unittest.TestCase):
     def test_second_run_without_changes_adds_nothing(self) -> None:
         self.write('a.jsonl', [turn('m1', ts(0))])
         self.run_collector()
+        store = os.path.join(self.data, 'store.json')
+        before = os.stat(store).st_mtime_ns
         p = self.run_collector()
         self.assertTrue(p.stdout.startswith('0 new turns'), p.stdout)
         self.assertEqual(self.total(), 1100)
+        self.assertEqual(os.stat(store).st_mtime_ns, before, 'store must not be rewritten without new turns')
 
     def test_shrunk_file_reread_without_double_count(self) -> None:
         path = self.write('a.jsonl', [turn('m1', ts(0)), turn('m2', ts(0))])

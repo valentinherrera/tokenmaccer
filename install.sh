@@ -39,7 +39,7 @@ if [ -f "$DATA_DIR/prices.json" ] && ! cmp -s "$REPO/collector/prices.json" "$DA
 fi
 install -m 0644 "$REPO/collector/prices.json" "$DATA_DIR/prices.json"
 
-say "Registering launchd job $LABEL (every 15 minutes)"
+say "Registering launchd job $LABEL (every 5 minutes)"
 # Pass custom transcript locations set at install time on to launchd
 ENV_XML=""
 for var in CLAUDE_CONFIG_DIR TOKENMACCER_EXTRA_SOURCES; do
@@ -63,7 +63,7 @@ cat > "$PLIST" <<EOF
     <string>-I</string>
     <string>$DATA_DIR/collector.py</string>
   </array>
-  <key>StartInterval</key><integer>900</integer>
+  <key>StartInterval</key><integer>300</integer>
   <key>RunAtLoad</key><true/>
   <key>Nice</key><integer>10</integer>
   <key>LowPriorityIO</key><true/>

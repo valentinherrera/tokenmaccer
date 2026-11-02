@@ -43,7 +43,7 @@ struct TickerView: View {
         } else {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Claude Code").font(.headline)
-                Text("No data yet. The collector runs every 15 minutes.")
+                Text("No data yet. The collector runs every 5 minutes.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }

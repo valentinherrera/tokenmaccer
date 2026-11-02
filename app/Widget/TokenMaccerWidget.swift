@@ -18,8 +18,8 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
-        // The collector writes every 15 minutes; the widget reloads shortly after.
-        let next = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now
+        // The collector writes every 5 minutes; the widget reloads shortly after.
+        let next = Calendar.current.date(byAdding: .minute, value: 5, to: .now) ?? .now
         completion(Timeline(entries: [current()], policy: .after(next)))
     }
 

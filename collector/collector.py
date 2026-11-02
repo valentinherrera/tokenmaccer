@@ -4,7 +4,7 @@
 Reads Claude Code transcripts (~/.claude/projects/**/*.jsonl) incrementally, keeps daily totals
 in store.json (they survive Claude Code's transcript cleanup) and writes widget.json for the widget.
 
-Usage: collector.py              incremental run (what launchd calls every 15 minutes)
+Usage: collector.py              incremental run (what launchd calls every 5 minutes)
        collector.py --rebuild    re-read everything; days whose transcripts are gone are kept
                                  from the existing store (a daily backup is taken first)
 
@@ -478,7 +478,9 @@ def main() -> None:
         store, n = rebuild(store)
     else:
         n = ingest(store)
-    save_atomic(STORE, store)
+    # Write the store only when something changed: the job runs every 5 minutes, mostly with nothing new
+    if n or '--rebuild' in sys.argv or not os.path.exists(STORE):
+        save_atomic(STORE, store)
     w = widget_data(store)
     save_atomic(WIDGET, w)
     print(f'{n} new turns · {time.time() - t0:.1f} s · updated {w["updated"]}')

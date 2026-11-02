@@ -25,7 +25,7 @@ USD values are estimates at public API list prices (`collector/prices.json`). If
 ## How it works
 
 ```
-~/.claude/projects/**/*.jsonl ──► collector.py (launchd, every 15 min) ──► ~/.claude/tools/tokenmaccer/widget.json ──► widget
+~/.claude/projects/**/*.jsonl ──► collector.py (launchd, every 5 min) ──► ~/.claude/tools/tokenmaccer/widget.json ──► widget
 ```
 
 - `collector/collector.py` reads Claude Code's local transcripts incrementally (only new bytes), de-duplicates messages and keeps daily totals in `store.json`. Claude Code deletes old transcripts after a while (30 days by default); your history stays in the store, with 14 daily backups.
@@ -48,7 +48,7 @@ cd tokenmaccer
 
 The installer
 
-1. copies the collector to `~/.claude/tools/tokenmaccer/` and registers a launchd job (`tokenmaccer.collector`, every 15 minutes),
+1. copies the collector to `~/.claude/tools/tokenmaccer/` and registers a launchd job (`tokenmaccer.collector`, every 5 minutes),
 2. runs it once (the first run reads all existing transcripts),
 3. builds the app with your signing team (detected from your certificate, or set `DEVELOPMENT_TEAM=ABCDE12345`) and installs it to `~/Applications/TokenMaccer.app`.
 

@@ -3,9 +3,9 @@ import Foundation
 /// Invitation links of leaderboard groups: `https://tokenmaccer.app/join/<code>` (the website forwards to the app)
 /// and `tokenmaccer://join/<code>` (opens the app directly). Plain values, no SwiftUI: the unit tests compile this file.
 enum GroupInvite {
-    /// Whether https://tokenmaccer.app/join/… answers. While false, shared invitations carry the tokenmaccer:// link
-    /// as well, because the website link alone would end on an error page. Switch to true once the site is live.
-    static let siteLive = false
+    /// Whether https://tokenmaccer.app/join/… answers (live since 02.11.2026: docs/join.html on Vercel hands the code
+    /// to tokenmaccer://join/<code>). While false, shared invitations carry the tokenmaccer:// link as well.
+    static let siteLive = true
 
     static let webBase = "https://tokenmaccer.app/join/"
     static let appBase = "tokenmaccer://join/"
@@ -53,5 +53,5 @@ enum GroupInvite {
     }
 
     /// Where someone without the app gets it (the same page the share card of a place links to).
-    static let downloadURL = "https://github.com/valentinherrera/tokenmaccer"
+    static let downloadURL = "https://tokenmaccer.app"
 }

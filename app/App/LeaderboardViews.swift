@@ -8,10 +8,9 @@ import SwiftUI
 
 /// Where the app points people to. Its colours live in Palette (Shared/Palette.swift, Shared/Colors.xcassets).
 enum Brand {
-    /// Where a shared card invites people to: the public repository, whose README leads to the download (answers
-    /// HTTP 200 today, checked 02.11.2026). Switch to the download page only once it is published (W4, GitHub
-    /// Pages); a link on a shared card must never end on a 404.
-    static let inviteURL = URL(string: "https://github.com/valentinherrera/tokenmaccer")!
+    /// Where a shared card invites people to: the download page tokenmaccer.app (live since 02.11.2026, HTTP 200).
+    /// A link on a shared card must never end on a 404.
+    static let inviteURL = URL(string: "https://tokenmaccer.app")!
 
     static var inviteHost: String {
         inviteURL.absoluteString.replacingOccurrences(of: "https://", with: "").trimmingCharacters(in: ["/"])

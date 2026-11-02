@@ -23,11 +23,11 @@ struct JoinStatus: Equatable {
 }
 
 enum PrivacyNotice {
-    /// docs/privacy.md in the public repository, the hosted copy README and website link to. The app does not
+    /// docs/privacy.md as hosted on tokenmaccer.app (German: /privacy/de), the copy README and website link to. The app does not
     /// link it: the consent opens the copy bundled with the app (bundledMarkdown), which needs no network and
     /// cannot be a dead page. scripts/check_hosted_release.sh reads this line and checks it and the German
     /// docs/privacy.de.md before a release.
-    static let privacyURL = URL(string: "https://github.com/valentinherrera/tokenmaccer/blob/main/docs/privacy.md")!
+    static let privacyURL = URL(string: "https://tokenmaccer.app/privacy")!
 
     /// docs/privacy.md, or docs/privacy.de.md when the app runs in German, from the app bundle (project.yml copies
     /// both); nil only in a build without them (the preview renderer passes the files itself).

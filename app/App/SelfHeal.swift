@@ -4,12 +4,14 @@ import Foundation
 import OSLog
 import WidgetKit
 
-/// App edition: after an update (Sparkle, or the app replaced by hand from the DMG) the first launch of the new
-/// build brings the widget over to the new bundle, so the user does not have to remove and re-add it.
-/// Steps (see SelfHealPlan for why): register the bundle with LaunchServices, end the widget processes of this
-/// bundle (they still run the old code), ask WidgetKit to reload from the app. Measured 02.11.2026 on macOS 26:
-/// without ending the old process every reload fails (1050) and chronod pauses the widget for an hour; with
-/// these steps the next reload succeeds within a second. chronod itself is never restarted.
+/// App edition: after an update (Sparkle, or the app replaced by hand from the DMG) a launch of the app brings
+/// the widget over to the new bundle, so the user does not have to remove and re-add it.
+/// Steps (see SelfHealPlan for when and why): register the bundle with LaunchServices, end the stale widget
+/// processes of this app (they still run the old code), ask WidgetKit to reload from the app, then wait for the
+/// widget to report the new build; without that report the steps are repeated twice and the next launch tries
+/// again. Measured 02.11.2026 on macOS 26: without ending the old process every reload fails (1050) and chronod
+/// pauses the widget for an hour; with these steps the next reload succeeds within a second. chronod itself is
+/// never restarted.
 @MainActor
 enum SelfHeal {
     static let log = Logger(subsystem: Bundle.main.bundleIdentifier ?? "tokenmaccer", category: "selfheal")
@@ -20,52 +22,103 @@ enum SelfHeal {
         let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
         let shared = Selection.defaults
         let last = shared.string(forKey: SelfHealPlan.lastBuildKey)
-        guard SelfHealPlan.buildChanged(last: last, current: current) else { return }
-        // record first: whatever happens below, the next launch of this build does not heal again
-        shared.set(current, forKey: SelfHealPlan.lastBuildKey)
-        let enabled = SelfHealPlan.isEnabled(defaultsValue: UserDefaults.standard.string(forKey: SelfHealPlan.modeKey))
-        log.notice("build changed \(last ?? "none", privacy: .public) -> \(current, privacy: .public), self-heal \(enabled ? "on" : "off", privacy: .public)")
-        guard enabled else { return }
+        if SelfHealPlan.buildChanged(last: last, current: current) {
+            log.notice("build changed \(last ?? "none", privacy: .public) -> \(current, privacy: .public)")
+            shared.set(current, forKey: SelfHealPlan.lastBuildKey)
+        }
+        guard SelfHealPlan.isEnabled(defaultsValue: UserDefaults.standard.string(forKey: SelfHealPlan.modeKey)) else {
+            log.notice("self-heal off (TMSelfHeal)")
+            return
+        }
+        let confirmed = shared.string(forKey: SelfHealPlan.confirmedBuildKey)
+        let stale = staleWidgetProcesses()
+        guard SelfHealPlan.needsHeal(confirmedBuild: confirmed, current: current, staleProcesses: stale.count) else {
+            return
+        }
+        log.notice("self-heal: confirmed build \(confirmed ?? "none", privacy: .public), current \(current, privacy: .public), stale widget processes \(stale.count, privacy: .public)")
 
+        let started = Date()
         let registered = LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
-        let appName = Bundle.main.bundleURL.deletingPathExtension().lastPathComponent
-        let ended = endProcesses { SelfHealPlan.isWidgetProcess(path: $0, appName: appName, widgetName: widgetName) }
+        let ended = end(stale)
         log.notice("LSRegisterURL \(registered, privacy: .public), ended widget processes \(ended, privacy: .public)")
 
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(1))
             WidgetCenter.shared.reloadAllTimelines()
             log.notice("reloadAllTimelines requested")
-            // for the log only: does the widget (if it is on the desktop) now run the new build?
-            for _ in 0..<20 {
-                try? await Task.sleep(for: .seconds(3))
-                if shared.string(forKey: SelfHealPlan.widgetBuildKey) == current {
-                    log.notice("widget runs build \(current, privacy: .public)")
+            for second in stride(from: 2, through: SelfHealPlan.confirmWindow, by: 2) {
+                try? await Task.sleep(for: .seconds(2))
+                if confirmedByWidget(current: current, since: started) {
+                    shared.set(current, forKey: SelfHealPlan.confirmedBuildKey)
+                    log.notice("widget runs build \(current, privacy: .public) after \(second, privacy: .public) s, self-heal confirmed")
                     return
                 }
+                if SelfHealPlan.retryAt.contains(second) {
+                    let again = end(staleWidgetProcesses())
+                    WidgetCenter.shared.reloadAllTimelines()
+                    log.notice("retry after \(second, privacy: .public) s: ended widget processes \(again, privacy: .public), reloadAllTimelines requested")
+                }
             }
-            log.notice("widget has not run build \(current, privacy: .public) within 60 s (not on the desktop?)")
+            log.notice("widget has not reported build \(current, privacy: .public) within \(SelfHealPlan.confirmWindow, privacy: .public) s (not on the desktop?); next launch tries again")
         }
     }
 
-    /// Sends SIGTERM to this user's processes whose executable path matches. Returns how many.
-    private static func endProcesses(matching: (String) -> Bool) -> Int {
+    private static func confirmedByWidget(current: String, since started: Date) -> Bool {
+        let shared = Selection.defaults
+        let reportedAt = shared.object(forKey: WidgetHealth.lastAttemptKey) == nil
+            ? nil : Date(timeIntervalSince1970: shared.double(forKey: WidgetHealth.lastAttemptKey))
+        return SelfHealPlan.widgetConfirms(widgetBuild: shared.string(forKey: SelfHealPlan.widgetBuildKey),
+                                           reportedAt: reportedAt, current: current, healStarted: started)
+    }
+
+    /// Path of the widget executable inside the running bundle.
+    private static var installedWidgetPath: String {
+        Bundle.main.bundleURL
+            .appendingPathComponent("Contents/PlugIns/\(widgetName).appex/Contents/MacOS/\(widgetName)")
+            .path
+    }
+
+    /// This user's widget processes of this app that do not run the installed widget executable.
+    private static func staleWidgetProcesses() -> [pid_t] {
+        let installed = installedWidgetPath
+        let appName = Bundle.main.bundleURL.deletingPathExtension().lastPathComponent
+        var changedAt: Date?
+        var st = stat()
+        if stat(installed, &st) == 0 {
+            changedAt = Date(timeIntervalSince1970: TimeInterval(st.st_ctimespec.tv_sec)
+                             + TimeInterval(st.st_ctimespec.tv_nsec) / 1_000_000_000)
+        }
         let uid = getuid()
         let me = getpid()
         var pids = [pid_t](repeating: 0, count: 4096)
         let count = proc_listallpids(&pids, Int32(pids.count * MemoryLayout<pid_t>.size))
-        guard count > 0 else { return 0 }
-        var ended = 0
+        guard count > 0 else { return [] }
+        var stale: [pid_t] = []
         for pid in pids.prefix(Int(count)) where pid > 0 && pid != me {
             var info = proc_bsdinfo()
             let size = Int32(MemoryLayout<proc_bsdinfo>.size)
             guard proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) == size, info.pbi_uid == uid else { continue }
             // Both the current path of the executable and the path it was started from: after Sparkle moved the
             // old bundle away, proc_pidpath can fail (measured 02.11.2026), the start path still names it.
-            let paths = [currentPath(pid), launchPath(pid)].compactMap { $0 }
-            if paths.contains(where: matching), kill(pid, SIGTERM) == 0 { ended += 1 }
+            let current = currentPath(pid)
+            let launch = launchPath(pid)
+            let matches = [current, launch].compactMap { $0 }.contains {
+                SelfHealPlan.isWidgetProcess(path: $0, appName: appName, widgetName: widgetName)
+            }
+            guard matches else { continue }
+            let startedAt = Date(timeIntervalSince1970: TimeInterval(info.pbi_start_tvsec)
+                                 + TimeInterval(info.pbi_start_tvusec) / 1_000_000)
+            if SelfHealPlan.isStale(currentPath: current, launchPath: launch, installed: installed,
+                                    startedAt: startedAt, installedChangedAt: changedAt) {
+                stale.append(pid)
+            }
         }
-        return ended
+        return stale
+    }
+
+    /// Sends SIGTERM to the given processes. Returns how many received it.
+    private static func end(_ pids: [pid_t]) -> Int {
+        pids.filter { kill($0, SIGTERM) == 0 }.count
     }
 
     private static func currentPath(_ pid: pid_t) -> String? {

@@ -135,6 +135,18 @@ EDKEY="$(plutil -extract SUPublicEDKey raw "$APP/Contents/Info.plist")"
 [[ "$FEED" == https://* ]] || die "SUFeedURL is not https: $FEED"
 [[ "$EDKEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || die "SUPublicEDKey missing or malformed"
 echo "  ok  build $BUILD_NUMBER, feed $FEED"
+# Sparkle offers an update only for a higher build, and the self-heal records the build: never release a
+# build number twice. Compare with the last local appcast and the live feed (404 before the first release).
+[[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]] || die "CFBundleVersion is not a plain number: $BUILD_NUMBER"
+PREVIOUS=0
+for feed_xml in "$(cat "$DIST/appcast.xml" 2>/dev/null)" "$(curl -fsSL --max-time 20 "$FEED" 2>/dev/null)"; do
+  for n in $(grep -oE '<sparkle:version>[0-9]+</sparkle:version>' <<<"$feed_xml" | grep -oE '[0-9]+'); do
+    [ "$n" -gt "$PREVIOUS" ] && PREVIOUS="$n"
+  done
+done
+[ "$BUILD_NUMBER" -gt "$PREVIOUS" ] \
+  || die "build $BUILD_NUMBER is not higher than the released build $PREVIOUS; raise CURRENT_PROJECT_VERSION in app/project.yml"
+echo "  ok  build $BUILD_NUMBER > last released build $PREVIOUS"
 
 step "Notarize the app"
 ditto -c -k --keepParent "$APP" "$BUILD/TokenMaccer-app.zip"

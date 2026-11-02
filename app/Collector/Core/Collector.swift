@@ -13,10 +13,12 @@ public struct CollectorConfig: Sendable {
     public var now: String?
     /// Re-read everything; days whose transcripts are gone are kept from the existing store.
     public var rebuild: Bool
+    /// App Group whose container receives widget.json (nil = standalone run).
+    public var appGroup: String?
 
     public init(
         dataDir: String, widgetPath: String? = nil, sources: [String], prices: Prices, now: String? = nil,
-        rebuild: Bool = false
+        rebuild: Bool = false, appGroup: String? = nil
     ) {
         self.dataDir = dataDir
         self.widgetPath = widgetPath ?? joinPath(dataDir, "widget.json")
@@ -24,6 +26,7 @@ public struct CollectorConfig: Sendable {
         self.prices = prices
         self.now = now
         self.rebuild = rebuild
+        self.appGroup = appGroup
     }
 }
 
@@ -51,7 +54,9 @@ public enum Collector {
         Options (environment variable in brackets, same names as the Python collector):
           --data-dir PATH     store.json, backups/ [TOKENMACCER_DATA_DIR]
                               default ~/Library/Application Support/TokenMaccer
-          --widget-out PATH   widget.json [TOKENMACCER_WIDGET_PATH], default <data dir>/widget.json
+          --app-group ID      App Group of the widget [TOKENMACCER_APP_GROUP]; inside TokenMaccer.app the app's group
+          --widget-out PATH   widget.json [TOKENMACCER_WIDGET_PATH], default with an App Group
+                              ~/Library/Group Containers/<ID>/widget.json, otherwise <data dir>/widget.json
           --claude-dir PATH   Claude Code config dir [TOKENMACCER_CLAUDE_DIR, CLAUDE_CONFIG_DIR], default ~/.claude
           --source PATH       extra transcript folder, repeatable [TOKENMACCER_EXTRA_SOURCES, ':'-separated]
           --prices PATH       price table [TOKENMACCER_PRICES], default: the copy linked into this binary
@@ -59,8 +64,16 @@ public enum Collector {
           --rebuild           re-read everything; keeps days whose transcripts are gone
         """
 
+    /// widget.json in the App Group container (what the sandboxed widget reads via containerURL).
+    public static func groupWidgetPath(home: String, appGroup: String) -> String {
+        joinPath(home, "Library/Group Containers/\(appGroup)/widget.json")
+    }
+
     /// Builds the configuration from command-line arguments (without argv[0]) and the environment.
-    public static func configuration(arguments: [String], environment env: [String: String]) throws -> CollectorConfig {
+    /// `appGroup` is the fallback App Group (the hosting app's), used when neither flag nor variable sets one.
+    public static func configuration(
+        arguments: [String], environment env: [String: String], appGroup defaultGroup: String? = nil
+    ) throws -> CollectorConfig {
         var opts: [String: String] = [:]
         var extra: [String] = []
         var rebuild = false
@@ -69,7 +82,7 @@ public enum Collector {
             let a = arguments[i]
             switch a {
             case "--rebuild": rebuild = true
-            case "--data-dir", "--widget-out", "--claude-dir", "--source", "--prices", "--now":
+            case "--data-dir", "--widget-out", "--claude-dir", "--source", "--prices", "--now", "--app-group":
                 guard i + 1 < arguments.count else { throw CollectorError(description: "\(a) needs a value") }
                 i += 1
                 if a == "--source" { extra.append(arguments[i]) } else { opts[a] = arguments[i] }
@@ -98,9 +111,13 @@ public enum Collector {
         } else {
             throw CollectorError(description: "no price table: pass --prices /path/to/prices.json")
         }
+        let group = value("--app-group", "TOKENMACCER_APP_GROUP") ?? defaultGroup.flatMap { $0.isEmpty ? nil : $0 }
+        let widgetPath =
+            value("--widget-out", "TOKENMACCER_WIDGET_PATH").map(x)
+            ?? group.map { groupWidgetPath(home: x("~"), appGroup: $0) }
         return CollectorConfig(
-            dataDir: dataDir, widgetPath: value("--widget-out", "TOKENMACCER_WIDGET_PATH").map(x), sources: sources,
-            prices: prices, now: value("--now", "TOKENMACCER_NOW"), rebuild: rebuild)
+            dataDir: dataDir, widgetPath: widgetPath, sources: sources,
+            prices: prices, now: value("--now", "TOKENMACCER_NOW"), rebuild: rebuild, appGroup: group)
     }
 
     /// Re-read everything without losing history: per day the version with more input wins.

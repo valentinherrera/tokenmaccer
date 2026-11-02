@@ -474,3 +474,78 @@ final class CompatTests: XCTestCase {
         XCTAssertThrowsError(try Collector.configuration(arguments: ["--bogus"], environment: env))
     }
 }
+
+/// App edition: depth-safe parsing, widget.json in the App Group container, taking over a source install.
+extension CollectorTests {
+
+    /// A line nested deeper than the parser allows is skipped like any unreadable line, without a crash.
+    func testDeeplyNestedLineIsSkipped() throws {
+        let deep = String(repeating: "[", count: 200_000) + "\"usage\"" + String(repeating: "]", count: 200_000)
+        write("a.jsonl", [turn("m1", ts(0), inp: 10, cread: 0)], rawTail: deep + "\n")
+        write("a.jsonl", [turn("m2", ts(0), inp: 5, cread: 0)], append: true)
+        try runCollector()
+        XCTAssertEqual(total(), 15)
+        let limit = JSONParser.maxDepth
+        func nested(_ n: Int) -> Data { Data((String(repeating: "[", count: n) + String(repeating: "]", count: n)).utf8) }
+        XCTAssertNotNil(try? JSONParser.parse(nested(limit)))
+        XCTAssertNil(try? JSONParser.parse(nested(limit + 1)))
+        XCTAssertNil(try? JSONParser.parse(Data((String(repeating: "{\"a\":", count: limit + 1) + "1" + String(repeating: "}", count: limit + 1)).utf8)))
+    }
+
+    func testWidgetGoesToTheAppGroupContainer() throws {
+        let env = ["HOME": "/Users/x", "TOKENMACCER_PRICES": CollectorTests.pricesURL.path]
+        let group = "ABCDE12345.tokenmaccer"
+        let expected = "/Users/x/Library/Group Containers/ABCDE12345.tokenmaccer/widget.json"
+        XCTAssertEqual(try Collector.configuration(arguments: [], environment: env, appGroup: group).widgetPath, expected)
+        XCTAssertEqual(try Collector.configuration(arguments: [], environment: env, appGroup: group).appGroup, group)
+        XCTAssertNil(try Collector.configuration(arguments: [], environment: env).appGroup)
+        XCTAssertEqual(try Collector.configuration(arguments: ["--app-group", group], environment: env).widgetPath, expected)
+        var env2 = env
+        env2["TOKENMACCER_APP_GROUP"] = group
+        XCTAssertEqual(try Collector.configuration(arguments: [], environment: env2).widgetPath, expected)
+        // an explicit path still wins; without a group widget.json stays next to the store
+        XCTAssertEqual(
+            try Collector.configuration(arguments: ["--widget-out", "/w.json"], environment: env, appGroup: group)
+                .widgetPath, "/w.json")
+        XCTAssertEqual(
+            try Collector.configuration(arguments: [], environment: env).widgetPath,
+            "/Users/x/Library/Application Support/TokenMaccer/widget.json")
+    }
+
+    /// Criterion 5: the app edition takes over a source install's store and backups; the old folder is untouched.
+    func testLegacyMigrationCopiesStoreAndBackups() throws {
+        write("a.jsonl", [turn("m1", ts(1, 10)), turn("m2", ts(0))])
+        try runCollector()  // a source install's data folder: store.json ...
+        try runCollector()  // ... and today's backup
+        let fm = FileManager.default
+        try fm.createDirectory(atPath: data + "/backups", withIntermediateDirectories: true)
+        try fm.copyItem(atPath: data + "/store.json", toPath: data + "/backups/store-2026-01-01.json")
+        try Data("{broken".utf8).write(to: URL(fileURLWithPath: data + "/backups/store-2026-01-02.json"))
+        let before = try fm.contentsOfDirectory(atPath: data).sorted()
+        let oldStore = fm.contents(atPath: data + "/store.json")
+        let app = tmp + "/app-support"
+
+        XCTAssertEqual(LegacyMigration.run(legacyDir: data, dataDir: app), .copied(backups: 2))
+        XCTAssertEqual(fm.contents(atPath: app + "/store.json"), oldStore)
+        let copied = try fm.contentsOfDirectory(atPath: app + "/backups").sorted()
+        XCTAssertFalse(copied.contains("store-2026-01-02.json"), "unreadable backup must not be copied")
+        XCTAssertEqual(copied.count, 2)
+        XCTAssertEqual(try fm.contentsOfDirectory(atPath: data).sorted(), before, "old folder must stay as it was")
+        XCTAssertEqual(fm.contents(atPath: data + "/store.json"), oldStore)
+
+        // second start: the app edition has its own store now, nothing is copied again
+        XCTAssertEqual(LegacyMigration.run(legacyDir: data, dataDir: app), .notNeeded)
+        // the collector continues from the copied offsets: no turn is counted twice
+        let r = Collector.run(
+            CollectorConfig(
+                dataDir: app, sources: [claude + "/projects"], prices: try Prices(contentsOf: Self.pricesURL),
+                now: nowISO))
+        XCTAssertEqual(r.newTurns, 0)
+        // nothing to take over, or a broken old store: no copy
+        XCTAssertEqual(LegacyMigration.run(legacyDir: tmp + "/none", dataDir: tmp + "/x"), .notNeeded)
+        try fm.createDirectory(atPath: tmp + "/bad", withIntermediateDirectories: true)
+        try Data("[1]".utf8).write(to: URL(fileURLWithPath: tmp + "/bad/store.json"))
+        if case .skipped = LegacyMigration.run(legacyDir: tmp + "/bad", dataDir: tmp + "/y") {} else { XCTFail("skipped expected") }
+        XCTAssertFalse(fm.fileExists(atPath: tmp + "/y/store.json"))
+    }
+}

@@ -3,9 +3,18 @@ import WidgetKit
 
 @main
 struct TokenMaccerApp: App {
+    init() {
+        // For removal without the window: TokenMaccer.app/Contents/MacOS/TokenMaccer --unregister
+        if Edition.isApp, CommandLine.arguments.contains("--unregister") { Setup.unregisterFromCommandLine() }
+    }
+
     var body: some Scene {
         WindowGroup("TokenMaccer") {
-            Overview()
+            if Edition.isApp {
+                SetupView()
+            } else {
+                Overview()
+            }
         }
         .windowResizability(.contentSize)
     }

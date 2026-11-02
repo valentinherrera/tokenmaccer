@@ -40,6 +40,28 @@ jobs:
           xcodegen generate
           xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM=CI00000000 build
+      - name: XCTest (Swift collector)
+        working-directory: app
+        run: |
+          xcodebuild -project TokenMaccer.xcodeproj -scheme tokenmaccer-collector \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO test
+      - name: Swift and Python collector give identical results on demo data
+        run: |
+          python3 scripts/make_demo.py "$RUNNER_TEMP/parity"
+          /usr/bin/python3 -I scripts/compare_collectors.py --claude-dir "$RUNNER_TEMP/parity" \
+            --swift app/build/Build/Products/Debug/tokenmaccer-collector
+      - name: Build the app edition (unsigned, universal, warnings as errors)
+        working-directory: app
+        run: |
+          xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
+            -derivedDataPath build-appedition -xcconfig AppEdition.xcconfig \
+            CODE_SIGNING_ALLOWED=NO GCC_TREAT_WARNINGS_AS_ERRORS=YES clean build
+          app=build-appedition/Build/Products/Release/TokenMaccer.app/Contents
+          for bin in "$app/MacOS/TokenMaccer" "$app/MacOS/tokenmaccer-collector" \
+                     "$app/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"; do
+            lipo "$bin" -verify_arch arm64 x86_64
+          done
+          plutil -lint "$app/Library/LaunchAgents/io.github.valentinherrera.tokenmaccer.collector.plist"
       - name: Render preview with demo data
         run: |
           python3 scripts/make_demo.py "$RUNNER_TEMP/claude"

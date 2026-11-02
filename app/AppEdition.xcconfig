@@ -1,0 +1,16 @@
+// The downloadable app edition (Developer ID, notarized). Usage:
+//   xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
+//     -xcconfig AppEdition.xcconfig clean build
+// Settings here override the project for every target; per-target entitlements go through TM_*_ENTITLEMENTS.
+TM_EDITION = app
+DEVELOPMENT_TEAM = 3KM85F22L8
+BUNDLE_ID_PREFIX = io.github.valentinherrera
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = Developer ID Application
+OTHER_CODE_SIGN_FLAGS = --timestamp
+// no com.apple.security.get-task-allow (notarization rejects it)
+CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO
+ENABLE_HARDENED_RUNTIME = YES
+TM_APP_ENTITLEMENTS = App/App-AppEdition.entitlements
+TM_WIDGET_ENTITLEMENTS = Widget/Widget-AppEdition.entitlements
+TM_COLLECTOR_ENTITLEMENTS = Collector/CLI/Collector-AppEdition.entitlements

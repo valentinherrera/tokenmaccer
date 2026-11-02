@@ -129,8 +129,13 @@ struct JSONParseError: Error {}
 /// NaN/Infinity accepted, control characters in strings rejected, invalid UTF-8 rejected,
 /// trailing data rejected, a UTF-8 byte order mark at the start skipped.
 struct JSONParser {
+    /// Deeper documents are rejected instead of overflowing the stack (Python raises RecursionError
+    /// near 1000 levels; transcript lines are a few levels deep).
+    static let maxDepth = 512
+
     private let b: UnsafeRawBufferPointer
     private var i = 0
+    private var depth = 0
 
     private init(_ b: UnsafeRawBufferPointer) { self.b = b }
 
@@ -185,6 +190,9 @@ struct JSONParser {
     }
 
     private mutating func objectValue() throws -> JSONValue {
+        depth += 1
+        defer { depth -= 1 }
+        guard depth <= JSONParser.maxDepth else { throw JSONParseError() }
         i += 1
         var o = OrderedDict<JSONValue>()
         skipWhitespace()
@@ -215,6 +223,9 @@ struct JSONParser {
     }
 
     private mutating func arrayValue() throws -> JSONValue {
+        depth += 1
+        defer { depth -= 1 }
+        guard depth <= JSONParser.maxDepth else { throw JSONParseError() }
         i += 1
         var a: [JSONValue] = []
         skipWhitespace()

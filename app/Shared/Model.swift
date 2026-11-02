@@ -4,6 +4,12 @@ import Foundation
 /// (Info.plist key `TMAppGroup` = `$(DEVELOPMENT_TEAM).tokenmaccer`).
 let appGroup: String? = Bundle.main.object(forInfoDictionaryKey: "TMAppGroup") as? String
 
+/// Which build this is (Info.plist key `TMEdition` = build setting `TM_EDITION`):
+/// "source" = install.sh with the Python collector, "app" = the downloadable app with the bundled collector.
+enum Edition {
+    static let isApp = (Bundle.main.object(forInfoDictionaryKey: "TMEdition") as? String) == "app"
+}
+
 /// One point of a running total.
 struct Point: Codable, Hashable {
     let input: Int
@@ -32,11 +38,23 @@ struct WidgetData: Codable {
     let periods: [String: Period]
     let order: [String]
 
-    /// The collector writes to ~/.claude/tools/tokenmaccer/; the sandbox grants read access there.
-    /// Inside the sandbox NSHomeDirectory() points at the container, so take the real home from passwd.
+    /// App edition: the bundled collector writes widget.json into the App Group container.
+    /// Source edition (install.sh): the Python collector writes to ~/.claude/tools/tokenmaccer/, which the
+    /// sandbox grants read access to. Inside the sandbox NSHomeDirectory() points at the container,
+    /// so take the real home from passwd.
     static var defaultURL: URL? {
-        guard let pw = getpwuid(getuid()), let home = String(validatingCString: pw.pointee.pw_dir) else { return nil }
+        if Edition.isApp {
+            guard let appGroup else { return nil }
+            return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup)?
+                .appendingPathComponent("widget.json")
+        }
+        guard let home = realHome else { return nil }
         return URL(fileURLWithPath: home + "/.claude/tools/tokenmaccer/widget.json")
+    }
+
+    static var realHome: String? {
+        guard let pw = getpwuid(getuid()) else { return nil }
+        return String(validatingCString: pw.pointee.pw_dir)
     }
 
     static func load(from url: URL? = defaultURL) -> WidgetData? {

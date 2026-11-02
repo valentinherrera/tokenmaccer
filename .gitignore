@@ -8,10 +8,9 @@ app/TokenMaccer.xcodeproj/
 app/build/
 app/App/Info.plist
 app/Widget/Info.plist
-app/App/App.entitlements
-app/Widget/Widget.entitlements
 # never commit usage data
 store.json
 widget.json
 backups/
 *.log
+app/build-appedition/

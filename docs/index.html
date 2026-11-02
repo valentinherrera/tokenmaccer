@@ -12,7 +12,8 @@
      fixtures in app/Preview), never from anyone's real usage. -->
 <link rel="stylesheet" href="assets/colors.css">
 <style>
-  /* colours: only the semantic roles of assets/colors.css (Graphite & Amber), no values of its own */
+  /* colours: only assets/colors.css (Graphite & Amber). The desk below the headline is always graphite, in light mode
+     too: it is a Mac desktop, and amber belongs on dark ground only. */
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
@@ -22,7 +23,8 @@
     font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
   }
   a { color: var(--color-accent); }
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; border-radius: 4px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
   header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--color-text); text-decoration: none; }
   .brand img { width: 32px; height: 32px; }
@@ -33,58 +35,90 @@
   }
   .lang button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 
-  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding: 40px 0 56px; }
-  h1 { font-size: 52px; line-height: 1.06; letter-spacing: -0.02em; margin: 0 0 18px; }
-  h1 em { font-style: normal; color: var(--color-accent); }
-  .lede { font-size: 20px; color: var(--color-text-secondary); margin: 0 0 28px; max-width: 34em; }
-  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 18px; }
+  /* Headline */
+  .intro { padding: 56px 0 40px; }
+  h1 {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: clamp(46px, 9vw, 104px); line-height: .98; letter-spacing: -0.045em; font-weight: 700;
+    margin: 0 0 22px;
+  }
+  h1 span { display: block; }
+  .lede { font-size: 21px; line-height: 1.45; color: var(--color-text-secondary); margin: 0 0 30px; max-width: 30em; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
   .download {
     display: inline-flex; align-items: center; gap: 10px; background: var(--color-button-bg); color: var(--color-button-text);
-    font-weight: 650; font-size: 18px; padding: 14px 24px; border-radius: 12px; text-decoration: none;
+    font-weight: 650; font-size: 18px; padding: 15px 26px; border-radius: 14px; text-decoration: none;
   }
-  .download:hover { filter: brightness(1.05); }
-  .download:focus-visible, .lang button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
-  .req { color: var(--color-text-secondary); font-size: 14px; }
-  /* no display on .steps itself: the language switch shows it with display: revert */
-  .steps { list-style: none; counter-reset: step; margin: 26px 0 0; padding: 0; max-width: 34em; }
-  .steps li + li { margin-top: 10px; }
-  .steps li { counter-increment: step; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: baseline; font-size: 16px; }
-  .steps li::before {
-    content: counter(step); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
-    background: var(--color-surface); color: var(--color-text); font-weight: 650; font-size: 14px;
+  .download:hover { filter: brightness(1.08); }
+  .req { color: var(--color-text-secondary); font-size: 15px; }
+
+  /* The desk: a Mac desktop with the real widgets on it */
+  .desk {
+    position: relative; overflow: hidden; border-radius: 28px;
+    background: var(--gradient-field);
+    height: 560px; margin: 0 0 72px;
+    box-shadow: 0 30px 80px rgba(28,28,30,.28);
   }
-  .steps strong { font-weight: 650; }
-  .soon { display: inline-block; font-size: 13px; font-weight: 650; color: var(--color-text-secondary); background: var(--color-surface);
-    border-radius: 6px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; letter-spacing: 0; }
-  .hero figure { margin: 0; justify-self: center; }
-  .hero img { width: 100%; max-width: 420px; height: auto; display: block; border-radius: 26px; box-shadow: 0 18px 50px rgba(0,0,0,.18); }
+  .menubar {
+    position: absolute; inset: 0 0 auto 0; height: 32px; display: flex; align-items: center; gap: 22px;
+    padding: 0 18px; font-size: 14px; color: var(--white);
+    background: rgba(28,28,30,.55); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  .menubar .app { font-weight: 700; }
+  .menubar .menu { color: var(--gray-200); }
+  .menubar .right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+  .menubar .ticker {
+    align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px;
+    background: rgba(255,255,255,.16); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .menubar .ticker img { width: 16px; height: 16px; }
+  .menubar .clock { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .desk > img { position: absolute; height: auto; display: block; }
+  .w-usage { left: 6%; top: 78px; width: 330px; filter: drop-shadow(0 24px 40px rgba(0,0,0,.5)); }
+  .w-board { left: 37%; top: 262px; width: 364px; border-radius: 22px; box-shadow: 0 24px 40px rgba(0,0,0,.5); }
+  /* the menu bar panel opens under its item */
+  .w-panel { right: 18px; top: 38px; width: 280px; filter: drop-shadow(0 24px 40px rgba(0,0,0,.55)); }
+  .desk .note {
+    position: absolute; right: 24px; bottom: 26px; margin: 0; max-width: 20em;
+    font-size: 14px; color: var(--gray-300);
+  }
 
-  section { padding: 48px 0; border-top: 1px solid var(--color-border); }
-  h2 { font-size: 30px; letter-spacing: -0.01em; margin: 0 0 12px; }
-  .sub { color: var(--color-text-secondary); margin: 0 0 28px; max-width: 40em; }
-  .shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
-  .shot { margin: 0; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 18px; }
-  .shot img { width: 100%; height: auto; display: block; border-radius: 10px; }
-  .shot figcaption { margin-top: 12px; font-size: 15px; color: var(--color-text-secondary); }
-  .shot figcaption strong { color: var(--color-text); display: block; font-size: 16px; }
-  .card img { width: 100%; max-width: 640px; height: auto; display: block; border-radius: 14px; }
+  /* Below the desk: install and privacy, side by side */
+  .more { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; padding: 0 0 64px; }
+  h2 { font-size: 26px; letter-spacing: -0.015em; margin: 0 0 14px; }
+  .steps { margin: 0; padding-left: 1.3em; max-width: 30em; }
+  .steps li { padding-left: 4px; }
+  .steps li + li { margin-top: 8px; }
+  .more p { margin: 0 0 12px; max-width: 32em; }
+  .quiet { color: var(--color-text-secondary); font-size: 15px; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92em; }
 
-  .privacy p { max-width: 44em; margin: 0 0 12px; }
-  pre { background: var(--color-surface); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 15px; margin: 0 0 10px; }
-  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
-  .note { color: var(--color-text-secondary); font-size: 15px; }
   footer { border-top: 1px solid var(--color-border); padding: 28px 0 44px; color: var(--color-text-secondary); font-size: 14px; }
   footer p { margin: 0 0 6px; }
 
   [data-lang] { display: none; }
   html[lang="en"] [data-lang="en"], html[lang="de"] [data-lang="de"] { display: revert; }
+  html[lang="en"] .ticker[data-lang="en"], html[lang="de"] .ticker[data-lang="de"] { display: inline-flex; }
 
-  @media (max-width: 820px) {
-    .hero { grid-template-columns: 1fr; gap: 32px; padding: 20px 0 40px; }
-    h1 { font-size: 38px; }
+  @media (max-width: 1000px) {
+    .w-usage { left: 3%; width: 300px; }
+    .w-board { left: auto; right: 3%; top: 330px; width: 330px; }
+    .w-panel { width: 250px; }
+    .desk .note { left: 3%; right: auto; bottom: 22px; max-width: 18em; }
+  }
+  /* phone: the widgets stack, the panel stays in the menu bar */
+  @media (max-width: 700px) {
+    .intro { padding: 28px 0 28px; }
     .lede { font-size: 18px; }
-    .shots { grid-template-columns: 1fr; }
-    .hero img { max-width: 340px; }
+    .desk { height: auto; padding: 56px 16px 20px; border-radius: 22px; margin-bottom: 48px; }
+    .desk > img { position: static; margin: 0 auto 18px; max-width: 100%; }
+    .w-usage { width: 300px; }
+    .w-board { width: 100%; max-width: 364px; border-radius: 18px; }
+    .w-panel { display: none !important; }
+    .menubar { gap: 14px; padding: 0 12px; font-size: 13px; }
+    html[lang] .menubar .menu { display: none; }
+    .desk .note { position: static; text-align: center; margin: 4px auto 0; }
+    .more { grid-template-columns: 1fr; gap: 36px; }
   }
 </style>
 </head>
@@ -99,98 +133,70 @@
   </header>
 
   <main>
-    <div class="hero">
-      <div>
-        <h1 data-lang="en">A Mac widget that shows your Claude Code usage <em>in tokens and USD at API prices.</em></h1>
-        <h1 data-lang="de">Ein Mac-Widget, das deinen Claude-Code-Verbrauch <em>in Token und USD zu API-Preisen</em> zeigt.</h1>
-        <p class="lede" data-lang="en">A widget and a menu bar item that show what Claude Code used today, this week and all time, in tokens and in USD at API prices. Like a stock ticker, updated every 5 minutes.</p>
-        <p class="lede" data-lang="de">Ein Widget und ein Menüleisten-Symbol zeigen, was Claude Code heute, diese Woche und insgesamt verbraucht hat, in Token und in USD zu API-Preisen. Wie ein Börsenticker, alle 5 Minuten aktuell.</p>
-        <div class="cta">
-          <a class="download" href="https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg">
-            <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span data-lang="en">Download for Mac</span><span data-lang="de">Für den Mac laden</span>
-          </a>
-          <span class="req" data-lang="en">Free · macOS 15 or newer · Apple Silicon and Intel</span>
-          <span class="req" data-lang="de">Kostenlos · macOS 15 oder neuer · Apple Silicon und Intel</span>
-        </div>
-        <ol class="steps" data-lang="en" aria-label="Getting started">
-          <li><span>Open <strong>TokenMaccer.dmg</strong> and drag TokenMaccer onto <strong>Applications</strong>.</span></li>
-          <li><span>Open TokenMaccer from Applications. It is notarized by Apple; macOS asks once, click <strong>Open</strong>.</span></li>
-          <li><span>Right-click the desktop › <strong>Edit Widgets…</strong> › search for <strong>TokenMaccer</strong> and drag it out. The app's welcome checks this step off for you.</span></li>
-        </ol>
-        <ol class="steps" data-lang="de" aria-label="Loslegen">
-          <li><span>Öffne <strong>TokenMaccer.dmg</strong> und zieh TokenMaccer auf <strong>Programme</strong>.</span></li>
-          <li><span>Öffne TokenMaccer aus Programme. Die App ist von Apple notarisiert; macOS fragt einmal nach, klick auf <strong>Öffnen</strong>.</span></li>
-          <li><span>Rechtsklick auf den Schreibtisch › <strong>Widgets bearbeiten …</strong> › nach <strong>TokenMaccer</strong> suchen und das Widget herausziehen. Der Willkommensdialog der App hakt den Schritt von selbst ab.</span></li>
-        </ol>
+    <div class="intro">
+      <h1 data-lang="en"><span>Your tokens,</span> <span>like a stock.</span></h1>
+      <h1 data-lang="de"><span>Deine Token,</span> <span>wie eine Aktie.</span></h1>
+      <p class="lede" data-lang="en">A Mac widget that shows your Claude Code usage in tokens and USD at API prices.</p>
+      <p class="lede" data-lang="de">Ein Mac-Widget, das deinen Claude-Code-Verbrauch in Token und USD zu API-Preisen zeigt.</p>
+      <div class="cta">
+        <a class="download" href="https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span data-lang="en">Download for Mac</span><span data-lang="de">Für den Mac laden</span>
+        </a>
+        <span class="req" data-lang="en">Free and open source, macOS 15 or newer</span>
+        <span class="req" data-lang="de">Kostenlos und Open Source, ab macOS 15</span>
       </div>
-      <figure>
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="assets/widget-dark-en.png" data-i18n-src>
-          <img src="assets/widget-light-en.png" data-i18n-src width="610" height="640" alt="The large TokenMaccer widget with demo numbers: tokens for 7 days, change, a running-total curve and the period switch.">
-        </picture>
-      </figure>
     </div>
 
-    <section>
-      <h2 data-lang="en">Menu bar, leaderboard, share card</h2>
-      <h2 data-lang="de">Menüleiste, Leaderboard, Teilen-Karte</h2>
-      <p class="sub" data-lang="en">Everything below is optional except the widget. The numbers in these pictures are made up.</p>
-      <p class="sub" data-lang="de">Bis auf das Widget ist alles optional. Die Zahlen auf diesen Bildern sind ausgedacht.</p>
-      <div class="shots">
-        <figure class="shot">
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="assets/menubar-dark-en.png" data-i18n-src>
-            <img src="assets/menubar-light-en.png" data-i18n-src width="560" height="520" loading="lazy" alt="The menu bar panel: today's tokens, USD and leaderboard place, with quick actions.">
-          </picture>
-          <figcaption data-lang="en"><strong>Menu bar</strong>Today's tokens next to the clock. Switch it off in Settings.</figcaption>
-          <figcaption data-lang="de"><strong>Menüleiste</strong>Die Token von heute neben der Uhr. In den Einstellungen abschaltbar.</figcaption>
-        </figure>
-        <figure class="shot">
-          <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="assets/leaderboard-dark-en.png" data-i18n-src>
-            <img src="assets/leaderboard-light-en.png" data-i18n-src width="485" height="640" loading="lazy" alt="The leaderboard window with made-up participants, the own row highlighted.">
-          </picture>
-          <figcaption data-lang="en"><strong>Leaderboard, if you want</strong>Join with GitHub and compare your totals with other Claude Code users. Off until you join.</figcaption>
-          <figcaption data-lang="de"><strong>Leaderboard, wenn du willst</strong>Tritt mit GitHub bei und vergleiche deine Summen mit anderen Claude-Code-Nutzern. Aus, bis du beitrittst.</figcaption>
-        </figure>
-        <figure class="shot">
-          <img src="assets/share-card-en.png" data-i18n-src width="800" height="453" loading="lazy" alt="A share card: #3 of 120 this week.">
-          <figcaption data-lang="en"><strong>Share card</strong>Post your place as a picture, straight from the system share menu.</figcaption>
-          <figcaption data-lang="de"><strong>Teilen-Karte</strong>Poste deinen Platz als Bild, direkt aus dem Teilen-Menü des Systems.</figcaption>
-        </figure>
+    <div class="desk" role="img" aria-labelledby="desk-en desk-de">
+      <div class="menubar" aria-hidden="true">
+        <span class="app">Terminal</span>
+        <span class="menu" data-lang="en">Shell</span><span class="menu" data-lang="de">Shell</span>
+        <span class="menu" data-lang="en">Edit</span><span class="menu" data-lang="de">Bearbeiten</span>
+        <span class="menu" data-lang="en">View</span><span class="menu" data-lang="de">Darstellung</span>
+        <span class="right">
+          <span class="ticker" data-lang="en"><img src="assets/icon.png" alt="">2.4M</span>
+          <span class="ticker" data-lang="de"><img src="assets/icon.png" alt="">2,4 Mio.</span>
+          <span class="clock" data-lang="en">Mon 9:41 AM</span><span class="clock" data-lang="de">Mo. 9:41</span>
+        </span>
       </div>
-    </section>
+      <img class="w-usage" src="assets/widget-dark-en.png" data-i18n-src width="610" height="640" alt="">
+      <img class="w-board" src="assets/board-widget-dark-en.png" data-i18n-src width="728" height="340" alt="">
+      <img class="w-panel" src="assets/menubar-dark-en.png" data-i18n-src width="560" height="520" alt="">
+      <p class="note" id="desk-en" data-lang="en">On your desktop: the usage widget, the leaderboard widget, and today's tokens in the menu bar. Demo numbers, made-up names.</p>
+      <p class="note" id="desk-de" data-lang="de">Auf deinem Schreibtisch: das Verbrauchs-Widget, das Leaderboard-Widget und die Token von heute in der Menüleiste. Demo-Zahlen, ausgedachte Namen.</p>
+    </div>
 
-    <section class="privacy" id="privacy">
-      <h2 data-lang="en">Privacy</h2>
-      <h2 data-lang="de">Datenschutz</h2>
-      <div data-lang="en">
-        <p>Without the leaderboard, TokenMaccer only reads Claude Code's transcripts on your Mac and sends nothing anywhere; its one network request is the daily update check.</p>
-        <p>If you join the leaderboard, it sends your token and USD totals per period at most every 30 minutes, never prompts, projects or file names.</p>
-        <p>Groups are optional: only their members see a group, who is in it and its ranking. Leaving the leaderboard ends all your memberships.</p>
-        <p>Leave at any time, and your account and totals are deleted from the server. <a href="/privacy">Full privacy notice</a></p>
-      </div>
-      <div data-lang="de">
-        <p>Ohne Leaderboard liest TokenMaccer nur die Transkripte von Claude Code auf deinem Mac und sendet nichts; die einzige Netzwerkanfrage ist die tägliche Update-Prüfung.</p>
-        <p>Trittst du dem Leaderboard bei, sendet es höchstens alle 30 Minuten deine Token- und USD-Summen je Zeitraum, nie Prompts, Projekte oder Dateinamen.</p>
-        <p>Gruppen sind freiwillig: Nur ihre Mitglieder sehen eine Gruppe, wer in ihr ist und ihre Rangliste. Mit dem Austritt aus dem Leaderboard enden alle deine Mitgliedschaften.</p>
-        <p>Du kannst jederzeit austreten, dann werden dein Konto und deine Summen auf dem Server gelöscht. <a href="/privacy/de">Vollständiger Datenschutzhinweis</a></p>
-      </div>
-    </section>
-
-    <section id="homebrew">
-      <h2 data-lang="en">Homebrew <span class="soon">Coming soon</span></h2>
-      <h2 data-lang="de">Homebrew <span class="soon">Bald verfügbar</span></h2>
-      <!-- TBD: the tap repository (valentinherrera/homebrew-tap) does not exist yet, so no install command is shown.
-           Once the tap exists and `brew install --cask valentinherrera/tap/tokenmaccer` works, replace the two
-           notes below with <pre><code>brew install --cask valentinherrera/tap/tokenmaccer</code></pre> and drop the
-           "Coming soon" labels. The cask itself is packaging/homebrew/tokenmaccer.rb, filled in by scripts/release.sh. -->
-      <p class="note" data-lang="en">A Homebrew cask is planned. Until then, use the download button above.</p>
-      <p class="note" data-lang="de">Ein Homebrew-Cask ist geplant. Bis dahin nimm den Download-Knopf oben.</p>
-      <p class="note" data-lang="en">Updates come through the app itself (Sparkle): they install quietly when you quit TokenMaccer.</p>
-      <p class="note" data-lang="de">Updates kommen über die App selbst (Sparkle): Sie werden still installiert, wenn du TokenMaccer beendest.</p>
-    </section>
+    <div class="more">
+      <section>
+        <h2 data-lang="en">Get started</h2>
+        <h2 data-lang="de">Loslegen</h2>
+        <ol class="steps" data-lang="en">
+          <li>Open TokenMaccer.dmg and drag TokenMaccer onto Applications.</li>
+          <li>Open TokenMaccer. macOS asks once; click Open.</li>
+          <li>Right-click the desktop, choose Edit Widgets… and drag out TokenMaccer.</li>
+        </ol>
+        <ol class="steps" data-lang="de">
+          <li>Öffne TokenMaccer.dmg und zieh TokenMaccer auf Programme.</li>
+          <li>Öffne TokenMaccer. macOS fragt einmal nach; klick auf Öffnen.</li>
+          <li>Rechtsklick auf den Schreibtisch, Widgets bearbeiten … wählen und TokenMaccer herausziehen.</li>
+        </ol>
+        <!-- TBD: the tap repository (valentinherrera/homebrew-tap) does not exist yet, so no install command is shown.
+             Once the tap exists and `brew install --cask valentinherrera/tap/tokenmaccer` works, replace the two
+             lines below with the command in <code>. The cask itself is packaging/homebrew/tokenmaccer.rb, filled in by
+             scripts/release.sh. -->
+        <p class="quiet" data-lang="en" style="margin-top:16px">Homebrew: coming soon. Updates install themselves when you quit the app.</p>
+        <p class="quiet" data-lang="de" style="margin-top:16px">Homebrew: bald verfügbar. Updates installieren sich selbst, wenn du die App beendest.</p>
+      </section>
+      <section id="privacy">
+        <h2 data-lang="en">Stays on your Mac</h2>
+        <h2 data-lang="de">Bleibt auf deinem Mac</h2>
+        <p data-lang="en">TokenMaccer reads Claude Code's transcripts on your Mac and sends nothing, apart from a daily update check. The leaderboard is optional: join with GitHub, and only your totals per period go to the server, never prompts, projects or file names.</p>
+        <p data-lang="de">TokenMaccer liest die Transkripte von Claude Code auf deinem Mac und sendet nichts, bis auf eine tägliche Update-Prüfung. Das Leaderboard ist freiwillig: Tritt mit GitHub bei, dann gehen nur deine Summen je Zeitraum an den Server, nie Prompts, Projekte oder Dateinamen.</p>
+        <p data-lang="en"><a href="/privacy">Privacy notice</a></p>
+        <p data-lang="de"><a href="/privacy/de">Datenschutzhinweis</a></p>
+      </section>
+    </div>
   </main>
 
   <footer>
@@ -215,6 +221,7 @@
         var attr = el.tagName === 'SOURCE' ? 'srcset' : 'src';
         el.setAttribute(attr, el.getAttribute(attr).replace(/-(en|de)\.png$/, '-' + lang + '.png'));
       });
+      document.querySelector('.desk').setAttribute('aria-labelledby', 'desk-' + lang);
       document.title = lang === 'de' ? 'TokenMaccer für den Mac' : 'TokenMaccer for Mac';
       if (remember) { try { localStorage.setItem('lang', lang); } catch (e) {} }
     }

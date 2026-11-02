@@ -192,6 +192,12 @@ grep -q "sparkle:edSignature=" "$UPDATES/appcast.xml" || die "appcast entry is n
 grep -q "<sparkle:version>$BUILD_NUMBER</sparkle:version>" "$UPDATES/appcast.xml" \
   || die "appcast does not announce build $BUILD_NUMBER"
 grep -qF "url=\"$URL_PREFIX$ZIP\"" "$UPDATES/appcast.xml" || die "appcast does not point at $URL_PREFIX$ZIP"
+# The app installs an update only if its signature matches SUPublicEDKey. generate_appcast signs with whatever
+# key the keychain holds, so check the signature against the public key in the built app (public key only).
+SIGNATURES="$(grep -oE 'sparkle:edSignature="[^"]+"' "$UPDATES/appcast.xml" | cut -d'"' -f2)"
+[ "$(grep -c . <<<"$SIGNATURES")" = 1 ] || die "expected exactly one edSignature in the appcast"
+xcrun swift "$ROOT/scripts/verify_ed_signature.swift" "$EDKEY" "$SIGNATURES" "$UPDATES/$ZIP" \
+  || die "the appcast signature does not match SUPublicEDKey of the app: wrong key in the keychain?"
 rm -f "$DIST"/TokenMaccer-"$VERSION"-*.zip
 cp "$UPDATES/$ZIP" "$UPDATES/appcast.xml" "$DIST/"
 echo "update $ZIP -> $URL_PREFIX$ZIP" | tee -a "$NOTES"

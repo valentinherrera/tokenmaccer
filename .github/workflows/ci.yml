@@ -62,6 +62,8 @@ jobs:
             lipo "$bin" -verify_arch arm64 x86_64
           done
           plutil -lint "$app/Library/LaunchAgents/io.github.valentinherrera.tokenmaccer.collector.plist"
+      - name: Sparkle signature check of release.sh type-checks
+        run: xcrun swiftc -typecheck scripts/verify_ed_signature.swift
       - name: Release build ignores leaderboard server overrides (Debug honours them)
         run: |
           scripts/check_release_endpoint.sh \

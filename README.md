@@ -30,7 +30,7 @@ USD values are estimates at public API list prices (`collector/prices.json`). If
 
 - `collector/collector.py` reads Claude Code's local transcripts incrementally (only new bytes), de-duplicates messages and keeps daily totals in `store.json`. Claude Code deletes old transcripts after a while (30 days by default); your history stays in the store, with 14 daily backups.
 - The widget is sandboxed and only gets **read** access to `~/.claude/tools/tokenmaccer/`.
-- Everything stays on your Mac. No network access, no telemetry.
+- This setup makes no network requests and sends no telemetry: everything stays on your Mac.
 
 ## Requirements
 
@@ -61,7 +61,7 @@ No Xcode, no Terminal, no Python: the app brings its own collector.
 3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
 4. Right-click the desktop › **Edit Widgets…** › search for **TokenMaccer** and add it. Your numbers appear within a few minutes.
 
-No account and no network access are needed: your numbers stay on your Mac as long as you do not join the optional [leaderboard](#leaderboard-and-privacy). The only other request is Sparkle's update check (below).
+No account is needed and your numbers stay on your Mac: without joining the optional [leaderboard](#leaderboard-and-privacy), the app's only network request is Sparkle's update check (below). Details: [privacy notice](docs/privacy.md) ([Deutsch](docs/privacy.de.md)).
 
 Already using the `install.sh` setup? The app takes over your history from `~/.claude/tools/tokenmaccer/` on its first run (it only copies, the old folder stays). Use one of the two, not both: run `./uninstall.sh` once the app shows your numbers.
 
@@ -81,15 +81,17 @@ END PENDING RELEASE -->
 
 ### Leaderboard and privacy
 
-Optional, off by default. In the window, **Join…** under **Leaderboard** shows what is shared, asks for a display name of your choice and signs you in with GitHub (through [Supabase](https://supabase.com) Auth, in a system sign-in window, PKCE). Afterwards the widget shows your place quietly next to the headline, for the period and unit you selected, for example `#3 of 12`.
+Optional, off by default. In the window, **Join…** under **Leaderboard** shows what is shared, asks for a display name of your choice and signs you in with GitHub (through [Supabase](https://supabase.com) Auth, in a system sign-in window, PKCE). Afterwards the widget shows your place quietly next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`.
 
 - **What is sent:** at most every 30 minutes, the six period totals the widget shows (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their USD value at API prices, and the first day of each period. Never project names, prompts, file names, models or any other content.
 - **Who sees what:** other participants see your display name, your GitHub username and these totals.
 - **Your account on the server:** signing in with GitHub creates an account in the project's Supabase Auth with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the username is shown to others. Supabase's sign-in and request logs record your IP address. If joining fails after the sign-in, the app deletes that account again.
-- **Where:** a Supabase project of the maintainer (EU, Ireland). The server checks every report for plausibility and accepts at most one per 25 minutes.
+- **Where:** a Supabase project of the maintainer (region eu-west-1, Ireland). The server checks every report for plausibility (ceilings per day, periods that fit together) and accepts at most one per 25 minutes per GitHub account; leaving and joining again does not reset that limit.
 - **Sign-in:** the access and refresh token are kept in your login keychain, in an item only TokenMaccer's background collector can read. The app sends nothing itself; the collector reports after its regular pass.
-- **Leave at any time:** **Leave…** deletes your account on the leaderboard server together with your profile and all reported totals, and removes the sign-in from your Mac. It reports success only after the server confirmed the deletion; otherwise the window says **Leaving not finished** and offers to try again, or, if the sign-in on your Mac was lost or has expired, to sign in with GitHub once more and delete. **Stop › Stop Background Updates & Remove Data…** leaves the leaderboard first and removes nothing while that fails.
+- **Leave at any time:** **Leave…** deletes your account on the leaderboard server together with your profile and all reported totals, and removes the sign-in from your Mac. It reports success only after the server confirmed the deletion; otherwise the window says **Leaving not finished** and offers to try again, or, if the sign-in on your Mac was lost or has expired, to sign in with GitHub once more and delete. **Stop › Stop Background Updates & Remove Data…** leaves the leaderboard first and removes nothing while that fails. Two things outlast Leave: the server keeps your GitHub user ID with the time of your last report for about an hour (the report limit; deleted with the first report it receives after that), and Supabase's own logs follow Supabase's retention.
 - **Without joining** TokenMaccer makes no request to the leaderboard server at all; there is no account and nothing to delete.
+
+Everything stored, where and for how long: [privacy notice](docs/privacy.md) ([Deutsch](docs/privacy.de.md)).
 
 ### USD is the API-price value, not your bill
 

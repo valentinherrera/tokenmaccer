@@ -60,7 +60,8 @@ struct LeaderboardWidgetView: View {
             if let name = data?.group(group)?.name {
                 Label { Text(verbatim: name) } icon: { Image(systemName: "person.2.fill") }
             } else {
-                Text("Leaderboard")
+                // the widget already says it is a leaderboard; the title names the board, as in the window's picker
+                Label { Text("Global") } icon: { Image(systemName: "globe") }
             }
             if canSwitch {
                 Image(systemName: "arrow.left.arrow.right")

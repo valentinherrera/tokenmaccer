@@ -67,6 +67,17 @@
   .download:hover { filter: brightness(1.05); }
   .download:focus-visible, .lang button:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
   .req { color: var(--muted); font-size: 14px; }
+  /* no display on .steps itself: the language switch shows it with display: revert */
+  .steps { list-style: none; counter-reset: step; margin: 26px 0 0; padding: 0; max-width: 34em; }
+  .steps li + li { margin-top: 10px; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: baseline; font-size: 16px; }
+  .steps li::before {
+    content: counter(step); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--code-bg); color: var(--text); font-weight: 650; font-size: 14px;
+  }
+  .steps strong { font-weight: 650; }
+  .soon { display: inline-block; font-size: 13px; font-weight: 650; color: var(--muted); background: var(--code-bg);
+    border-radius: 6px; padding: 2px 8px; margin-left: 8px; vertical-align: middle; letter-spacing: 0; }
   .hero figure { margin: 0; justify-self: center; }
   .hero img { width: 100%; max-width: 420px; height: auto; display: block; border-radius: 26px; box-shadow: 0 18px 50px rgba(0,0,0,.18); }
 
@@ -124,6 +135,16 @@
           <span class="req" data-lang="en">Free · macOS 15 or newer · Apple Silicon and Intel</span>
           <span class="req" data-lang="de">Kostenlos · macOS 15 oder neuer · Apple Silicon und Intel</span>
         </div>
+        <ol class="steps" data-lang="en" aria-label="Getting started">
+          <li><span>Open <strong>TokenMaccer.dmg</strong> and drag TokenMaccer onto <strong>Applications</strong>.</span></li>
+          <li><span>Open TokenMaccer from Applications. It is notarized by Apple; macOS asks once, click <strong>Open</strong>.</span></li>
+          <li><span>Right-click the desktop › <strong>Edit Widgets…</strong> › search for <strong>TokenMaccer</strong> and drag it out. The app's welcome checks this step off for you.</span></li>
+        </ol>
+        <ol class="steps" data-lang="de" aria-label="Loslegen">
+          <li><span>Öffne <strong>TokenMaccer.dmg</strong> und zieh TokenMaccer auf <strong>Programme</strong>.</span></li>
+          <li><span>Öffne TokenMaccer aus Programme. Die App ist von Apple notarisiert; macOS fragt einmal nach, klick auf <strong>Öffnen</strong>.</span></li>
+          <li><span>Rechtsklick auf den Schreibtisch › <strong>Widgets bearbeiten …</strong> › nach <strong>TokenMaccer</strong> suchen und das Widget herausziehen. Der Willkommensdialog der App hakt den Schritt von selbst ab.</span></li>
+        </ol>
       </div>
       <figure>
         <picture>
@@ -179,11 +200,14 @@
     </section>
 
     <section id="homebrew">
-      <h2 data-lang="en">Homebrew</h2>
-      <h2 data-lang="de">Homebrew</h2>
-      <!-- TBD: the tap repository (valentinherrera/homebrew-tap) does not exist yet; check this command before the
-           page goes live. The cask itself is packaging/homebrew/tokenmaccer.rb, filled in by scripts/release.sh. -->
-      <pre><code>brew install --cask valentinherrera/tap/tokenmaccer</code></pre>
+      <h2 data-lang="en">Homebrew <span class="soon">Coming soon</span></h2>
+      <h2 data-lang="de">Homebrew <span class="soon">Bald verfügbar</span></h2>
+      <!-- TBD: the tap repository (valentinherrera/homebrew-tap) does not exist yet, so no install command is shown.
+           Once the tap exists and `brew install --cask valentinherrera/tap/tokenmaccer` works, replace the two
+           notes below with <pre><code>brew install --cask valentinherrera/tap/tokenmaccer</code></pre> and drop the
+           "Coming soon" labels. The cask itself is packaging/homebrew/tokenmaccer.rb, filled in by scripts/release.sh. -->
+      <p class="note" data-lang="en">A Homebrew cask is on its way. Until then, use the download button above.</p>
+      <p class="note" data-lang="de">Ein Homebrew-Cask ist in Arbeit. Bis dahin nimm den Download-Knopf oben.</p>
       <p class="note" data-lang="en">Updates come through the app itself (Sparkle): they install quietly when you quit TokenMaccer.</p>
       <p class="note" data-lang="de">Updates kommen über die App selbst (Sparkle): Sie werden still installiert, wenn du TokenMaccer beendest.</p>
     </section>

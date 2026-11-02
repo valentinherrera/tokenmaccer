@@ -52,7 +52,8 @@ Without a certificate the installer still sets up the collector and tells you wh
 <!-- PENDING RELEASE: draft for the downloadable app. Keep hidden until the GitHub release with the
      notarized DMG exists (decision by the maintainer). Then remove this comment and the closing marker below.
      Before that: docs/ on main, `supabase db push` and `supabase config push` for the hosted project;
-     scripts/release.sh refuses otherwise (scripts/check_hosted_release.sh).
+     scripts/release.sh refuses otherwise (scripts/check_hosted_release.sh). What is proven and what is still
+     open for the Sparkle feed (update N to N+1) and Homebrew: RELEASING.md.
 
 ## Download (app)
 

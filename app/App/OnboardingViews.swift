@@ -182,6 +182,7 @@ struct ConsentDetails: View {
             row("arrow.up.circle", "At most every 30 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices.")
             row("lock", "Never projects, prompts, file names or any other content. Everything else stays on this Mac.")
             row("person.2", "Other participants see your display name, your GitHub username and these totals.")
+            row("photo", "The leaderboard window shows the participants' GitHub profile pictures, downloaded from GitHub (avatars.githubusercontent.com). GitHub sees your IP address, as with any download.")
             row("person.crop.circle", "Signing in creates an account on the leaderboard server (Supabase, EU) with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the server sees these, apart from the username. Its sign-in and request logs record your IP address.")
             row("trash", "Leave at any time: your account, your profile and all reported totals are deleted from the server. Only your GitHub user ID and the time of your last report stay a little longer (removed with the first report the server receives once they are an hour old), so leaving and joining again cannot get around the report limit.")
         }

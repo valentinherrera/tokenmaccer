@@ -6,6 +6,8 @@ import WidgetKit
 
 @main
 struct TokenMaccerApp: App {
+    @AppStorage(MenuBarSetting.key) private var showInMenuBar = MenuBarSetting.defaultValue
+
     init() {
         // For removal without the window: TokenMaccer.app/Contents/MacOS/TokenMaccer --unregister [--remove-data]
         if Edition.isApp, CommandLine.arguments.contains("--unregister") {
@@ -15,8 +17,12 @@ struct TokenMaccerApp: App {
         if Edition.isApp { _ = Updates.controller }
     }
 
+    // One status window (single instance, so the menu bar and the Dock bring back the same one), the leaderboard
+    // window, Settings (⌘,) and the menu bar item. The status window stays the main window: it shows state and
+    // actions (collector, widget, leaderboard membership), which is not what Settings is for; Settings holds the
+    // one real preference.
     var body: some Scene {
-        WindowGroup("TokenMaccer", id: "main") {
+        Window("TokenMaccer", id: "main") {
             if Edition.isApp {
                 SetupView()
             } else {
@@ -24,14 +30,50 @@ struct TokenMaccerApp: App {
             }
         }
         .windowResizability(.contentSize)
+        // tokenmaccer://leaderboard goes to the leaderboard window, nothing else opens a window from a link
+        .handlesExternalEvents(matching: [])
         .commands {
             if Edition.isApp {
                 CommandGroup(after: .appInfo) {
                     WelcomeButton()
                     CheckForUpdatesButton()
                 }
+                CommandGroup(before: .windowList) {
+                    LeaderboardMenuButton()
+                    Divider()
+                }
             }
         }
+
+        Window("Leaderboard", id: "leaderboard") {
+            LeaderboardWindow()
+        }
+        .windowResizability(.contentSize)
+        .handlesExternalEvents(matching: ["leaderboard"])
+
+        Settings {
+            SettingsScene()
+        }
+
+        MenuBarExtra(isInserted: $showInMenuBar) {
+            MenuBarContent()
+        } label: {
+            MenuBarLabel()
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
+
+/// Window › Leaderboard (⌘L).
+struct LeaderboardMenuButton: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Leaderboard") {
+            openWindow(id: "leaderboard")
+            NSApp.activate()
+        }
+        .keyboardShortcut("l", modifiers: .command)
     }
 }
 
@@ -97,7 +139,7 @@ struct WelcomeButton: View {
     var body: some View {
         Button("Welcome…") {
             Welcome.shared.show()
-            if !NSApp.windows.contains(where: { $0.isVisible && $0.canBecomeMain }) { openWindow(id: "main") }
+            openWindow(id: "main")  // a single window: brings it back or opens it
             NSApp.activate()
         }
     }

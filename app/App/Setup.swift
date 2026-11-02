@@ -269,9 +269,8 @@ final class Setup {
 
 /// First-run and status window of the app edition.
 struct SetupView: View {
-    @State private var setup = Setup()
-    @State private var leaderboard = Leaderboard(
-        dataDir: (WidgetData.realHome ?? NSHomeDirectory()) + "/Library/Application Support/TokenMaccer")
+    @State private var setup = AppModels.setup
+    @State private var leaderboard = AppModels.leaderboard
     @State private var confirmRemoval = false
     @State private var welcome = Welcome.shared
     @State private var step: OnboardingPlan.Step = .about

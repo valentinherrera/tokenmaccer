@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "#%lld of %lld today on the leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "#%1$lld von %2$lld heute im Leaderboard"
+          }
+        }
+      }
+    },
     "1 year" : {
       "localizations" : {
         "de" : {
@@ -123,7 +133,16 @@
         }
       }
     },
-    "Check for Updates…" : {},
+    "Check for Updates…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Updates suchen …"
+          }
+        }
+      }
+    },
     "Choose Folder…" : {
       "localizations" : {
         "de" : {
@@ -135,6 +154,16 @@
       }
     },
     "Claude Code" : {},
+    "Claude Code leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Leaderboard"
+          }
+        }
+      }
+    },
     "Claude Code token usage on your desktop. Everything stays on this Mac." : {},
     "Claude Code token usage on your desktop. Only your period totals go to the leaderboard." : {},
     "Compare with others" : {
@@ -228,6 +257,26 @@
         }
       }
     },
+    "I'm #%lld of %lld %@ on the TokenMaccer leaderboard for Claude Code. Get the app: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich bin #%1$lld von %2$lld %3$@ im TokenMaccer-Leaderboard für Claude Code. Hol dir die App: %4$@"
+          }
+        }
+      }
+    },
+    "It appears with the next report, within 30 minutes." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sie erscheint mit der nächsten Meldung, innerhalb von 30 Minuten."
+          }
+        }
+      }
+    },
     "Join the Leaderboard" : {
       "localizations" : {
         "de" : {
@@ -238,7 +287,26 @@
         }
       }
     },
-    "Join…" : {},
+    "Join the leaderboard to compare your totals with other Claude Code users. Only your period totals are shared." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt dem Leaderboard bei, um deine Summen mit anderen Claude-Code-Nutzern zu vergleichen. Geteilt werden nur deine Summen je Zeitraum."
+          }
+        }
+      }
+    },
+    "Join…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beitreten …"
+          }
+        }
+      }
+    },
     "Later" : {
       "localizations" : {
         "de" : {
@@ -286,7 +354,37 @@
     },
     "Next period" : {},
     "No data yet. The collector runs every 5 minutes." : {},
+    "No participant has a current total for this period." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für diesen Zeitraum hat noch niemand eine aktuelle Summe."
+          }
+        }
+      }
+    },
+    "Nobody here yet" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch niemand hier"
+          }
+        }
+      }
+    },
     "Open Login Items" : {},
+    "Open TokenMaccer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer öffnen"
+          }
+        }
+      }
+    },
     "Optional. Join with your GitHub account, or skip and join later from the window." : {
       "localizations" : {
         "de" : {
@@ -317,7 +415,16 @@
         }
       }
     },
-    "Period" : {},
+    "Period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum"
+          }
+        }
+      }
+    },
     "Privacy Notice" : {
       "localizations" : {
         "de" : {
@@ -328,12 +435,32 @@
         }
       }
     },
+    "Quit TokenMaccer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer beenden"
+          }
+        }
+      }
+    },
     "Reads Claude Code's transcripts on this Mac" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Liest die Transkripte von Claude Code auf diesem Mac"
+          }
+        }
+      }
+    },
+    "Refreshed every 30 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle 30 Minuten neu"
           }
         }
       }
@@ -369,7 +496,67 @@
         }
       }
     },
+    "See where you stand" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sieh, wo du stehst"
+          }
+        }
+      }
+    },
     "Select period" : {},
+    "Settings…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen …"
+          }
+        }
+      }
+    },
+    "Share Your Place" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deinen Platz teilen"
+          }
+        }
+      }
+    },
+    "Share Your Place…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deinen Platz teilen …"
+          }
+        }
+      }
+    },
+    "Share…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen …"
+          }
+        }
+      }
+    },
+    "Show TokenMaccer in the menu bar" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer in der Menüleiste zeigen"
+          }
+        }
+      }
+    },
     "Shown next to your GitHub username @%@." : {
       "localizations" : {
         "de" : {
@@ -415,6 +602,36 @@
     "Stop Background Updates" : {},
     "Stop Background Updates & Remove Data…" : {},
     "Stop background updates and remove TokenMaccer's data?" : {},
+    "The image and a link to the download page. Your token count is on the card; nothing else is." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bild und ein Link zur Download-Seite. Auf der Karte steht deine Token-Zahl, sonst nichts."
+          }
+        }
+      }
+    },
+    "The leaderboard window shows the participants' GitHub profile pictures, downloaded from GitHub (avatars.githubusercontent.com). GitHub sees your IP address, as with any download." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Leaderboard-Fenster zeigt die GitHub-Profilbilder der Teilnehmer, geladen von GitHub (avatars.githubusercontent.com). GitHub sieht dabei deine IP-Adresse, wie bei jedem Download."
+          }
+        }
+      }
+    },
+    "The ranking is on its way" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Rangliste ist unterwegs"
+          }
+        }
+      }
+    },
     "The widget is on the desktop." : {
       "localizations" : {
         "de" : {
@@ -445,6 +662,26 @@
         }
       }
     },
+    "Today's tokens and, after you joined the leaderboard, your place, next to the clock." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Token von heute und, wenn du dem Leaderboard beigetreten bist, dein Platz, neben der Uhr."
+          }
+        }
+      }
+    },
+    "Token usage of Claude Code, on your Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude-Code-Token auf deinem Mac."
+          }
+        }
+      }
+    },
     "TokenMaccer" : {},
     "Tokens" : {
       "localizations" : {
@@ -469,6 +706,16 @@
         }
       }
     },
+    "Unit" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einheit"
+          }
+        }
+      }
+    },
     "Unless you join the leaderboard in step 3; that is optional." : {
       "localizations" : {
         "de" : {
@@ -481,6 +728,16 @@
     },
     "Update now" : {},
     "Updated %@" : {},
+    "Updated %@ · refreshed every 30 minutes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiert %@ · alle 30 Minuten neu"
+          }
+        }
+      }
+    },
     "Waiting for GitHub and the leaderboard server…" : {},
     "Waiting for GitHub…" : {
       "localizations" : {
@@ -552,6 +809,16 @@
         }
       }
     },
+    "You" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du"
+          }
+        }
+      }
+    },
     "You're in. Your place appears after the first report." : {
       "localizations" : {
         "de" : {
@@ -582,6 +849,16 @@
         }
       }
     },
+    "You: #%lld of %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du: #%1$lld von %2$lld"
+          }
+        }
+      }
+    },
     "Your Claude Code usage, on your desktop." : {
       "localizations" : {
         "de" : {
@@ -599,6 +876,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dein Anzeigename wird dein GitHub-Benutzername; du kannst ihn gleich danach ändern."
+          }
+        }
+      }
+    },
+    "all time" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "insgesamt"
+          }
+        }
+      }
+    },
+    "in the last 12 months" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in den letzten 12 Monaten"
+          }
+        }
+      }
+    },
+    "in the last 30 days" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in den letzten 30 Tagen"
           }
         }
       }
@@ -623,8 +930,58 @@
         }
       }
     },
+    "of %lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "von %1$lld %2$@"
+          }
+        }
+      }
+    },
     "s" : {},
     "t" : {},
+    "this week" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "diese Woche"
+          }
+        }
+      }
+    },
+    "this year" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "dieses Jahr"
+          }
+        }
+      }
+    },
+    "today" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "heute"
+          }
+        }
+      }
+    },
+    "tokens" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Token"
+          }
+        }
+      }
+    },
     "v" : {}
   },
   "version" : "1.0"

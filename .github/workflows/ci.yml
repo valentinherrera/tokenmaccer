@@ -24,9 +24,9 @@ jobs:
         run: /usr/bin/python3 -m unittest discover -s tests -v
       - name: Shell scripts
         run: |
-          bash -n install.sh && bash -n uninstall.sh && bash -n scripts/release.sh && bash -n scripts/check_release_endpoint.sh
+          bash -n install.sh && bash -n uninstall.sh && bash -n scripts/release.sh && bash -n scripts/check_release_endpoint.sh && bash -n scripts/check_hosted_release.sh
           brew install --quiet shellcheck
-          shellcheck install.sh uninstall.sh scripts/release.sh scripts/check_release_endpoint.sh
+          shellcheck install.sh uninstall.sh scripts/release.sh scripts/check_release_endpoint.sh scripts/check_hosted_release.sh
 
   app:
     runs-on: macos-15

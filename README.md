@@ -51,6 +51,8 @@ Without a certificate the installer still sets up the collector and tells you wh
 
 <!-- PENDING RELEASE: draft for the downloadable app. Keep hidden until the GitHub release with the
      notarized DMG exists (decision by the maintainer). Then remove this comment and the closing marker below.
+     Before that: docs/ on main, `supabase db push` and `supabase config push` for the hosted project;
+     scripts/release.sh refuses otherwise (scripts/check_hosted_release.sh).
 
 ## Download (app)
 

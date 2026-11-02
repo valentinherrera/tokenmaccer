@@ -31,7 +31,7 @@ Der Server ist ein Supabase-Projekt des Maintainers in der Region **eu-west-1** 
 
 Nie gesendet werden Projektnamen, Prompts, Dateinamen, Modelle oder andere Inhalte deiner Sitzungen. Der Collector meldet höchstens alle 30 Minuten, nach seinem regulären Durchlauf; die App selbst sendet keine Meldungen.
 
-Der Server nimmt nur Konten mit GitHub-Anmeldung an; die Registrierung mit E-Mail-Adresse ist in der Projektkonfiguration (`supabase/config.toml`) abgeschaltet.
+Beitreten können nur Konten mit GitHub-Anmeldung: Für jedes andere Konto legt der Server kein Ranglisten-Profil an.
 
 ### Was auf deinem Mac gespeichert wird
 

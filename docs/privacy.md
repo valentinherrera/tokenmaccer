@@ -31,7 +31,7 @@ The server is a Supabase project of the maintainer in the region **eu-west-1** (
 
 Never sent: project names, prompts, file names, models or any other content of your sessions. The collector reports at most every 30 minutes, after its regular pass; the app itself sends no reports.
 
-The server accepts only accounts with a GitHub sign-in; sign-up with an email address is switched off in the project configuration (`supabase/config.toml`).
+Only accounts with a GitHub sign-in can join: the server refuses to create a leaderboard profile for any other account.
 
 ### What is stored on your Mac
 

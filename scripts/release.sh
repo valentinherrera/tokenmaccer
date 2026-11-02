@@ -54,6 +54,10 @@ fi
 if [ "$NOTARIZE" = 1 ]; then
   [ "$(plutil -extract remote_schema_deployed raw "$ROOT/supabase/app-config.json" 2>/dev/null)" = true ] \
     || die "supabase/app-config.json: remote_schema_deployed is not true; deploy the leaderboard schema and functions first (TM_NOTARIZE=0 for a local test build)"
+  # what the join sheet and the privacy notice promise must be live: notice reachable on main, e-mail sign-up
+  # off on the hosted auth server, every migration applied there
+  "$ROOT/scripts/check_hosted_release.sh" \
+    || die "the hosted project or the privacy notice is not ready for a release (see FAIL above)"
 fi
 COMMIT="$(git -C "$ROOT" rev-parse --short HEAD)"
 [ -d "$DEVELOPER_DIR" ] || die "Xcode not found at $DEVELOPER_DIR"
@@ -125,6 +129,9 @@ check_macho "$APP/Contents/MacOS/tokenmaccer-collector" "$PREFIX.tokenmaccer.col
 check_macho "$APP/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget" \
   "$PREFIX.tokenmaccer.widget"
 plutil -lint "$APP/Contents/Library/LaunchAgents/$PREFIX.tokenmaccer.collector.plist" >/dev/null
+# the shipped collector must ignore leaderboard server overrides (App Group defaults, environment)
+"$ROOT/scripts/check_release_endpoint.sh" "$APP/Contents/MacOS/tokenmaccer-collector" \
+  || die "the exported collector honours leaderboard server overrides"
 # Sparkle: framework, helpers and XPC services carry our signature with hardened runtime and timestamp
 SPK="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
 check_macho "$SPK/Sparkle" org.sparkle-project.Sparkle

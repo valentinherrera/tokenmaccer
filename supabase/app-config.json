@@ -1,0 +1,26 @@
+{
+  "project_ref": "qcjbdnwxijosfxyngbfk",
+  "url": "https://qcjbdnwxijosfxyngbfk.supabase.co",
+  "publishable_key": "sb_publishable_tfwEaH4P3kOsz7O1N5EbNQ_tn2_eF-a",
+  "anon_key_legacy": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjamJkbnd4aWpvc2Z4eW5nYmZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDY4OTIsImV4cCI6MjA4MzcyMjg5Mn0.P803BGGhpG4AJhUVoh8lx9iEf7w55AZsTX9wbks-em4",
+  "auth": {
+    "provider": "github",
+    "flow": "pkce",
+    "authorize": "https://qcjbdnwxijosfxyngbfk.supabase.co/auth/v1/authorize?provider=github&redirect_to=tokenmaccer://auth-callback&code_challenge=<S256>&code_challenge_method=s256",
+    "token_exchange": "https://qcjbdnwxijosfxyngbfk.supabase.co/auth/v1/token?grant_type=pkce",
+    "redirect": "tokenmaccer://auth-callback"
+  },
+  "functions": {
+    "report": "https://qcjbdnwxijosfxyngbfk.supabase.co/functions/v1/report",
+    "delete_account": "https://qcjbdnwxijosfxyngbfk.supabase.co/functions/v1/delete-account"
+  },
+  "rpc": {
+    "join_leaderboard": "POST /rest/v1/rpc/join_leaderboard {p_display_name text} -> profiles row",
+    "leave_leaderboard": "POST /rest/v1/rpc/leave_leaderboard {} -> true (profile + totals deleted)",
+    "leaderboard": "POST /rest/v1/rpc/leaderboard {p_period: 1D|7D|30D|YTD|1Y|ALL, p_unit: tokens|usd, p_limit int<=100} -> [rank, display_name, github_login, tokens_input, tokens_output, usd, is_me]",
+    "my_rank": "POST /rest/v1/rpc/my_rank {p_period, p_unit} -> [rank|null, participants, value]",
+    "my_ranks": "POST /rest/v1/rpc/my_ranks {} -> 12 rows [period, unit, rank, participants, value]"
+  },
+  "report_body": "{\"periods\": {\"1D\"|\"7D\"|\"30D\"|\"YTD\"|\"1Y\"|\"ALL\": {\"input\": int, \"output\": int, \"usd\": number, \"start\": \"YYYY-MM-DD\"}}} (all six; at most every 25 min, else 429 + Retry-After)",
+  "remote_schema_deployed": false
+}

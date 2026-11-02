@@ -235,7 +235,7 @@ def main() -> int:
         check('second participant reports', st == 200, (st, body))
         st, body, hdr = call('POST', '/functions/v1/report', ANON, a, report(1, 5))
         check(
-            'second report within 25 min is refused (429)',
+            'second report within 8 min is refused (429)',
             st == 429 and 'retry-after' in {k.lower() for k in hdr},
             (st, body),
         )

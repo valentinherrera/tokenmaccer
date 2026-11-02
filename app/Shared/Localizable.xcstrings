@@ -237,22 +237,22 @@
         }
       }
     },
-    "At most every 30 minutes, TokenMaccer sends your token and USD totals per period. Never prompts, projects or file names." : {
+    "At most every 10 minutes, TokenMaccer sends your token and USD totals per period. Never prompts, projects or file names." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Höchstens alle 30 Minuten sendet TokenMaccer deine Token- und USD-Summen je Zeitraum. Nie Prompts, Projekte oder Dateinamen."
+            "value" : "Höchstens alle 10 Minuten sendet TokenMaccer deine Token- und USD-Summen je Zeitraum. Nie Prompts, Projekte oder Dateinamen."
           }
         }
       }
     },
-    "At most every 30 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices." : {
+    "At most every 10 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Höchstens alle 30 Minuten sendet TokenMaccer deine Summen für heute, 7 Tage, 30 Tage, das laufende Jahr, 1 Jahr und gesamt: Eingabe- und Ausgabe-Token und ihren Wert in USD zu API-Preisen."
+            "value" : "Höchstens alle 10 Minuten sendet TokenMaccer deine Summen für heute, 7 Tage, 30 Tage, das laufende Jahr, 1 Jahr und gesamt: Eingabe- und Ausgabe-Token und ihren Wert in USD zu API-Preisen."
           }
         }
       }
@@ -1750,12 +1750,12 @@
         }
       }
     },
-    "Refreshed every 30 minutes" : {
+    "Refreshed every 10 to 30 minutes" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alle 30 Minuten neu"
+            "value" : "Alle 10 bis 30 Minuten neu"
           }
         }
       }
@@ -2433,12 +2433,12 @@
         }
       }
     },
-    "TokenMaccer tries again on its own, at most every 30 minutes. Your numbers on this Mac are not affected." : {
+    "TokenMaccer tries again on its own, at most every 10 minutes. Your numbers on this Mac are not affected." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TokenMaccer versucht es von selbst erneut, höchstens alle 30 Minuten. Deine Zahlen auf diesem Mac sind nicht betroffen."
+            "value" : "TokenMaccer versucht es von selbst erneut, höchstens alle 10 Minuten. Deine Zahlen auf diesem Mac sind nicht betroffen."
           }
         }
       }
@@ -2573,12 +2573,12 @@
         }
       }
     },
-    "Updated %@ · refreshed every 30 minutes" : {
+    "Updated %@ · refreshed every 10 to 30 minutes" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktualisiert %@ · alle 30 Minuten neu"
+            "value" : "Aktualisiert %@ · alle 10 bis 30 Minuten neu"
           }
         }
       }

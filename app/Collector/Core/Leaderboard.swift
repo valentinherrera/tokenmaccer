@@ -364,6 +364,9 @@ public struct LeaderboardState: Codable, Equatable, Sendable {
     /// Last report attempt (successful or not): the next one waits at least `LeaderboardSchedule.interval`.
     public var lastAttemptAt: Date?
     public var lastReportAt: Date?
+    /// The totals of the last accepted report (`LeaderboardSchedule.fingerprint`): while they change, reports
+    /// come every 10 minutes, otherwise every 30. Nil (older files, never reported) counts as changed.
+    public var lastReportedTotals: String?
     /// Set from the server's Retry-After.
     public var retryAfter: Date?
     public var ranks: [LeaderboardPlace]
@@ -423,17 +426,27 @@ public struct LeaderboardState: Codable, Equatable, Sendable {
 }
 
 public enum LeaderboardSchedule {
-    /// At most one report per 30 minutes (the server refuses more than one per 25).
+    /// Without new usage at most one report per 30 minutes, so the server keeps the totals fresh.
     public static let interval: TimeInterval = 30 * 60
+    /// While the totals change (Claude Code in use) at most one per 10 minutes (Valentin 03.11.2026); the server
+    /// refuses more than one per 8.
+    public static let activeInterval: TimeInterval = 10 * 60
     /// Places older than this are not shown in the widget any more.
     public static let maxRankAge: TimeInterval = 3 * 60 * 60
 
-    public static func isDue(_ s: LeaderboardState, now: Date) -> Bool {
+    /// `changed`: the totals differ from the last accepted report (see `fingerprint`).
+    public static func isDue(_ s: LeaderboardState, now: Date, changed: Bool = false) -> Bool {
         guard s.joined, !s.leavePending else { return false }
         if let r = s.retryAfter, now < r { return false }
         guard let last = s.lastAttemptAt else { return true }
         // a clock set back by more than an hour must not block reports forever
-        return now.timeIntervalSince(last) >= interval || last.timeIntervalSince(now) > 3600
+        return now.timeIntervalSince(last) >= (changed ? activeInterval : interval) || last.timeIntervalSince(now) > 3600
+    }
+
+    /// The report body as stable text (sorted keys), to tell whether the totals changed since the last report.
+    public static func fingerprint(_ body: [String: Any]) -> String? {
+        guard let d = try? JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]) else { return nil }
+        return String(decoding: d, as: UTF8.self)
     }
 }
 
@@ -801,19 +814,24 @@ public struct LeaderboardSync: Sendable {
     }
 
     /// The collector's step: without a joined state nothing happens (no request, widget unchanged). With one,
-    /// report when due (at most every 30 minutes), keep the places, and add fresh places to the widget data.
+    /// report when due (every 10 minutes while the totals change, otherwise every 30), keep the places, and add
+    /// fresh places to the widget data.
     func apply(widget: JSONValue, now: Date) -> (widget: JSONValue, log: String?) {
         guard var state = LeaderboardState.load(dataDir: dataDir), state.joined else { return (widget, nil) }
         var log: String?
-        if LeaderboardSchedule.isDue(state, now: now) {
+        let body = Self.reportBody(widget)
+        let totals = body.flatMap(LeaderboardSchedule.fingerprint)
+        let changed = totals == nil || totals != state.lastReportedTotals
+        if LeaderboardSchedule.isDue(state, now: now, changed: changed) {
             state.lastAttemptAt = now
             do {
-                guard let body = Self.reportBody(widget) else { throw LeaderboardError.server(0, "no totals to report") }
+                guard let body else { throw LeaderboardError.server(0, "no totals to report") }
                 let c = try client()
                 var places: [LeaderboardPlace]
                 do {
                     places = try authorized(c, now: now) { try c.report(body, token: $0) }
                     state.lastReportAt = now
+                    state.lastReportedTotals = totals
                 } catch LeaderboardError.rateLimited(let wait) {
                     state.retryAfter = now.addingTimeInterval(TimeInterval(wait))
                     places = try authorized(c, now: now) { try c.myRanks(token: $0) }

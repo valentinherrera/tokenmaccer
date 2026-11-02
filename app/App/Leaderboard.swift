@@ -6,7 +6,7 @@ import TokenMaccerCore
 
 /// The window's side of the opt-in leaderboard. The app signs in with GitHub (ASWebAuthenticationSession,
 /// PKCE) and hands the authorization code to the bundled collector, which exchanges it, keeps the tokens in
-/// its keychain item, joins and from then on reports at most every 30 minutes. The app itself sends nothing
+/// its keychain item, joins and from then on reports every 10 minutes while the totals change, otherwise every 30. The app itself sends nothing
 /// to the server; it reads the collector's leaderboard.json for the status.
 @MainActor @Observable
 final class Leaderboard {

@@ -163,7 +163,7 @@ select lives_ok($$select apply_report('00000000-0000-0000-0000-00000000000a', pg
 select lives_ok($$select apply_report('00000000-0000-0000-0000-00000000000b', pg_temp.report(3, 1))$$,
   'a second participant reports');
 select throws_ok($$select apply_report('00000000-0000-0000-0000-00000000000a', pg_temp.report(1, 5))$$,
-  'P0001', 'rate limited', 'a second report within 25 minutes is refused');
+  'P0001', 'rate limited', 'a second report within 8 minutes is refused');
 reset role;
 select is((select count(*)::int from totals where user_id = '00000000-0000-0000-0000-00000000000a'), 6,
   'all six periods are stored in one report');
@@ -248,12 +248,12 @@ set local role service_role;
 select throws_ok($$select apply_report('00000000-0000-0000-0000-0000000000a2', pg_temp.report(1, 1))$$,
   'P0001', 'rate limited', 'a new auth account of the same GitHub user does not reset the rate limit');
 reset role;
--- Positive control: once the slot is 26 minutes old the report goes through; rows older than an hour go.
-update private.report_limits set last_report_at = now() - interval '26 minutes' where subject = 'github:9000000001';
+-- Positive control: once the slot is 9 minutes old the report goes through; rows older than an hour go.
+update private.report_limits set last_report_at = now() - interval '9 minutes' where subject = 'github:9000000001';
 insert into private.report_limits (subject, last_report_at) values ('uid:old-left-participant', now() - interval '2 hours');
 set local role service_role;
 select lives_ok($$select apply_report('00000000-0000-0000-0000-0000000000a2', pg_temp.report(1, 1))$$,
-  'after 25 minutes the same GitHub user may report again');
+  'after 8 minutes the same GitHub user may report again');
 reset role;
 select is((select last_report_at from private.report_limits where subject = 'github:9000000001'), now(),
   'the accepted report claims the slot');

@@ -135,7 +135,7 @@ struct JoinPanel: View {
     private var consent: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("At most every 30 minutes, TokenMaccer sends your token and USD totals per period. Never prompts, projects or file names.")
+                Text("At most every 10 minutes, TokenMaccer sends your token and USD totals per period. Never prompts, projects or file names.")
                 Text("Others see your display name, your GitHub username and these totals. Leave at any time, and your account and totals are deleted from the server.")
             }
             .font(.callout)
@@ -182,7 +182,7 @@ struct JoinPanel: View {
 struct ConsentDetails: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            row("arrow.up.circle", "At most every 30 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices.")
+            row("arrow.up.circle", "At most every 10 minutes, TokenMaccer sends your totals for today, 7 days, 30 days, year to date, 1 year and all time: input and output tokens and their value in USD at API prices.")
             row("lock", "Never projects, prompts, file names or any other content. Everything else stays on this Mac.")
             row("person.2", "Other participants see your display name, your GitHub username and these totals.")
             row("photo", "The leaderboard window shows the participants' GitHub profile pictures, downloaded from GitHub (avatars.githubusercontent.com). GitHub sees your IP address, as with any download.")

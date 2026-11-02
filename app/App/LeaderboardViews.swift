@@ -159,7 +159,7 @@ struct LeaderboardWindowView: View {
                        detail: "The ranking loads with the first report once this Mac is back online.") { EmptyView() }
         case .waiting where offline == .unreachable:
             EmptyBoard(symbol: "icloud.slash", title: "The server can't be reached",
-                       detail: "TokenMaccer tries again on its own, at most every 30 minutes. Your numbers on this Mac are not affected.") { EmptyView() }
+                       detail: "TokenMaccer tries again on its own, at most every 10 minutes. Your numbers on this Mac are not affected.") { EmptyView() }
         case .waiting:
             EmptyBoard(symbol: "hourglass", title: "The ranking is not loaded yet",
                        detail: "It appears with the next report, within 30 minutes.") { ProgressView().controlSize(.small) }
@@ -243,9 +243,9 @@ struct LeaderboardWindowView: View {
     private var footer: some View {
         HStack {
             if let updated {
-                Text("Updated \(updated.formatted(date: .omitted, time: .shortened)) · refreshed every 30 minutes")
+                Text("Updated \(updated.formatted(date: .omitted, time: .shortened)) · refreshed every 10 to 30 minutes")
             } else {
-                Text("Refreshed every 30 minutes")
+                Text("Refreshed every 10 to 30 minutes")
             }
         }
         .font(.caption).foregroundStyle(.secondary)

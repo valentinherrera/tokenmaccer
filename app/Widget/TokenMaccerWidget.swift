@@ -96,7 +96,7 @@ struct BoardProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: LeaderboardScopeIntent, in context: Context) async -> Timeline<BoardEntry> {
-        // the boards change at most every 30 minutes; the collector asks for a reload when its copy changed
+        // the boards change at most every 10 minutes; the collector asks for a reload when its copy changed
         let next = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now
         return Timeline(entries: [current(configuration)], policy: .after(next))
     }

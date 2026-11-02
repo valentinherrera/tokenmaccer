@@ -1,6 +1,6 @@
 # TokenMaccer privacy notice
 
-[Deutsch](privacy.de.md) · Last updated: 2 November 2026
+[Deutsch](privacy.de.md) · Last updated: 3 November 2026
 
 This notice covers the downloadable TokenMaccer app and its optional leaderboard. It describes what the code in this repository does; where a fact depends on a service provider rather than on the code (for example how long Supabase keeps its logs), it says so and gives the provider's own statement.
 
@@ -30,13 +30,13 @@ The server is a Supabase project of the maintainer in the region **eu-west-1** (
 | Sign-in sessions (Supabase Auth) | Per sign-in: IP address, user agent (program name, version and system version as macOS sends them) and the refresh token | No |
 | Profile | Your account ID, GitHub username, the display name you chose, when you joined, when your last report arrived | Display name and GitHub username |
 | Totals | For each of the six periods (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their value in USD at API list prices, the first day of the period, when it was last updated | Yes, together with your place |
-| Report limit | Your GitHub user ID and the time of your last accepted report (at most one report per 25 minutes) | No |
+| Report limit | Your GitHub user ID and the time of your last accepted report (at most one report per 8 minutes) | No |
 | Groups (optional) | Per group: its name, its invitation code, the account ID of its owner, when it was created | Only to the group's members: name, invitation code and who owns it |
 | Group memberships (optional) | Per group you are in: your account ID and when you joined | Only to the group's members: your display name, GitHub username and your place and totals on the group's ranking |
 | Join attempts | Your GitHub user ID (else your account ID) and how many times you tried to join a group in each hour (at most 30 per hour) | No |
 | Server logs | Supabase records requests to its API, sign-in and Edge Functions in its own logs, including IP addresses. TokenMaccer's Edge Functions write only error codes to them | No |
 
-Never sent: project names, prompts, file names, models or any other content of your sessions. The collector reports at most every 30 minutes, after its regular pass; the app itself sends no reports.
+Never sent: project names, prompts, file names, models or any other content of your sessions. The collector reports every 10 minutes while your totals change, otherwise every 30 minutes, after its regular pass; the app itself sends no reports.
 
 Only accounts with a GitHub sign-in can join: the server refuses to create a leaderboard profile for any other account.
 

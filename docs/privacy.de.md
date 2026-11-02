@@ -1,6 +1,6 @@
 # TokenMaccer: Datenschutzhinweis
 
-[English](privacy.md) · Stand: 2. November 2026
+[English](privacy.md) · Stand: 3. November 2026
 
 Dieser Hinweis gilt für die herunterladbare TokenMaccer-App und ihr freiwilliges Leaderboard. Er beschreibt, was der Code in diesem Repository tut. Wo eine Angabe nicht vom Code abhängt, sondern von einem Dienstleister (etwa wie lange Supabase seine Logs aufbewahrt), steht das dabei, zusammen mit der Angabe des Dienstleisters.
 
@@ -30,13 +30,13 @@ Der Server ist ein Supabase-Projekt des Maintainers in der Region **eu-west-1** 
 | Anmeldesitzungen (Supabase Auth) | Je Anmeldung: IP-Adresse, User-Agent (Programmname, Version und Systemversion, wie macOS sie sendet) und das Refresh-Token | Nein |
 | Profil | Deine Konto-ID, dein GitHub-Nutzername, der von dir gewählte Anzeigename, wann du beigetreten bist, wann deine letzte Meldung ankam | Anzeigename und GitHub-Nutzername |
 | Summen | Für jeden der sechs Zeiträume (heute, 7 Tage, 30 Tage, seit Jahresbeginn, 1 Jahr, gesamt): Eingabe-Token, Ausgabe-Token, ihr Gegenwert in USD zu API-Listenpreisen, der erste Tag des Zeitraums, wann zuletzt aktualisiert | Ja, zusammen mit deinem Platz |
-| Meldegrenze | Deine GitHub-Nutzer-ID und der Zeitpunkt deiner letzten angenommenen Meldung (höchstens eine Meldung je 25 Minuten) | Nein |
+| Meldegrenze | Deine GitHub-Nutzer-ID und der Zeitpunkt deiner letzten angenommenen Meldung (höchstens eine Meldung je 8 Minuten) | Nein |
 | Gruppen (freiwillig) | Je Gruppe: ihr Name, ihr Einladungscode, die Konto-ID der Person, der sie gehört, wann sie angelegt wurde | Nur für die Mitglieder der Gruppe: Name, Einladungscode und wem sie gehört |
 | Gruppenmitgliedschaften (freiwillig) | Je Gruppe, in der du bist: deine Konto-ID und wann du beigetreten bist | Nur für die Mitglieder der Gruppe: dein Anzeigename, GitHub-Nutzername und dein Platz und deine Summen in der Rangliste der Gruppe |
 | Beitrittsversuche | Deine GitHub-Nutzer-ID (sonst deine Konto-ID) und wie oft du je Stunde versucht hast, einer Gruppe beizutreten (höchstens 30 je Stunde) | Nein |
 | Server-Logs | Supabase protokolliert Anfragen an seine API, die Anmeldung und die Edge Functions in eigenen Logs, auch mit IP-Adressen. Die Edge Functions von TokenMaccer schreiben dort nur Fehlercodes hinein | Nein |
 
-Nie gesendet werden Projektnamen, Prompts, Dateinamen, Modelle oder andere Inhalte deiner Sitzungen. Der Collector meldet höchstens alle 30 Minuten, nach seinem regulären Durchlauf; die App selbst sendet keine Meldungen.
+Nie gesendet werden Projektnamen, Prompts, Dateinamen, Modelle oder andere Inhalte deiner Sitzungen. Der Collector meldet alle 10 Minuten, solange sich deine Summen ändern, sonst alle 30 Minuten, nach seinem regulären Durchlauf; die App selbst sendet keine Meldungen.
 
 Beitreten können nur Konten mit GitHub-Anmeldung: Für jedes andere Konto legt der Server kein Ranglisten-Profil an.
 

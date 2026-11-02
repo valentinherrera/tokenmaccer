@@ -326,12 +326,12 @@ def main() -> None:
         n_totals = psql(f"select count(*) from public.totals where user_id = '{a_uid}'")
         check('six totals stored', n_totals == '6', n_totals)
 
-        # cadence: the next passes within 30 minutes send nothing
+        # cadence: the next passes within 10 minutes send nothing
         for _ in range(2):
             rc, out, err = collect(a_dir, claude)
         again = psql(f"select last_report_at from public.profiles where id = '{a_uid}'")
         check(
-            'no second report within 30 minutes',
+            'no second report within 10 minutes',
             rc == 0 and 'leaderboard' not in out and again == first,
             (out, first, again),
         )

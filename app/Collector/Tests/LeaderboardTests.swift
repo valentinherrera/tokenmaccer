@@ -212,6 +212,46 @@ extension CollectorTests {
         XCTAssertNotNil(try widgetJSON()["ranks"])
     }
 
+    /// While the totals change, every 10 minutes; unchanged totals wait the full 30 (Valentin 03.11.2026).
+    func testActiveCadence() throws {
+        let t0 = Date()
+        var s = LeaderboardState(joined: true)
+        s.lastAttemptAt = t0
+        XCTAssertFalse(LeaderboardSchedule.isDue(s, now: t0.addingTimeInterval(9 * 60 + 59), changed: true))
+        XCTAssertTrue(LeaderboardSchedule.isDue(s, now: t0.addingTimeInterval(10 * 60), changed: true))
+        XCTAssertFalse(LeaderboardSchedule.isDue(s, now: t0.addingTimeInterval(10 * 60), changed: false))
+        XCTAssertTrue(LeaderboardSchedule.isDue(s, now: t0.addingTimeInterval(30 * 60), changed: false))
+        XCTAssertEqual(LeaderboardSchedule.fingerprint(["b": 1, "a": ["y": 2, "x": 3]]),
+                       LeaderboardSchedule.fingerprint(["a": ["x": 3, "y": 2], "b": 1]), "independent of key order")
+
+        // through the collector: report, 11 minutes later nothing new → no request; new usage → report
+        _ = write("a.jsonl", [turn("m1", ts(0), inp: 10, cread: 0)])
+        try joinedState()
+        let spy = SpyTransport()
+        let lb = sync(spy, MemorySessionStore(validSession))
+        spy.answer("/functions/v1/report", 200, ["stored": 6, "ranks": ranksJSON(tokens1D: 1, of: 2)])
+        _ = Collector.run(try config(), leaderboard: lb)
+        let sent = try XCTUnwrap(LeaderboardState.load(dataDir: data))
+        XCTAssertNotNil(sent.lastReportedTotals)
+        func elevenMinutesLater() throws {
+            var st = try XCTUnwrap(LeaderboardState.load(dataDir: data))
+            st.lastAttemptAt = Date().addingTimeInterval(-11 * 60)
+            try st.save(dataDir: data)
+        }
+        func reports() -> Int { spy.paths.filter { $0 == "/functions/v1/report" }.count }
+        try elevenMinutesLater()
+        let before = reports()
+        _ = Collector.run(try config(), leaderboard: lb)
+        XCTAssertEqual(reports(), before, "unchanged totals wait 30 minutes")
+
+        _ = write("a.jsonl", [turn("m2", ts(0), inp: 50, cread: 0)], append: true)
+        try elevenMinutesLater()
+        spy.answer("/functions/v1/report", 200, ["stored": 6, "ranks": ranksJSON(tokens1D: 1, of: 2)])
+        _ = Collector.run(try config(), leaderboard: lb)
+        XCTAssertEqual(reports(), before + 1, "new usage reports after 10 minutes")
+        XCTAssertNotEqual(try XCTUnwrap(LeaderboardState.load(dataDir: data)).lastReportedTotals, sent.lastReportedTotals)
+    }
+
     /// Old places are not shown; an expired access token is refreshed (and the new tokens kept) first.
     func testStalePlacesHiddenAndTokenRefreshed() throws {
         _ = write("a.jsonl", [turn("m1", ts(0), inp: 10, cread: 0)])

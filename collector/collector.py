@@ -12,6 +12,7 @@ Environment overrides (mainly for tests):
   TOKENMACCER_DATA_DIR       where store.json / widget.json live (default ~/.claude/tools/tokenmaccer)
   TOKENMACCER_CLAUDE_DIR     Claude Code config dir (default $CLAUDE_CONFIG_DIR or ~/.claude)
   TOKENMACCER_EXTRA_SOURCES  extra transcript folders, separated by ':'
+  TOKENMACCER_NOW            pin the current local time (ISO 8601), for tests and the Swift parity check
 """
 
 from __future__ import annotations
@@ -48,6 +49,15 @@ PERIODS = ['1D', '7D', '30D', 'YTD', '1Y', 'ALL']
 
 Store = Dict[str, Any]
 Sums = Dict[str, float]
+
+
+def now_local() -> dt.datetime:
+    """Current local time (naive). TOKENMACCER_NOW pins it; an offset or Z is converted to local time."""
+    pinned = os.environ.get('TOKENMACCER_NOW')
+    if not pinned:
+        return dt.datetime.now()
+    t = dt.datetime.fromisoformat(pinned.replace('Z', '+00:00'))
+    return t.astimezone().replace(tzinfo=None) if t.tzinfo else t
 
 
 def load_prices() -> Dict[str, Dict[str, float]]:
@@ -119,7 +129,7 @@ def backup() -> None:
     if not os.path.exists(STORE):
         return
     os.makedirs(BACKUPS, exist_ok=True)
-    target = os.path.join(BACKUPS, f'store-{dt.date.today().isoformat()}.json')
+    target = os.path.join(BACKUPS, f'store-{now_local().date().isoformat()}.json')
     if not os.path.exists(target):
         shutil.copy2(STORE, target)
     for old in sorted(glob.glob(os.path.join(BACKUPS, 'store-*.json')))[:-KEEP_BACKUPS]:
@@ -164,7 +174,7 @@ def complete_lines(path: str, pos: List[int]) -> Iterator[bytes]:
 
 
 def ingest(store: Store) -> int:
-    today = dt.date.today()
+    today = now_local().date()
     hour_cutoff = (today - dt.timedelta(days=HOUR_DAYS)).isoformat()
     new_turns = 0
     for base in SOURCES:
@@ -359,7 +369,7 @@ def metric(
 def widget_data(store: Store, now: dt.datetime | None = None) -> Dict[str, Any]:
     """Every period is drawn like a stock chart: the line is the running total and ends at the headline,
     the dotted line is the running total of the previous period, the x axis covers the whole period."""
-    now = now or dt.datetime.now()
+    now = now or now_local()
     today = now.date()
     totals = daily_totals(store)
     days = sorted(totals)

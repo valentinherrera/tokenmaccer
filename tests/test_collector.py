@@ -325,6 +325,22 @@ class CollectorTest(unittest.TestCase):
         self.assertEqual(self.widget()['periods']['1D']['slots'], 25)
         self.assertEqual(self.widget()['order'], ['1D', '7D', '30D', 'YTD', '1Y', 'ALL'])
 
+    def test_pinned_now(self) -> None:
+        # TOKENMACCER_NOW moves "today": a turn on 2026-03-10 counts for 1D when now is pinned to that day
+        self.write('a.jsonl', [turn('m1', '2026-03-10T11:00:00.000Z', inp=5, cread=0)])
+        env = dict(
+            os.environ,
+            TOKENMACCER_DATA_DIR=self.data,
+            TOKENMACCER_CLAUDE_DIR=self.claude,
+            TOKENMACCER_NOW='2026-03-10T23:30',
+        )
+        p = subprocess.run([sys.executable, '-I', COLLECTOR], env=env, capture_output=True, text=True, check=False)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        w = self.widget()
+        self.assertEqual(w['periods']['1D']['input'], 5)
+        self.assertEqual(w['periods']['1D']['from'], '2026-03-10')
+        self.assertTrue(w['updated'].startswith('2026-03-10T23:30:00'), w['updated'])
+
     def test_empty_install_produces_valid_widget_json(self) -> None:
         self.run_collector()
         w = self.widget()

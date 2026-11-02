@@ -3,13 +3,19 @@
 #
 #   scripts/release.sh [VERSION]      VERSION defaults to MARKETING_VERSION in app/project.yml
 #
-# Output in dist/: TokenMaccer-VERSION.dmg (signed, notarized, stapled) and notarization-VERSION.txt.
+# Output in dist/: TokenMaccer-VERSION.dmg (signed, notarized, stapled), the Sparkle update archive
+# TokenMaccer-VERSION-BUILD.zip (the notarized, stapled app), appcast.xml (EdDSA-signed entry for that archive)
+# and notarization-VERSION.txt. Upload the DMG, the zip and appcast.xml to the GitHub release vVERSION.
 # Needs Xcode, xcodegen, a "Developer ID Application" certificate in the keychain and a notarytool
 # keychain profile (xcrun notarytool store-credentials). Override for your own account:
 #   TM_SIGN_IDENTITY   default "Developer ID Application: Valentin Melchior Herrera-Schäfer (3KM85F22L8)"
 #   TM_TEAM            default 3KM85F22L8
 #   TM_BUNDLE_ID_PREFIX default io.github.valentinherrera
 #   TM_NOTARY_PROFILE  default tokenmaccer-notary
+#   TM_DOWNLOAD_URL_PREFIX  where the update archive will be downloaded from, default
+#                      https://github.com/valentinherrera/tokenmaccer/releases/download/vVERSION/
+# Sparkle's EdDSA private key must be in the login keychain (Sparkle's generate_keys, run once per maintainer);
+# its public key is SUPublicEDKey in app/project.yml. generate_appcast signs with the keychain key.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -28,6 +34,7 @@ DIST="$ROOT/dist"
 APP_NAME="TokenMaccer.app"
 DMG="$DIST/TokenMaccer-$VERSION.dmg"
 NOTES="$DIST/notarization-$VERSION.txt"
+URL_PREFIX="${TM_DOWNLOAD_URL_PREFIX:-https://github.com/valentinherrera/tokenmaccer/releases/download/v$VERSION/}"
 
 step() { printf '\n==> %s\n' "$*"; }
 die() { echo "error: $*" >&2; exit 1; }
@@ -81,6 +88,7 @@ echo "commit $COMMIT$([ "${TM_ALLOW_DIRTY:-0}" = 1 ] && echo " (dirty allowed)")
 step "Archive (clean, app edition, universal)"
 cd "$ROOT/app"
 xcodegen generate --quiet
+# Sparkle comes from SwiftPM; netrc instead of the keychain: a public download must never wait for a keychain prompt
 xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
   -destination "generic/platform=macOS" \
   -derivedDataPath "$BUILD/derived" -archivePath "$BUILD/TokenMaccer.xcarchive" \
@@ -88,6 +96,7 @@ xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Rel
   DEVELOPMENT_TEAM="$TEAM" BUNDLE_ID_PREFIX="$PREFIX" CODE_SIGN_IDENTITY="$IDENTITY" \
   MARKETING_VERSION="$VERSION" ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
   GCC_TREAT_WARNINGS_AS_ERRORS=YES \
+  -packageAuthorizationProvider netrc \
   archive -quiet
 
 step "Export (Developer ID)"
@@ -105,10 +114,23 @@ check_macho "$APP/Contents/MacOS/tokenmaccer-collector" "$PREFIX.tokenmaccer.col
 check_macho "$APP/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget" \
   "$PREFIX.tokenmaccer.widget"
 plutil -lint "$APP/Contents/Library/LaunchAgents/$PREFIX.tokenmaccer.collector.plist" >/dev/null
+# Sparkle: framework, helpers and XPC services carry our signature with hardened runtime and timestamp
+SPK="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+check_macho "$SPK/Sparkle" org.sparkle-project.Sparkle
+check_macho "$SPK/Autoupdate" org.sparkle-project.Sparkle.Autoupdate
+check_macho "$SPK/Updater.app/Contents/MacOS/Updater" org.sparkle-project.Sparkle.Updater
+check_macho "$SPK/XPCServices/Downloader.xpc/Contents/MacOS/Downloader" org.sparkle-project.DownloaderService
+check_macho "$SPK/XPCServices/Installer.xpc/Contents/MacOS/Installer" org.sparkle-project.InstallerLauncher
 for plist in "$APP/Contents/Info.plist" "$APP/Contents/PlugIns/TokenMaccerWidget.appex/Contents/Info.plist"; do
   got="$(plutil -extract CFBundleShortVersionString raw "$plist")"
   [ "$got" = "$VERSION" ] || die "$plist: version $got, expected $VERSION"
 done
+BUILD_NUMBER="$(plutil -extract CFBundleVersion raw "$APP/Contents/Info.plist")"
+FEED="$(plutil -extract SUFeedURL raw "$APP/Contents/Info.plist")"
+EDKEY="$(plutil -extract SUPublicEDKey raw "$APP/Contents/Info.plist")"
+[[ "$FEED" == https://* ]] || die "SUFeedURL is not https: $FEED"
+[[ "$EDKEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] || die "SUPublicEDKey missing or malformed"
+echo "  ok  build $BUILD_NUMBER, feed $FEED"
 
 step "Notarize the app"
 ditto -c -k --keepParent "$APP" "$BUILD/TokenMaccer-app.zip"
@@ -127,6 +149,24 @@ step "Notarize the DMG"
 notarize "$DMG" dmg
 xcrun stapler staple "$DMG"
 
+step "Sparkle update archive and appcast"
+SPARKLE_BIN="$BUILD/derived/SourcePackages/artifacts/sparkle/Sparkle/bin"
+[ -x "$SPARKLE_BIN/generate_appcast" ] || die "Sparkle tools not found in $SPARKLE_BIN"
+UPDATES="$BUILD/updates"
+ZIP="TokenMaccer-$VERSION-$BUILD_NUMBER.zip"
+mkdir -p "$UPDATES"
+# the app was stapled above, so the update installs offline without a Gatekeeper round trip
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$UPDATES/$ZIP"
+"$SPARKLE_BIN/generate_appcast" --download-url-prefix "$URL_PREFIX" --maximum-versions 1 \
+  -o "$UPDATES/appcast.xml" "$UPDATES"
+grep -q "sparkle:edSignature=" "$UPDATES/appcast.xml" || die "appcast entry is not EdDSA-signed"
+grep -q "<sparkle:version>$BUILD_NUMBER</sparkle:version>" "$UPDATES/appcast.xml" \
+  || die "appcast does not announce build $BUILD_NUMBER"
+grep -qF "url=\"$URL_PREFIX$ZIP\"" "$UPDATES/appcast.xml" || die "appcast does not point at $URL_PREFIX$ZIP"
+rm -f "$DIST"/TokenMaccer-"$VERSION"-*.zip
+cp "$UPDATES/$ZIP" "$UPDATES/appcast.xml" "$DIST/"
+echo "update $ZIP -> $URL_PREFIX$ZIP" | tee -a "$NOTES"
+
 step "Final checks"
 spctl -a -vvv -t install "$DMG" 2>&1 | tee -a "$NOTES"
 xcrun stapler validate "$DMG"
@@ -138,4 +178,5 @@ grep -q "source=Notarized Developer ID" <<<"$APP_CHECK" \
 
 SHA="$(shasum -a 256 "$DMG" | cut -d' ' -f1)"
 echo "sha256 $SHA  $(basename "$DMG")" | tee -a "$NOTES"
+echo "sha256 $(shasum -a 256 "$DIST/$ZIP" | cut -d' ' -f1)  $ZIP" | tee -a "$NOTES"
 step "Done: $DMG"

@@ -5,9 +5,10 @@ import WidgetKit
 // One collection pass, then exit (the app registers this as a background agent with a 300 s interval).
 // No long-lived process: every run starts with the current time zone and price table.
 //
-// `tokenmaccer-collector leaderboard join|leave [--display-name NAME] [--sign-in] [--data-dir P] [--app-group G]` is the
-// app's way into the opt-in leaderboard: join reads {"code": …, "verifier": …} from stdin (the result of the
-// GitHub sign-in), both print one JSON line {"ok": true|false, …}. The sign-in tokens stay in this
+// `tokenmaccer-collector leaderboard join|rename|leave [--display-name NAME] [--sign-in] [--data-dir P] [--app-group G]`
+// is the app's way into the opt-in leaderboard: join reads {"code": …, "verifier": …} from stdin (the result of the
+// GitHub sign-in; without --display-name the server takes the GitHub username), rename changes the display name
+// of a joined account, all print one JSON line {"ok": true|false, …}. The sign-in tokens stay in this
 // program's keychain item. `leaderboard endpoint` prints the server this build would use and whether it
 // honours overrides (Debug only); it sends nothing (scripts/check_release_endpoint.sh).
 let args = Array(CommandLine.arguments.dropFirst())
@@ -38,7 +39,7 @@ func reply(_ obj: [String: Any]) -> Never {
 if args.first == "leaderboard" {
     var rest = Array(args.dropFirst())
     let action = rest.isEmpty ? "" : rest.removeFirst()
-    var displayName = ""
+    var displayName: String?
     if let i = rest.firstIndex(of: "--display-name"), i + 1 < rest.count {
         displayName = rest[i + 1]
         rest.removeSubrange(i...(i + 1))
@@ -71,6 +72,14 @@ if args.first == "leaderboard" {
         } catch {
             reply(["ok": false, "error": "\(error)"])
         }
+    case "rename":
+        guard let displayName else { reply(["ok": false, "error": "rename needs --display-name NAME"]) }
+        do {
+            let state = try sync.rename(displayName: displayName)
+            reply(["ok": true, "display_name": state.displayName ?? "", "github_login": state.githubLogin ?? ""])
+        } catch {
+            reply(["ok": false, "error": "\(error)"])
+        }
     case "leave":
         // --sign-in: a fresh GitHub sign-in ({"code": …, "verifier": …} on stdin) for a lost or dead one
         var signIn: (code: String, verifier: String)?
@@ -88,7 +97,7 @@ if args.first == "leaderboard" {
             reply(["ok": false, "error": "\(error)"])
         }
     default:
-        reply(["ok": false, "error": "usage: leaderboard join|leave|endpoint [--display-name NAME]"])
+        reply(["ok": false, "error": "usage: leaderboard join|rename|leave|endpoint [--display-name NAME]"])
     }
 }
 

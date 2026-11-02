@@ -355,6 +355,37 @@ extension CollectorTests {
         XCTAssertEqual(spy.paths.last, "/functions/v1/delete-account")
     }
 
+    /// One-button join: no display name -> '' to the server (it takes the GitHub username); the name can be
+    /// changed afterwards with rename, which needs a joined Mac and sends nothing otherwise.
+    func testJoinWithoutNameThenRename() throws {
+        let spy = SpyTransport()
+        let store = MemorySessionStore()
+        let lb = sync(spy, store)
+        XCTAssertThrowsError(try lb.rename(displayName: "New"))
+        XCTAssertEqual(spy.requests.count, 0, "rename before joining sends nothing")
+
+        spy.answer("/auth/v1/token", 200, ["access_token": "a", "refresh_token": "r", "expires_in": 3600])
+        spy.answer("/rest/v1/rpc/join_leaderboard", 200, ["github_login": "synth-gh", "display_name": "synth-gh"])
+        let joined = try lb.join(code: "c", verifier: "v", displayName: nil)
+        let joinBody = try XCTUnwrap(JSONSerialization.jsonObject(with: spy.requests[1].body ?? Data()) as? [String: String])
+        XCTAssertEqual(joinBody, ["p_display_name": ""])
+        XCTAssertEqual(joined.displayName, "synth-gh")
+
+        XCTAssertThrowsError(try lb.rename(displayName: "  "))
+        XCTAssertThrowsError(try lb.rename(displayName: String(repeating: "x", count: 33)))
+        XCTAssertEqual(spy.requests.count, 2, "invalid names are refused before any request")
+
+        spy.answer("/rest/v1/rpc/join_leaderboard", 200, ["github_login": "synth-gh", "display_name": "Synth"])
+        let renamed = try lb.rename(displayName: " Synth ")
+        let renameBody = try XCTUnwrap(JSONSerialization.jsonObject(with: spy.requests[2].body ?? Data()) as? [String: String])
+        XCTAssertEqual(renameBody, ["p_display_name": "Synth"])
+        XCTAssertEqual(spy.requests[2].headers["Authorization"], "Bearer a")
+        XCTAssertEqual(renamed.displayName, "Synth")
+        let saved = try XCTUnwrap(LeaderboardState.load(dataDir: data))
+        XCTAssertEqual(saved.displayName, "Synth")
+        XCTAssertTrue(saved.joined)
+    }
+
     /// A JWT-shaped access token with the given `sub` (signature irrelevant for the client).
     func jwt(sub: String) -> String {
         let payload = try! JSONSerialization.data(withJSONObject: ["sub": sub, "role": "authenticated"])

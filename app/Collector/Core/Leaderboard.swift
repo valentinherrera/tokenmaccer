@@ -603,9 +603,13 @@ public struct LeaderboardSync: Sendable {
     /// the next collector pass (no waiting: lastAttemptAt is empty). The sign-in itself creates an account on
     /// the server; when joining fails after it, that account is deleted again (or, if the server cannot be
     /// reached, kept as a pending leave so the app offers Leave Again instead of forgetting it).
-    public func join(code: String, verifier: String, displayName: String, now: Date = Date()) throws -> LeaderboardState {
-        guard let name = Self.cleanDisplayName(displayName) else {
-            throw LeaderboardError.server(0, "The display name needs 1 to 32 characters.")
+    /// Without a display name the server takes the GitHub username (join_leaderboard with ''); the app offers
+    /// to change it afterwards (`rename`).
+    public func join(code: String, verifier: String, displayName: String?, now: Date = Date()) throws -> LeaderboardState {
+        var name = ""
+        if let displayName {
+            guard let cleaned = Self.cleanDisplayName(displayName) else { throw Self.badName }
+            name = cleaned
         }
         let c = try client()
         let session = try c.exchange(code: code, verifier: verifier, now: now)
@@ -632,6 +636,23 @@ public struct LeaderboardSync: Sendable {
             }
             throw error
         }
+    }
+
+    static let badName = LeaderboardError.server(0, "The display name needs 1 to 32 characters.")
+
+    /// Changes the display name of a joined account (join_leaderboard again: the server updates the name and
+    /// keeps the opt-in). Sends nothing unless this Mac has joined.
+    public func rename(displayName: String) throws -> LeaderboardState {
+        guard let name = Self.cleanDisplayName(displayName) else { throw Self.badName }
+        guard var state = LeaderboardState.load(dataDir: dataDir), state.joined, !state.leavePending else {
+            throw LeaderboardError.notParticipant
+        }
+        let c = try client()
+        let joined = try authorized(c, now: Date()) { try c.join(displayName: name, token: $0) }
+        state.displayName = joined.name
+        if let login = joined.login { state.githubLogin = login }
+        try state.save(dataDir: dataDir)
+        return state
     }
 
     /// Deletes the account on the server (profile and totals go with it), then the local tokens and state.

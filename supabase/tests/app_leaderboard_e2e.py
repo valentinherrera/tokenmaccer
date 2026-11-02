@@ -275,6 +275,18 @@ def main() -> None:
             s,
         )
 
+        # rename: the collector's sign-in, no new GitHub window; the server keeps the login and the opt-in
+        rc, out, err = helper(['leaderboard', 'rename', '--display-name', ' Synth A2 '], a_dir)
+        answer = json.loads(out.splitlines()[-1]) if out else {}
+        check('helper rename: ok, trimmed', rc == 0 and answer.get('display_name') == 'Synth A2', (rc, out, err))
+        check(
+            'rename: server and leaderboard.json have the new name',
+            psql(f"select display_name from public.profiles where id = '{a_uid}'") == 'Synth A2'
+            and (state(a_dir) or {}).get('displayName') == 'Synth A2',
+        )
+        rc, out, err = helper(['leaderboard', 'rename', '--display-name', 'x' * 33], a_dir)
+        check('rename: 33 characters refused', rc == 1 and '"ok":false' in out, (rc, out))
+
         # first pass reports at once and writes A's places (B is far ahead, C far behind)
         rc, out, err = collect(a_dir, claude)
         check('first pass reports', rc == 0 and 'leaderboard: reported' in out, (rc, out, err))
@@ -345,12 +357,15 @@ def main() -> None:
         # D: the sign-in on this Mac is lost (simulated: another keychain service name). Leave must not
         # pretend; it asks for a fresh sign-in, refuses another GitHub account, and then deletes the account.
         d_dir = os.path.join(tmp, 'd')
-        d_uid, _, _, _ = new_user(4)
+        d_uid, _, _, d_login = new_user(4)
         users.append(d_uid)
         e_uid, _, _, _ = new_user(5)
         users.append(e_uid)
-        rc, out, err = helper(['leaderboard', 'join', '--display-name', 'Synth D'], d_dir, stdin=pkce_flow(d_uid))
+        # one-button join: no display name, the server takes the GitHub username
+        rc, out, err = helper(['leaderboard', 'join'], d_dir, stdin=pkce_flow(d_uid))
         check('D joined through the helper', rc == 0 and '"ok":true' in out, (rc, out, err))
+        answer = json.loads(out.splitlines()[-1]) if out else {}
+        check('join without a name: display name is the GitHub username', answer.get('display_name') == d_login, answer)
         lost = KEYCHAIN_SERVICE + '-lost'
         rc, out, err = helper(['leaderboard', 'leave'], d_dir, service=lost)
         sd = state(d_dir) or {}

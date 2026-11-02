@@ -116,7 +116,7 @@ struct LeaderboardWidgetData: Decodable {
 /// Period and unit of the leaderboard widget, its own pair beside the usage widget's (Selection).
 enum BoardSelection {
     static var period: String {
-        get { Selection.defaults.string(forKey: "boardPeriod") ?? "7D" }
+        get { Selection.defaults.string(forKey: "boardPeriod") ?? "1D" }
         set { Selection.defaults.set(newValue, forKey: "boardPeriod") }
     }
     static var unit: Unit {

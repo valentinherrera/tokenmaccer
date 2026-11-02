@@ -35,7 +35,7 @@ struct SelectBoardPeriod: AppIntent {
 
     @Parameter(title: "Period") var period: String
 
-    init() { period = "7D" }
+    init() { period = "1D" }
     init(_ p: String) { period = p }
 
     func perform() async throws -> some IntentResult {

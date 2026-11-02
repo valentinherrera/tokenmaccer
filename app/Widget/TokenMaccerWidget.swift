@@ -88,7 +88,7 @@ struct BoardProvider: TimelineProvider {
     }
 
     private func sample() -> BoardEntry {
-        BoardEntry(date: .now, data: .sample, period: "7D", unit: .tokens)
+        BoardEntry(date: .now, data: .sample, period: "1D", unit: .tokens)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<BoardEntry>) -> Void) {

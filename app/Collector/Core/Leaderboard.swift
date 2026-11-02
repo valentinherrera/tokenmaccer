@@ -30,10 +30,12 @@ public enum PKCE {
 
 // MARK: Server address
 
-/// The Supabase project of the leaderboard. Release builds carry supabase/app-config.json (the hosted
-/// project); a local stack is used only through an explicit override: the environment variables
-/// TOKENMACCER_LEADERBOARD_URL + TOKENMACCER_LEADERBOARD_KEY (tests) or the App Group defaults
-/// TMLeaderboardURL + TMLeaderboardKey (manual tests with the app). Plain http only for loopback.
+/// The Supabase project of the leaderboard: supabase/app-config.json (the hosted project), bundled with
+/// the app and linked into the collector. Debug builds also accept an explicit override for a local
+/// stack: the environment variables TOKENMACCER_LEADERBOARD_URL + TOKENMACCER_LEADERBOARD_KEY (tests)
+/// or the App Group defaults TMLeaderboardURL + TMLeaderboardKey (manual tests with the app). Release
+/// builds ignore both, so nothing on the Mac can point the sign-in or the reports at another server.
+/// Plain http only for loopback.
 public struct LeaderboardEndpoint: Equatable, Sendable {
     public let url: URL
     public let key: String
@@ -63,9 +65,20 @@ public struct LeaderboardEndpoint: Equatable, Sendable {
         return LeaderboardEndpoint(url: url, key: key)
     }
 
+    /// Overrides count only in Debug builds (the DEBUG condition of the Debug configuration).
+    public static let overridesAllowed: Bool = {
+        #if DEBUG
+            return true
+        #else
+            return false
+        #endif
+    }()
+
     public static func resolve(
-        environment env: [String: String], defaults: UserDefaults?, bundled json: Data?
+        environment env: [String: String], defaults: UserDefaults?, bundled json: Data?,
+        allowOverrides: Bool = overridesAllowed
     ) -> LeaderboardEndpoint? {
+        guard allowOverrides else { return bundled(json) }
         if let u = env["TOKENMACCER_LEADERBOARD_URL"], let k = env["TOKENMACCER_LEADERBOARD_KEY"],
             !u.isEmpty, !k.isEmpty
         {
@@ -490,6 +503,17 @@ public struct LeaderboardClient: Sendable {
         return (obj?["github_login"] as? String, (obj?["display_name"] as? String) ?? displayName)
     }
 
+    /// Whether `userId` has a leaderboard profile (RLS shows the caller its own row, joined or paused).
+    public func hasProfile(userId: String, token: String) throws -> Bool {
+        let r = try call("GET", "rest/v1/profiles", token: token, json: nil,
+                         query: "select=id&id=eq." + (userId.addingPercentEncoding(withAllowedCharacters: .alphanumerics.union(["-"])) ?? ""))
+        try Self.check(r)
+        guard let rows = try? JSONSerialization.jsonObject(with: r.body) as? [Any] else {
+            throw LeaderboardError.server(r.status, "unexpected answer to the profile lookup")
+        }
+        return !rows.isEmpty
+    }
+
     public func leave(token: String) throws {
         try Self.check(try call("POST", "rest/v1/rpc/leave_leaderboard", token: token, json: [String: String]()))
     }
@@ -624,6 +648,12 @@ public struct LeaderboardSync: Sendable {
                 if let expected = state?.userId, let got = LeaderboardClient.userId(fromAccessToken: fresh.accessToken),
                     expected != got
                 {
+                    // The sign-in created (or reused) the server account of another GitHub user. Delete it again
+                    // unless that account takes part in the leaderboard itself (then it is someone's entry, maybe
+                    // from another Mac, and stays). When the lookup fails, nothing is deleted.
+                    if (try? c.hasProfile(userId: got, token: fresh.accessToken)) == false {
+                        try? c.deleteAccount(token: fresh.accessToken)
+                    }
                     throw LeaderboardError.otherAccount
                 }
                 try sessions.save(fresh)

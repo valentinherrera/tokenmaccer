@@ -8,7 +8,8 @@ import WidgetKit
 // `tokenmaccer-collector leaderboard join|leave [--display-name NAME] [--sign-in] [--data-dir P] [--app-group G]` is the
 // app's way into the opt-in leaderboard: join reads {"code": …, "verifier": …} from stdin (the result of the
 // GitHub sign-in), both print one JSON line {"ok": true|false, …}. The sign-in tokens stay in this
-// program's keychain item.
+// program's keychain item. `leaderboard endpoint` prints the server this build would use and whether it
+// honours overrides (Debug only); it sends nothing (scripts/check_release_endpoint.sh).
 let args = Array(CommandLine.arguments.dropFirst())
 if args.contains("--help") || args.contains("-h") {
     print(Collector.usage)
@@ -56,6 +57,9 @@ if args.first == "leaderboard" {
     if lock >= 0 { flock(lock, LOCK_EX) }
     let sync = leaderboardSync(config)
     switch action {
+    case "endpoint":
+        reply(["ok": true, "url": sync.endpoint?.url.absoluteString ?? "",
+               "overrides_allowed": LeaderboardEndpoint.overridesAllowed])
     case "join":
         let input = FileHandle.standardInput.readDataToEndOfFile()
         guard let obj = try? JSONSerialization.jsonObject(with: input) as? [String: String],
@@ -84,7 +88,7 @@ if args.first == "leaderboard" {
             reply(["ok": false, "error": "\(error)"])
         }
     default:
-        reply(["ok": false, "error": "usage: leaderboard join|leave [--display-name NAME]"])
+        reply(["ok": false, "error": "usage: leaderboard join|leave|endpoint [--display-name NAME]"])
     }
 }
 

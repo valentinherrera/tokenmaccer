@@ -29,6 +29,15 @@ final class SpyTransport: HTTPTransport, @unchecked Sendable {
     }
 }
 
+/// No network: every request fails like URLSessionTransport does when offline.
+final class OfflineTransport: HTTPTransport, @unchecked Sendable {
+    let calls = Counter()
+    func send(_ request: HTTPRequest) throws -> HTTPResponse {
+        calls.add()
+        throw LeaderboardError.network("The Internet connection appears to be offline.")
+    }
+}
+
 final class MemorySessionStore: SessionStore, @unchecked Sendable {
     private let lock = NSLock()
     private var session: LeaderboardSession?
@@ -129,6 +138,11 @@ extension CollectorTests {
         let decoded = try JSONDecoder().decode(
             WidgetData.self, from: Data(contentsOf: URL(fileURLWithPath: data + "/widget.json")))
         XCTAssertEqual(decoded.place(period: "1D", unit: .tokens), Place(rank: 3, of: 12))
+        // the widget names the board the place belongs to
+        XCTAssertEqual(Place(rank: 3, of: 12).label(period: "7D", unit: .tokens), "#3 · 7D · Tokens")
+        XCTAssertEqual(Place(rank: 1, of: 2).label(period: "ALL", unit: .usd), "#1 · ALL · USD")
+        XCTAssertEqual(Place(rank: 3, of: 12).accessibilityLabel(period: "7D", unit: .tokens),
+                       "Leaderboard place 3 of 12, 7 days, tokens")
         XCTAssertEqual(decoded.place(period: "YTD", unit: .usd), Place(rank: 2, of: 12))
         let state = try XCTUnwrap(LeaderboardState.load(dataDir: data))
         XCTAssertNotNil(state.lastReportAt)
@@ -225,6 +239,82 @@ extension CollectorTests {
         spy.answer("/functions/v1/report", 403, ["error": "not a participant"])
         _ = Collector.run(try config(), leaderboard: sync(spy, store))
         XCTAssertEqual(LeaderboardState.load(dataDir: data)?.joined, false)
+        XCTAssertNil(try widgetJSON()["ranks"])
+    }
+
+    // MARK: Failures of the report
+
+    /// Reports that fail never break the collector pass: widget.json is written, the participant stays joined
+    /// (except after a 403, see above), the error is kept for the app, and the next attempt waits 30 minutes.
+    func testReportFailures() throws {
+        _ = write("a.jsonl", [turn("m1", ts(0), inp: 10, cread: 0)])
+        func due() throws {
+            var s = try XCTUnwrap(LeaderboardState.load(dataDir: data))
+            s.lastAttemptAt = nil
+            s.retryAfter = nil
+            try s.save(dataDir: data)
+        }
+        func state() throws -> LeaderboardState { try XCTUnwrap(LeaderboardState.load(dataDir: data)) }
+        try joinedState()
+
+        // no network: the transport throws
+        let offline = OfflineTransport()
+        let r = Collector.run(try config(), leaderboard: LeaderboardSync(
+            dataDir: data, endpoint: endpoint, sessions: MemorySessionStore(validSession)) { offline })
+        XCTAssertEqual(r.exitCode, 0, r.stderr)
+        XCTAssertEqual(offline.calls.value, 1)
+        XCTAssertNotNil(try widgetJSON()["periods"], "widget.json is written without the server")
+        XCTAssertNil(try widgetJSON()["ranks"])
+        XCTAssertTrue(try state().joined)
+        let offlineError = try XCTUnwrap(try state().lastError)
+        XCTAssertTrue(offlineError.contains("No connection"), offlineError)
+        XCTAssertNotNil(try state().lastAttemptAt, "the next attempt waits for the interval")
+        _ = Collector.run(try config(), leaderboard: LeaderboardSync(
+            dataDir: data, endpoint: endpoint, sessions: MemorySessionStore(validSession)) { offline })
+        XCTAssertEqual(offline.calls.value, 1, "no retry within 30 minutes")
+
+        // 401 twice: one refresh, one more try, then the error is kept; the participant stays joined
+        try due()
+        let spy = SpyTransport()
+        let store = MemorySessionStore(validSession)
+        spy.answer("/functions/v1/report", 401, ["error": "invalid token"])
+        spy.answer("/auth/v1/token", 200, ["access_token": "access-2", "refresh_token": "refresh-2", "expires_in": 3600])
+        spy.answer("/functions/v1/report", 401, ["error": "invalid token"])
+        XCTAssertEqual(Collector.run(try config(), leaderboard: sync(spy, store)).exitCode, 0)
+        XCTAssertEqual(spy.paths, ["/functions/v1/report", "/auth/v1/token", "/functions/v1/report"])
+        XCTAssertEqual(spy.requests.last?.headers["Authorization"], "Bearer access-2")
+        XCTAssertTrue(try state().joined)
+        XCTAssertEqual(try state().lastError, LeaderboardError.unauthorized.description)
+
+        // 401 and a dead refresh token (GoTrue answers 400): no second report, error kept
+        try due()
+        spy.answer("/functions/v1/report", 401, ["error": "invalid token"])
+        spy.answer("/auth/v1/token", 400, ["error": "invalid_grant"])
+        _ = Collector.run(try config(), leaderboard: sync(spy, store))
+        XCTAssertEqual(Array(spy.paths.suffix(2)), ["/functions/v1/report", "/auth/v1/token"])
+        XCTAssertEqual(try state().lastError, LeaderboardError.unauthorized.description)
+
+        // 422 (the server found the report implausible): kept as a server error, no retryAfter, still joined
+        try due()
+        store.session(validSession)
+        spy.answer("/functions/v1/report", 422, ["error": "inconsistent periods: 1D exceeds 7D"])
+        _ = Collector.run(try config(), leaderboard: sync(spy, store))
+        XCTAssertEqual(spy.paths.last, "/functions/v1/report")
+        XCTAssertTrue(try state().joined)
+        XCTAssertNil(try state().retryAfter)
+        XCTAssertEqual(try state().lastError, LeaderboardError.server(422, "inconsistent periods: 1D exceeds 7D").description)
+
+        // 429 without Retry-After: waits 300 s; when my_ranks fails too, the error is kept and nothing breaks
+        try due()
+        spy.answer("/functions/v1/report", 429, ["error": "rate limited"])
+        spy.answer("/rest/v1/rpc/my_ranks", 503, ["error": "down"])
+        let before = Date()
+        XCTAssertEqual(Collector.run(try config(), leaderboard: sync(spy, store)).exitCode, 0)
+        XCTAssertEqual(Array(spy.paths.suffix(2)), ["/functions/v1/report", "/rest/v1/rpc/my_ranks"])
+        let wait = try XCTUnwrap(try state().retryAfter).timeIntervalSince(before)
+        XCTAssertTrue((295...310).contains(wait), "\(wait)")
+        XCTAssertTrue(try state().joined)
+        XCTAssertNotNil(try state().lastError)
         XCTAssertNil(try widgetJSON()["ranks"])
     }
 
@@ -327,22 +417,42 @@ extension CollectorTests {
         XCTAssertThrowsError(try lb.leave())
         XCTAssertTrue(try XCTUnwrap(LeaderboardState.load(dataDir: data)).needsSignIn)
 
-        // sign-in with another GitHub account: refused, nothing deleted, tokens of that account not kept
-        spy.answer("/auth/v1/token", 200, ["access_token": jwt(sub: "bbbbbbbb-0000-0000-0000-000000000002"),
-                                          "refresh_token": "r2", "expires_in": 3600])
+        // sign-in with another GitHub account that does not take part: refused; the account that sign-in left
+        // on the server is deleted again with its own token, the joined account is not touched, no tokens kept
+        let other = jwt(sub: "bbbbbbbb-0000-0000-0000-000000000002")
+        spy.answer("/auth/v1/token", 200, ["access_token": other, "refresh_token": "r2", "expires_in": 3600])
+        spy.answer("/rest/v1/profiles", 200, [Any]())
+        spy.answer("/functions/v1/delete-account", 200, ["deleted": true])
         XCTAssertThrowsError(try lb.leave(signIn: ("code-x", "ver-x"))) {
             XCTAssertEqual($0 as? LeaderboardError, .otherAccount)
         }
-        XCTAssertEqual(spy.paths, ["/auth/v1/token"])
+        XCTAssertEqual(spy.paths, ["/auth/v1/token", "/rest/v1/profiles", "/functions/v1/delete-account"])
+        XCTAssertEqual(spy.requests[1].method, "GET")
+        XCTAssertEqual(spy.requests[1].url.query, "select=id&id=eq.bbbbbbbb-0000-0000-0000-000000000002")
+        XCTAssertEqual(spy.requests[2].headers["Authorization"], "Bearer " + other, "deletes the other account only")
         XCTAssertNil(store.load())
         XCTAssertTrue(try XCTUnwrap(LeaderboardState.load(dataDir: data)).needsSignIn)
+
+        // another GitHub account that takes part itself (an entry from another Mac): refused, nothing deleted
+        spy.answer("/auth/v1/token", 200, ["access_token": other, "refresh_token": "r3", "expires_in": 3600])
+        spy.answer("/rest/v1/profiles", 200, [["id": "bbbbbbbb-0000-0000-0000-000000000002"]])
+        XCTAssertThrowsError(try lb.leave(signIn: ("code-y", "ver-y")))
+        XCTAssertEqual(Array(spy.paths.suffix(2)), ["/auth/v1/token", "/rest/v1/profiles"])
+        // the lookup fails: nothing deleted either
+        spy.answer("/auth/v1/token", 200, ["access_token": other, "refresh_token": "r4", "expires_in": 3600])
+        spy.answer("/rest/v1/profiles", 503, ["error": "down"])
+        XCTAssertThrowsError(try lb.leave(signIn: ("code-z", "ver-z")))
+        XCTAssertEqual(Array(spy.paths.suffix(2)), ["/auth/v1/token", "/rest/v1/profiles"])
+        XCTAssertEqual(spy.paths.filter { $0 == "/functions/v1/delete-account" }.count, 1)
+        XCTAssertNil(store.load())
+        let before = spy.requests.count
 
         // sign-in with the right account: exchange, delete-account, everything gone
         let right = jwt(sub: uid)
         spy.answer("/auth/v1/token", 200, ["access_token": right, "refresh_token": "r1", "expires_in": 3600])
         spy.answer("/functions/v1/delete-account", 200, ["deleted": true])
         try lb.leave(signIn: ("code-1", "ver-1"))
-        XCTAssertEqual(spy.requests[1].url.query, "grant_type=pkce")
+        XCTAssertEqual(spy.requests[before].url.query, "grant_type=pkce")
         XCTAssertEqual(spy.paths.suffix(2), ["/auth/v1/token", "/functions/v1/delete-account"])
         XCTAssertEqual(spy.requests.last?.headers["Authorization"], "Bearer " + right)
         XCTAssertNil(store.load())
@@ -435,6 +545,16 @@ extension CollectorTests {
         defaults.set("http://localhost:54321", forKey: LeaderboardEndpoint.urlDefaultsKey)
         defaults.set("k2", forKey: LeaderboardEndpoint.keyDefaultsKey)
         XCTAssertEqual(LeaderboardEndpoint.resolve(environment: [:], defaults: defaults, bundled: config)?.key, "k2")
+        XCTAssertTrue(LeaderboardEndpoint.overridesAllowed, "the tests run the Debug configuration")
+
+        // Release builds: neither App Group defaults nor environment variables move the server
+        let release = LeaderboardEndpoint.resolve(
+            environment: ["TOKENMACCER_LEADERBOARD_URL": "http://127.0.0.1:54321", "TOKENMACCER_LEADERBOARD_KEY": "k"],
+            defaults: defaults, bundled: config, allowOverrides: false)
+        XCTAssertEqual(release?.url.absoluteString, "https://qcjb.supabase.co")
+        XCTAssertEqual(release?.key, "sb_publishable_x")
+        XCTAssertNil(LeaderboardEndpoint.resolve(environment: [:], defaults: defaults, bundled: nil, allowOverrides: false),
+                     "without the bundled config a release build has no server, it does not fall back to an override")
 
         let url = try XCTUnwrap(LeaderboardEndpoint.bundled(config)).authorizeURL(challenge: "abc")
         let items = Dictionary(uniqueKeysWithValues: (URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? [])

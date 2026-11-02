@@ -29,7 +29,7 @@ final class Leaderboard {
 
     func refresh() { state = LeaderboardState.load(dataDir: dataDir) }
 
-    /// The same server the collector uses: overrides in the App Group defaults (tests), else app-config.json.
+    /// The same server the collector uses: app-config.json; Debug builds also take overrides (tests).
     var endpoint: LeaderboardEndpoint? {
         LeaderboardEndpoint.resolve(
             environment: ProcessInfo.processInfo.environment,
@@ -270,6 +270,9 @@ struct LeaderboardSection: View {
 
 /// Consent and display name before the GitHub sign-in.
 struct JoinLeaderboardSheet: View {
+    /// docs/privacy.md in the public repository (German: docs/privacy.de.md, linked from there).
+    static let privacyURL = URL(string: "https://github.com/valentinherrera/tokenmaccer/blob/main/docs/privacy.md")!
+
     let join: (String) -> Void
     let cancel: () -> Void
     @State private var name = ""
@@ -289,7 +292,9 @@ struct JoinLeaderboardSheet: View {
                 consent("person.crop.circle",
                         "Signing in creates an account on the leaderboard server (Supabase, EU) with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the server sees these, apart from the username. Its sign-in and request logs record your IP address.")
                 consent("trash",
-                        "Leave at any time: your account, your profile and all reported totals are deleted from the server.")
+                        "Leave at any time: your account, your profile and all reported totals are deleted from the server. Only your GitHub user ID and the time of your last report stay a little longer (removed with the first report the server receives once they are an hour old), so leaving and joining again cannot get around the report limit.")
+                Link("Privacy notice", destination: Self.privacyURL)
+                    .font(.callout)
             }
             .font(.callout)
             .fixedSize(horizontal: false, vertical: true)

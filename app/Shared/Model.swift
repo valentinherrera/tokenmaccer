@@ -37,6 +37,16 @@ struct Period: Codable {
 struct Place: Codable, Hashable {
     let rank: Int
     let of: Int
+
+    /// What the widget shows: place, period and unit, so it is clear which board the number belongs to,
+    /// e.g. "#3 · 7D · Tokens". The number of participants is in the accessibility label.
+    func label(period: String, unit: Unit) -> String {
+        "#\(rank) · \(period) · \(unit == .usd ? "USD" : "Tokens")"
+    }
+
+    func accessibilityLabel(period: String, unit: Unit) -> String {
+        "Leaderboard place \(rank) of \(of), \(Format.periodName(period).lowercased()), \(unit == .usd ? "USD" : "tokens")"
+    }
 }
 
 struct WidgetData: Codable {

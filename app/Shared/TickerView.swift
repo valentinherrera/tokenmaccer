@@ -99,12 +99,13 @@ struct TickerView: View {
     /// Leaderboard place for the shown period and unit, quiet; nothing without one (not joined, or no place yet).
     @ViewBuilder private var rank: some View {
         if let place = data?.place(period: period, unit: unit) {
-            Text("#\(place.rank) of \(place.of)")
+            Text(place.label(period: period, unit: unit))
                 .font(.system(size: 11, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .accessibilityLabel("Leaderboard place \(place.rank) of \(place.of)")
+                .minimumScaleFactor(0.8)
+                .accessibilityLabel(place.accessibilityLabel(period: period, unit: unit))
         }
     }
 

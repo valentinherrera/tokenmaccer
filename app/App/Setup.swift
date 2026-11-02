@@ -315,6 +315,7 @@ struct SetupView: View {
                 } message: {
                     Text("Deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash.")
                 }
+                CheckForUpdatesButton()
                 Spacer()
                 if setup.running { ProgressView().controlSize(.small) }
                 Button("Update now") { Task { await setup.updateNow() } }

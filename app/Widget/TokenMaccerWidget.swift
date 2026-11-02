@@ -26,7 +26,12 @@ struct Provider: TimelineProvider {
     private func current() -> Entry {
         let (data, result) = WidgetData.read()
         // App edition: leave a note for the app's status window (it cannot see into the sandbox otherwise).
-        if Edition.isApp { WidgetHealth.record(result, in: Selection.defaults) }
+        if Edition.isApp {
+            WidgetHealth.record(result, in: Selection.defaults)
+            // which build is really running (the app's self-heal waits for this after an update)
+            Selection.defaults.set(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String,
+                                   forKey: SelfHealPlan.widgetBuildKey)
+        }
         return Entry(date: .now, data: data, period: Selection.period, unit: Selection.unit)
     }
 }

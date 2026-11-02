@@ -1,3 +1,4 @@
+import Sparkle
 import SwiftUI
 import WidgetKit
 
@@ -8,6 +9,8 @@ struct TokenMaccerApp: App {
         if Edition.isApp, CommandLine.arguments.contains("--unregister") {
             Setup.unregisterFromCommandLine(removeData: CommandLine.arguments.contains("--remove-data"))
         }
+        SelfHeal.runAtLaunch()
+        if Edition.isApp { _ = Updates.controller }
     }
 
     var body: some Scene {
@@ -19,6 +22,31 @@ struct TokenMaccerApp: App {
             }
         }
         .windowResizability(.contentSize)
+        .commands {
+            if Edition.isApp {
+                CommandGroup(after: .appInfo) { CheckForUpdatesButton() }
+            }
+        }
+    }
+}
+
+/// Sparkle, app edition only (started in `init`). Sparkle asks the user once (second launch)
+/// whether to check automatically; "Check for Updates…" always works.
+@MainActor
+enum Updates {
+    static let controller = SPUStandardUpdaterController(
+        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+}
+
+/// "Check for Updates…" for the app menu and the window; disabled while Sparkle is busy.
+struct CheckForUpdatesButton: View {
+    @State private var canCheck = Updates.controller.updater.canCheckForUpdates
+    private let changes = Updates.controller.updater.publisher(for: \.canCheckForUpdates)
+
+    var body: some View {
+        Button("Check for Updates…") { Updates.controller.checkForUpdates(nil) }
+            .disabled(!canCheck)
+            .onReceive(changes) { canCheck = $0 }
     }
 }
 

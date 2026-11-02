@@ -16,7 +16,11 @@ struct TokenMaccerApp: App {
         // outside the Applications folder: the move is offered right after launch; until then, and after "Not Now",
         // nothing registers this copy (no Launch Services, no collector), so no second TokenMaccer appears
         MoveToApplications.checkAtLaunch()
-        if !MoveToApplications.runningOutside { SelfHeal.runAtLaunch() }
+        if !MoveToApplications.runningOutside {
+            SelfHeal.runAtLaunch()
+            // other registered copies (Trash, DMG, translocation) break the widget's clicks and reloads
+            StaleCopies.runAtLaunch()
+        }
         if Edition.isApp { _ = Updates.controller }
     }
 

@@ -11,9 +11,10 @@ enum Brand {
     static let amber = Color(red: 0.98, green: 0.64, blue: 0.0)
     static let graphite = Color(red: 0.16, green: 0.16, blue: 0.17)
     static let graphiteDeep = Color(red: 0.09, green: 0.09, blue: 0.10)
-    /// Where a shared card invites people to. TBD: the download page is built in W4 (GitHub Pages); until it is
-    /// published this address does not answer.
-    static let inviteURL = URL(string: "https://valentinherrera.github.io/tokenmaccer/")!
+    /// Where a shared card invites people to: the public repository, whose README leads to the download (answers
+    /// HTTP 200 today, checked 02.11.2026). Switch to the download page only once it is published (W4, GitHub
+    /// Pages); a link on a shared card must never end on a 404.
+    static let inviteURL = URL(string: "https://github.com/valentinherrera/tokenmaccer")!
 
     static var inviteHost: String {
         inviteURL.absoluteString.replacingOccurrences(of: "https://", with: "").trimmingCharacters(in: ["/"])
@@ -278,8 +279,10 @@ struct ShareCard: View {
             Spacer(minLength: 0)
             HStack {
                 Text("Token usage of Claude Code, on your Mac.").foregroundStyle(.white.opacity(0.6))
-                Spacer()
+                Spacer(minLength: 12)
+                // The link must stay on one line so it can be typed off the picture; the tagline gives way.
                 Text(verbatim: Brand.inviteHost).foregroundStyle(Brand.amber.opacity(0.9))
+                    .fixedSize()
             }
             .font(.system(size: 14, weight: .medium))
         }

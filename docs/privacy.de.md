@@ -37,7 +37,7 @@ Beitreten können nur Konten mit GitHub-Anmeldung: Für jedes andere Konto legt 
 
 Nach seiner Meldung holt der Collector auch die Ranglisten für das Leaderboard-Fenster der App: je Zeitraum und Einheit die ersten 50 Plätze (Anzeigename, GitHub-Nutzername, Summe) und deinen eigenen Platz. Danach lädt er die GitHub-Profilbilder der Teilnehmer auf diesen Ranglisten von `avatars.githubusercontent.com`, über den GitHub-Nutzernamen: höchstens 12 je Durchlauf, jedes erneut nach sieben Tagen. Diese Anfragen enthalten keinen Schlüssel, kein Token und kein Cookie von TokenMaccer; wie bei jedem Download sieht GitHub deine IP-Adresse und die Anfrage. Vor dem Beitritt und nach dem Austritt wird kein Bild geladen. Die Apps anderer Teilnehmer laden dein GitHub-Profilbild auf dieselbe Weise über deinen Nutzernamen; es ist auf GitHub ohnehin öffentlich.
 
-Die Teilen-Karte („#3 von 120 diese Woche“) entsteht auf deinem Mac. Sie geht nur dorthin, wohin du sie aus dem Teilen-Menü schickst, zusammen mit einem Link zur Download-Seite.
+Die Teilen-Karte („#3 von 120 diese Woche“) entsteht auf deinem Mac. Sie geht nur dorthin, wohin du sie aus dem Teilen-Menü schickst, zusammen mit einem Link zur Projektseite auf GitHub (github.com/valentinherrera/tokenmaccer).
 
 ### Was auf deinem Mac gespeichert wird
 

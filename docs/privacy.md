@@ -37,7 +37,7 @@ Only accounts with a GitHub sign-in can join: the server refuses to create a lea
 
 After its report the collector also fetches the boards for the app's leaderboard window: per period and unit the first 50 places (display name, GitHub username, total) and your own place. Then it downloads the GitHub profile pictures of the participants on these boards from `avatars.githubusercontent.com`, by GitHub username: at most 12 per pass, each again after seven days. These requests carry no key, token or cookie of TokenMaccer; like any download, GitHub sees your IP address and the request. Before you join and after you leave no picture is downloaded. Other participants' apps download your GitHub profile picture the same way, by your username; it is public on GitHub anyway.
 
-The share card ("#3 of 120 this week") is drawn on your Mac. It goes only where you send it from the share menu, together with a link to the download page.
+The share card ("#3 of 120 this week") is drawn on your Mac. It goes only where you send it from the share menu, together with a link to the project page on GitHub (github.com/valentinherrera/tokenmaccer).
 
 ### What is stored on your Mac
 

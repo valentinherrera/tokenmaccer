@@ -14,19 +14,20 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (Entry) -> Void) {
-        completion(current())
+        completion(current(preview: context.isPreview))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
         // The collector writes every 5 minutes; the widget reloads shortly after.
         let next = Calendar.current.date(byAdding: .minute, value: 5, to: .now) ?? .now
-        completion(Timeline(entries: [current()], policy: .after(next)))
+        completion(Timeline(entries: [current(preview: context.isPreview)], policy: .after(next)))
     }
 
-    private func current() -> Entry {
+    private func current(preview: Bool) -> Entry {
         let (data, result) = WidgetData.read()
         // App edition: leave a note for the app's status window (it cannot see into the sandbox otherwise).
-        if Edition.isApp {
+        // Not for the widget gallery's preview: the note means "on the desktop" (onboarding step 2 checks off).
+        if Edition.isApp, !preview {
             WidgetHealth.record(result, in: Selection.defaults)
             // which build is really running (the app's self-heal waits for this after an update)
             Selection.defaults.set(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String,

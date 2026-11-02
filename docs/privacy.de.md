@@ -80,8 +80,8 @@ Meldest du dich beim Austreten mit einem anderen GitHub-Konto an als dem, das be
 
 ## Verantwortlich und Kontakt
 
-Das Leaderboard betreibt der Maintainer dieses Repositorys (GitHub: [valentinherrera](https://github.com/valentinherrera)). Name und Postanschrift der verantwortlichen Person: **TBD**. Rechtsgrundlage der Verarbeitung und Angaben zu Übermittlungen außerhalb der EU: **TBD**.
+Verantwortlich für das Leaderboard und die Website: PAUS UG (haftungsbeschränkt), Gustav-Poensgen-Str. 49, 40215 Düsseldorf, vertreten durch den Geschäftsführer Valentin Herrera, der dieses Repository pflegt (GitHub: [valentinherrera](https://github.com/valentinherrera)). E-Mail: valentin@paus.works. Impressum: <https://tokenmaccer.app/impressum>. Rechtsgrundlage der Verarbeitung und Angaben zu Übermittlungen außerhalb der EU: **TBD**.
 
-Dienstleister: [Supabase](https://supabase.com) betreibt den Server (Datenbank, Anmeldung, Edge Functions). GitHub stellt die Anmeldung bereit; für dein GitHub-Konto gilt die Datenschutzerklärung von GitHub. Updates werden von GitHub Releases geladen.
+Dienstleister: [Supabase](https://supabase.com) betreibt den Server (Datenbank, Anmeldung, Edge Functions); [Vercel](https://vercel.com) hostet die Website. GitHub stellt die Anmeldung bereit; für dein GitHub-Konto gilt die Datenschutzerklärung von GitHub. Updates werden von GitHub Releases geladen.
 
-Fragen, Anliegen zu deinen Daten oder Hinweise auf ein Problem: als Issue unter <https://github.com/valentinherrera/tokenmaccer/issues>. Issues sind öffentlich; bitte dort keine personenbezogenen Daten posten. Ein privater Kontaktweg: **TBD**.
+Fragen, Anliegen zu deinen Daten oder Hinweise auf ein Problem: als Issue unter <https://github.com/valentinherrera/tokenmaccer/issues>. Issues sind öffentlich; bitte dort keine personenbezogenen Daten posten. Für alles Private schreib an valentin@paus.works.

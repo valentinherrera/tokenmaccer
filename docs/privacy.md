@@ -80,8 +80,8 @@ If you sign in with a different GitHub account than the one that joined while le
 
 ## Who is responsible, and contact
 
-The leaderboard is run by the maintainer of this repository (GitHub: [valentinherrera](https://github.com/valentinherrera)). Name and postal address of the responsible person: **TBD**. Legal basis of the processing and information on transfers outside the EU: **TBD**.
+Responsible (controller) for the leaderboard and the website: PAUS UG (haftungsbeschränkt), Gustav-Poensgen-Str. 49, 40215 Düsseldorf, Germany, represented by its managing director Valentin Herrera, who maintains this repository (GitHub: [valentinherrera](https://github.com/valentinherrera)). Email: valentin@paus.works. Legal notice: <https://tokenmaccer.app/impressum>. Legal basis of the processing and information on transfers outside the EU: **TBD**.
 
-Service providers: [Supabase](https://supabase.com) hosts the server (database, sign-in, Edge Functions). GitHub provides the sign-in; GitHub's own privacy statement applies to your GitHub account. Updates are downloaded from GitHub Releases.
+Service providers: [Supabase](https://supabase.com) hosts the server (database, sign-in, Edge Functions); [Vercel](https://vercel.com) hosts the website. GitHub provides the sign-in; GitHub's own privacy statement applies to your GitHub account. Updates are downloaded from GitHub Releases.
 
-Questions, requests about your data, or reports of a problem: open an issue at <https://github.com/valentinherrera/tokenmaccer/issues>. Issues are public; do not post personal data there. A private contact channel: **TBD**.
+Questions, requests about your data, or reports of a problem: open an issue at <https://github.com/valentinherrera/tokenmaccer/issues>. Issues are public; do not post personal data there. For anything private, write to valentin@paus.works.

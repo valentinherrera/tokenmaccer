@@ -85,9 +85,10 @@ Optional, off by default. In the window, **Join…** under **Leaderboard** shows
 
 - **What is sent:** at most every 30 minutes, the six period totals the widget shows (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their USD value at API prices, and the first day of each period. Never project names, prompts, file names, models or any other content.
 - **Who sees what:** other participants see your display name, your GitHub username and these totals.
+- **Your account on the server:** signing in with GitHub creates an account in the project's Supabase Auth with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the username is shown to others. Supabase's sign-in and request logs record your IP address. If joining fails after the sign-in, the app deletes that account again.
 - **Where:** a Supabase project of the maintainer (EU, Ireland). The server checks every report for plausibility and accepts at most one per 25 minutes.
 - **Sign-in:** the access and refresh token are kept in your login keychain, in an item only TokenMaccer's background collector can read. The app sends nothing itself; the collector reports after its regular pass.
-- **Leave at any time:** **Leave…** deletes your account on the leaderboard server together with your profile and all reported totals, and removes the sign-in from your Mac. **Stop › Stop Background Updates & Remove Data…** leaves the leaderboard first.
+- **Leave at any time:** **Leave…** deletes your account on the leaderboard server together with your profile and all reported totals, and removes the sign-in from your Mac. It reports success only after the server confirmed the deletion; otherwise the window says **Leaving not finished** and offers to try again, or, if the sign-in on your Mac was lost or has expired, to sign in with GitHub once more and delete. **Stop › Stop Background Updates & Remove Data…** leaves the leaderboard first and removes nothing while that fails.
 - **Without joining** TokenMaccer makes no request to the leaderboard server at all; there is no account and nothing to delete.
 
 ### USD is the API-price value, not your bill

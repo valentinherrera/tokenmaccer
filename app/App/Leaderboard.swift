@@ -25,6 +25,7 @@ final class Leaderboard {
 
     var joined: Bool { state?.joined == true }
     var leavePending: Bool { state?.leavePending == true }
+    var needsSignIn: Bool { state?.needsSignIn == true }
 
     func refresh() { state = LeaderboardState.load(dataDir: dataDir) }
 
@@ -44,24 +45,7 @@ final class Leaderboard {
         error = nil
         busy = true
         defer { busy = false }
-        let verifier = PKCE.verifier()
-        let callback: URL
-        do {
-            callback = try await signIn(endpoint.authorizeURL(challenge: PKCE.challenge(for: verifier)))
-        } catch let e as ASWebAuthenticationSessionError where e.code == .canceledLogin {
-            return  // the user closed the sign-in window
-        } catch {
-            self.error = "GitHub sign-in failed: \(error.localizedDescription)"
-            return
-        }
-        let code: String
-        switch LeaderboardEndpoint.code(fromCallback: callback) {
-        case .success(let c): code = c
-        case .failure(let e):
-            error = "GitHub sign-in failed: \(e)"
-            return
-        }
-        let input = (try? JSONSerialization.data(withJSONObject: ["code": code, "verifier": verifier])) ?? Data()
+        guard let input = await gitHubSignIn(endpoint) else { return }
         let answer = await Self.helper(helper, ["leaderboard", "join", "--display-name", displayName], stdin: input)
         refresh()
         if answer["ok"] as? Bool == true {
@@ -72,12 +56,41 @@ final class Leaderboard {
         }
     }
 
-    func leave(helper: URL?) async {
+    /// The GitHub sign-in as stdin for the collector ({"code", "verifier"}); nil when cancelled or failed
+    /// (then `error` says why, except for a cancel).
+    private func gitHubSignIn(_ endpoint: LeaderboardEndpoint) async -> Data? {
+        let verifier = PKCE.verifier()
+        let callback: URL
+        do {
+            callback = try await signIn(endpoint.authorizeURL(challenge: PKCE.challenge(for: verifier)))
+        } catch let e as ASWebAuthenticationSessionError where e.code == .canceledLogin {
+            return nil  // the user closed the sign-in window
+        } catch {
+            self.error = "GitHub sign-in failed: \(error.localizedDescription)"
+            return nil
+        }
+        switch LeaderboardEndpoint.code(fromCallback: callback) {
+        case .success(let code):
+            return (try? JSONSerialization.data(withJSONObject: ["code": code, "verifier": verifier])) ?? Data()
+        case .failure(let e):
+            error = "GitHub sign-in failed: \(e)"
+            return nil
+        }
+    }
+
+    /// Leave; with `signIn` a fresh GitHub sign-in first (the collector's sign-in is lost or expired).
+    func leave(helper: URL?, signIn: Bool = false) async {
         guard !busy, let helper else { return }
         error = nil
         busy = true
         defer { busy = false }
-        let answer = await Self.helper(helper, ["leaderboard", "leave"], stdin: nil)
+        var stdin: Data?
+        if signIn {
+            guard let endpoint else { error = LeaderboardError.noServer.description; return }
+            guard let input = await gitHubSignIn(endpoint) else { return }
+            stdin = input
+        }
+        let answer = await Self.helper(helper, ["leaderboard", "leave"] + (signIn ? ["--sign-in"] : []), stdin: stdin)
         refresh()
         if answer["ok"] as? Bool != true {
             error = (answer["error"] as? String).map { "Could not leave: " + $0 } ?? "Could not leave."
@@ -178,10 +191,20 @@ struct LeaderboardSection: View {
                 ) {
                     Button("Leave…") { confirmLeave = true }.disabled(leaderboard.busy)
                 }
+            } else if leaderboard.needsSignIn {
+                StatusRow(
+                    state: .problem, title: "Leaderboard", value: "Leaving not finished",
+                    detail: "Reports are stopped. Your account is still on the leaderboard server; deleting it needs one more GitHub sign-in\(leaderboard.state?.githubLogin.map { " as @\($0)" } ?? "")."
+                ) {
+                    Button("Sign In and Delete…") {
+                        Task { await leaderboard.leave(helper: setup.helperURL, signIn: true) }
+                    }
+                    .disabled(leaderboard.busy)
+                }
             } else if leaderboard.leavePending {
                 StatusRow(
                     state: .problem, title: "Leaderboard", value: "Leaving not finished",
-                    detail: "Reports are stopped. Your entry is still on the server."
+                    detail: "Reports are stopped. Your account is still on the leaderboard server."
                 ) {
                     Button("Leave Again") { Task { await leaderboard.leave(helper: setup.helperURL) } }
                         .disabled(leaderboard.busy)
@@ -215,7 +238,7 @@ struct LeaderboardSection: View {
         .confirmationDialog("Leave the leaderboard?", isPresented: $confirmLeave) {
             Button("Leave and Delete", role: .destructive) { Task { await leaderboard.leave(helper: setup.helperURL) } }
         } message: {
-            Text("Your profile and all reported totals are deleted from the leaderboard server, and the sign-in is removed from this Mac. Your history on this Mac stays.")
+            Text("Your account, your profile and all reported totals are deleted from the leaderboard server, and the sign-in is removed from this Mac. Your history on this Mac stays.")
         }
     }
 
@@ -255,8 +278,10 @@ struct JoinLeaderboardSheet: View {
                         "Never projects, prompts, file names or any other content. Everything else stays on this Mac.")
                 consent("person.2",
                         "Other participants see your display name, your GitHub username and these totals.")
+                consent("person.crop.circle",
+                        "Signing in creates an account on the leaderboard server (Supabase, EU) with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the server sees these, apart from the username. Its sign-in and request logs record your IP address.")
                 consent("trash",
-                        "Leave at any time: your profile and all reported totals are deleted from the server.")
+                        "Leave at any time: your account, your profile and all reported totals are deleted from the server.")
             }
             .font(.callout)
             .fixedSize(horizontal: false, vertical: true)
@@ -264,7 +289,7 @@ struct JoinLeaderboardSheet: View {
                 TextField("Display name", text: $name, prompt: Text("Display name (1–32 characters)"))
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { if let cleaned { join(cleaned) } }
-                Text("Sign-in with GitHub through the leaderboard server (Supabase). The sign-in is kept in your keychain.")
+                Text("Sign-in with GitHub through Supabase Auth, in a system sign-in window. The sign-in is kept in your keychain.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

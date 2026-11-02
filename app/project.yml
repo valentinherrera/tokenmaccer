@@ -32,6 +32,8 @@ settings:
     TM_WIDGET_ENTITLEMENTS: Widget/Widget.entitlements
     TM_COLLECTOR_ENTITLEMENTS: ""
     TM_AGENT_LABEL: $(BUNDLE_ID_PREFIX).tokenmaccer.collector
+    # Sparkle public EdDSA key of the maintainer's releases (generate_keys -p); a fork sets its own
+    TM_SPARKLE_PUBLIC_KEY: Y/TDiDxTGXf6M5C6aHm6wXDO5QaFplSqJomzL91b3wU=
 targets:
   TokenMaccer:
     type: application
@@ -50,7 +52,7 @@ targets:
         # Sparkle: release feed and the public EdDSA key (the private key stays in the keychain of the
         # release machine). A test feed is set per machine only: defaults write <bundle id> SUFeedURL <url>
         SUFeedURL: https://github.com/valentinherrera/tokenmaccer/releases/latest/download/appcast.xml
-        SUPublicEDKey: Y/TDiDxTGXf6M5C6aHm6wXDO5QaFplSqJomzL91b3wU=
+        SUPublicEDKey: $(TM_SPARKLE_PUBLIC_KEY)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_PREFIX).tokenmaccer

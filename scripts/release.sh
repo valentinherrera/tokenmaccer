@@ -16,7 +16,8 @@
 #   TM_DOWNLOAD_URL_PREFIX  where the update archive will be downloaded from, default
 #                      https://github.com/valentinherrera/tokenmaccer/releases/download/vVERSION/
 # Sparkle's EdDSA private key must be in the login keychain (Sparkle's generate_keys, run once per maintainer);
-# its public key is SUPublicEDKey in app/project.yml. generate_appcast signs with the keychain key.
+# its public key is TM_SPARKLE_PUBLIC_KEY in app/project.yml. generate_appcast signs with the keychain key;
+# on its first run macOS asks to let generate_appcast use that key (Always Allow), so run it unlocked.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

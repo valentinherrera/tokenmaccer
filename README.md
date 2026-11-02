@@ -196,6 +196,8 @@ xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift
 /tmp/tm-leaderboard /tmp/tm-shots
 ```
 
+Colours come from the asset catalog `app/Shared/Colors.xcassets`: for true colours, put the renderer binary into an `.app` as below with `Contents/Resources/Assets.car` from a built TokenMaccer.app (or `xcrun actool app/Shared/Colors.xcassets --compile <dir> --platform macosx --minimum-deployment-target 15.0 --output-partial-info-plist <dir>/p.plist`); a bare binary draws the custom colours as clear.
+
 German screenshots: put the binary into an `.app` (`Contents/MacOS/`, an `Info.plist` with `CFBundleLocalizations` en and de) together with `Contents/Resources/de.lproj` from a built TokenMaccer.app and start it with `-AppleLanguages '(de)'`. A Debug build of the app edition opens the welcome at every start with the launch argument `-TMForceOnboarding` (it never marks it as done); a new install shows it once on its own, an existing one (history or leaderboard state present) never does.
 
 The collector uses only the Python standard library and runs on the macOS system Python (3.9).

@@ -48,11 +48,11 @@ final class Leaderboard {
         guard let input = await gitHubSignIn(endpoint) else { return }
         let answer = await Self.helper(helper, ["leaderboard", "join", "--display-name", displayName], stdin: input)
         refresh()
-        if answer["ok"] as? Bool == true {
+        if answer.ok {
             await afterJoin()
             refresh()
         } else {
-            error = "Could not join: " + ((answer["error"] as? String) ?? "unknown error")
+            error = "Could not join: " + (answer.error ?? "unknown error")
         }
     }
 
@@ -92,8 +92,8 @@ final class Leaderboard {
         }
         let answer = await Self.helper(helper, ["leaderboard", "leave"] + (signIn ? ["--sign-in"] : []), stdin: stdin)
         refresh()
-        if answer["ok"] as? Bool != true {
-            error = (answer["error"] as? String).map { "Could not leave: " + $0 } ?? "Could not leave."
+        if !answer.ok {
+            error = answer.error.map { "Could not leave: " + $0 } ?? "Could not leave."
         }
     }
 
@@ -117,8 +117,8 @@ final class Leaderboard {
             p.terminate()
             return (false, "the leaderboard server did not answer")
         }
-        let obj = parse(out.fileHandleForReading.readDataToEndOfFile())
-        return obj["ok"] as? Bool == true ? (true, nil) : (false, (obj["error"] as? String) ?? "unknown error")
+        let answer = parse(out.fileHandleForReading.readDataToEndOfFile())
+        return answer.ok ? (true, nil) : (false, answer.error ?? "unknown error")
     }
 
     private func signIn(_ url: URL) async throws -> URL {
@@ -143,12 +143,19 @@ final class Leaderboard {
         }
     }
 
-    nonisolated private static func parse(_ data: Data) -> [String: Any] {
-        let last = String(decoding: data, as: UTF8.self).split(separator: "\n").last.map(String.init) ?? ""
-        return (try? JSONSerialization.jsonObject(with: Data(last.utf8)) as? [String: Any]) ?? [:]
+    /// The collector's one-line JSON answer, reduced to what the app uses (Sendable across the continuation).
+    struct HelperAnswer: Sendable {
+        var ok: Bool
+        var error: String?
     }
 
-    nonisolated private static func helper(_ url: URL, _ args: [String], stdin: Data?) async -> [String: Any] {
+    nonisolated private static func parse(_ data: Data) -> HelperAnswer {
+        let last = String(decoding: data, as: UTF8.self).split(separator: "\n").last.map(String.init) ?? ""
+        let obj = (try? JSONSerialization.jsonObject(with: Data(last.utf8)) as? [String: Any]) ?? [:]
+        return HelperAnswer(ok: obj["ok"] as? Bool == true, error: obj["error"] as? String)
+    }
+
+    nonisolated private static func helper(_ url: URL, _ args: [String], stdin: Data?) async -> HelperAnswer {
         await withCheckedContinuation { cont in
             let p = Process()
             let out = Pipe()
@@ -166,7 +173,7 @@ final class Leaderboard {
                 if let stdin { input.fileHandleForWriting.write(stdin) }
                 try? input.fileHandleForWriting.close()
             } catch {
-                cont.resume(returning: ["ok": false, "error": error.localizedDescription])
+                cont.resume(returning: HelperAnswer(ok: false, error: error.localizedDescription))
             }
         }
     }

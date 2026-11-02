@@ -364,7 +364,7 @@ def main():
         check('failed join: no state left', state(f_dir) is None, state(f_dir))
         ips = psql(
             "select count(*) || ',' || count(*) filter (where coalesce(ip_address, '') <> '') "
-            'from auth.audit_log_entries where created_at > now() - interval \'10 minutes\''
+            "from auth.audit_log_entries where created_at > now() - interval '10 minutes'"
         )
         print('info auth.audit_log_entries last 10 min (all, with ip_address): ' + ips)
     finally:

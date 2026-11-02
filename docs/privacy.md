@@ -33,10 +33,17 @@ Never sent: project names, prompts, file names, models or any other content of y
 
 Only accounts with a GitHub sign-in can join: the server refuses to create a leaderboard profile for any other account.
 
+### Leaderboard window and profile pictures
+
+After its report the collector also fetches the boards for the app's leaderboard window: per period and unit the first 50 places (display name, GitHub username, total) and your own place. Then it downloads the GitHub profile pictures of the participants on these boards from `avatars.githubusercontent.com`, by GitHub username: at most 12 per pass, each again after seven days. These requests carry no key, token or cookie of TokenMaccer; like any download, GitHub sees your IP address and the request. Before you join and after you leave no picture is downloaded. Other participants' apps download your GitHub profile picture the same way, by your username; it is public on GitHub anyway.
+
+The share card ("#3 of 120 this week") is drawn on your Mac. It goes only where you send it from the share menu, together with a link to the download page.
+
 ### What is stored on your Mac
 
 - `leaderboard.json` in `~/Library/Application Support/TokenMaccer/`: your display name, GitHub username, account ID, your latest places, the times of the last report and the last attempt, the last error.
 - The keychain item "TokenMaccer leaderboard sign-in" with the access and refresh token. Only TokenMaccer's background collector can read it.
+- `leaderboard-top.json` (the boards of the leaderboard window, see above) and the folder `avatars/` with the cached profile pictures, in the same folder as `leaderboard.json`.
 
 ### How long
 
@@ -46,7 +53,7 @@ Only accounts with a GitHub sign-in can join: the server refuses to create a lea
 
 ### Leaving and deleting
 
-**Leave…** in the app deletes your sign-in account on the server. Your profile, totals, sessions and GitHub identity on the server go with it. Then the app removes the sign-in from your keychain and `leaderboard.json`. It reports success only after the server confirmed the deletion. Not deleted by Leave: the report limit entry (see above) and entries in Supabase's logs.
+**Leave…** in the app deletes your sign-in account on the server. Your profile, totals, sessions and GitHub identity on the server go with it. Then the app removes the sign-in from your keychain, `leaderboard.json`, `leaderboard-top.json` and the cached profile pictures. It reports success only after the server confirmed the deletion. Not deleted by Leave: the report limit entry (see above) and entries in Supabase's logs.
 
 If you sign in with a different GitHub account than the one that joined while leaving, the app refuses it and deletes the account that sign-in created on the server again, unless that account takes part in the leaderboard itself.
 

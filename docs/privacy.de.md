@@ -33,10 +33,17 @@ Nie gesendet werden Projektnamen, Prompts, Dateinamen, Modelle oder andere Inhal
 
 Beitreten können nur Konten mit GitHub-Anmeldung: Für jedes andere Konto legt der Server kein Ranglisten-Profil an.
 
+### Leaderboard-Fenster und Profilbilder
+
+Nach seiner Meldung holt der Collector auch die Ranglisten für das Leaderboard-Fenster der App: je Zeitraum und Einheit die ersten 50 Plätze (Anzeigename, GitHub-Nutzername, Summe) und deinen eigenen Platz. Danach lädt er die GitHub-Profilbilder der Teilnehmer auf diesen Ranglisten von `avatars.githubusercontent.com`, über den GitHub-Nutzernamen: höchstens 12 je Durchlauf, jedes erneut nach sieben Tagen. Diese Anfragen enthalten keinen Schlüssel, kein Token und kein Cookie von TokenMaccer; wie bei jedem Download sieht GitHub deine IP-Adresse und die Anfrage. Vor dem Beitritt und nach dem Austritt wird kein Bild geladen. Die Apps anderer Teilnehmer laden dein GitHub-Profilbild auf dieselbe Weise über deinen Nutzernamen; es ist auf GitHub ohnehin öffentlich.
+
+Die Teilen-Karte („#3 von 120 diese Woche“) entsteht auf deinem Mac. Sie geht nur dorthin, wohin du sie aus dem Teilen-Menü schickst, zusammen mit einem Link zur Download-Seite.
+
 ### Was auf deinem Mac gespeichert wird
 
 - `leaderboard.json` in `~/Library/Application Support/TokenMaccer/`: dein Anzeigename, GitHub-Nutzername, deine Konto-ID, deine letzten Plätze, die Zeitpunkte der letzten Meldung und des letzten Versuchs, der letzte Fehler.
 - Der Schlüsselbund-Eintrag „TokenMaccer leaderboard sign-in“ mit Access- und Refresh-Token. Lesen kann ihn nur der Hintergrund-Collector von TokenMaccer.
+- `leaderboard-top.json` (die Ranglisten des Leaderboard-Fensters, siehe oben) und der Ordner `avatars/` mit den zwischengespeicherten Profilbildern, im selben Ordner wie `leaderboard.json`.
 
 ### Wie lange
 
@@ -46,7 +53,7 @@ Beitreten können nur Konten mit GitHub-Anmeldung: Für jedes andere Konto legt 
 
 ### Austreten und Löschen
 
-**Leave…** in der App löscht dein Anmeldekonto auf dem Server. Profil, Summen, Sitzungen und deine GitHub-Identität auf dem Server werden mitgelöscht. Danach entfernt die App die Anmeldung aus deinem Schlüsselbund und `leaderboard.json`. Erfolg meldet sie erst, wenn der Server die Löschung bestätigt hat. Nicht durch Leave gelöscht werden der Eintrag des Meldelimits (siehe oben) und Einträge in den Logs von Supabase.
+**Leave…** in der App löscht dein Anmeldekonto auf dem Server. Profil, Summen, Sitzungen und deine GitHub-Identität auf dem Server werden mitgelöscht. Danach entfernt die App die Anmeldung aus deinem Schlüsselbund, `leaderboard.json`, `leaderboard-top.json` und die zwischengespeicherten Profilbilder. Erfolg meldet sie erst, wenn der Server die Löschung bestätigt hat. Nicht durch Leave gelöscht werden der Eintrag des Meldelimits (siehe oben) und Einträge in den Logs von Supabase.
 
 Meldest du dich beim Austreten mit einem anderen GitHub-Konto an als dem, das beigetreten ist, lehnt die App das ab und löscht das Konto, das diese Anmeldung auf dem Server angelegt hat, wieder, es sei denn, dieses Konto nimmt selbst am Leaderboard teil.
 

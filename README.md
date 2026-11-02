@@ -83,10 +83,13 @@ END PENDING RELEASE -->
 
 ### Leaderboard and privacy
 
-Optional, off by default. In step 3 of the welcome, or later with **Join…** under **Leaderboard** in the window, TokenMaccer shows in two lines what is shared (the full text under **Details**, and the privacy notice, which opens inside the app and needs no network) and one button, **Continue with GitHub**, which signs you in through [Supabase](https://supabase.com) Auth in a system sign-in window (PKCE). Your display name starts as your GitHub username; change it right there or later with **Change Name…**. Then your place appears, large (for example `#3 of 120`, 7 days, tokens), and the widget shows it quietly next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`.
+Optional, off by default. In step 3 of the welcome, or later with **Join…** under **Leaderboard** in the window, TokenMaccer shows in two lines what is shared (the full text under **Details**, and the privacy notice, which opens inside the app and needs no network) and one button, **Continue with GitHub**, which signs you in through [Supabase](https://supabase.com) Auth in a system sign-in window (PKCE). Your display name starts as your GitHub username; change it right there or later with **Change Name…**. Then your place appears, large (for example `#3 of 120`, 7 days, tokens), and the widget shows it quietly next to the headline, for the period and unit you selected, for example `#3 · 7D · Tokens`. A click on it opens the **Leaderboard** window (also **Window › Leaderboard**, ⌘L): the first 50 places with GitHub profile pictures, your own row highlighted (and added below the list when you are further down), switchable between the six periods and tokens or USD. **Share…** there makes a card such as `#3 of 120 this week` and hands it, with a link to the download page, to the system share menu.
+
+The menu bar shows today's tokens and, once you joined, today's place; its panel opens the window, the leaderboard, sharing, the update check and **Settings…** (⌘,), where the menu bar item can be switched off.
 
 - **What is sent:** at most every 30 minutes, the six period totals the widget shows (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their USD value at API prices, and the first day of each period. Never project names, prompts, file names, models or any other content.
 - **Who sees what:** other participants see your display name, your GitHub username and these totals.
+- **Profile pictures:** after joining, the collector downloads the GitHub profile pictures of the participants on the boards from `avatars.githubusercontent.com` (by username, nothing of yours in the request; at most 12 per pass, each again after a week) and keeps them in the Application Support folder. Before joining and after leaving none is downloaded.
 - **Your account on the server:** signing in with GitHub creates an account in the project's Supabase Auth with what GitHub passes on: your GitHub user ID, username, name, email address and avatar link. Only the username is shown to others. Supabase's sign-in and request logs record your IP address. If joining fails after the sign-in, the app deletes that account again.
 - **Where:** a Supabase project of the maintainer (region eu-west-1, Ireland). The server checks every report for plausibility (ceilings per day, periods that fit together) and accepts at most one per 25 minutes per GitHub account; leaving and joining again does not reset that limit.
 - **Sign-in:** the access and refresh token are kept in your login keychain, in an item only TokenMaccer's background collector can read. The app sends nothing itself; the collector reports after its regular pass.
@@ -160,7 +163,7 @@ osascript -e 'quit app "TokenMaccer"'
 rm -rf /Applications/TokenMaccer.app
 ```
 
-What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`; after joining the leaderboard also `leaderboard.json` in the Application Support folder and the keychain item "TokenMaccer leaderboard sign-in". **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
+What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`; after joining the leaderboard also `leaderboard.json`, `leaderboard-top.json` and the `avatars` folder in the Application Support folder and the keychain item "TokenMaccer leaderboard sign-in". **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
 
 END PENDING RELEASE -->
 
@@ -186,6 +189,10 @@ xcrun swiftc app/Shared/*.swift app/Preview/main.swift -o /tmp/tm-render
 xcrun swiftc -parse-as-library app/Shared/*.swift app/App/OnboardingViews.swift app/Preview/Onboarding/main.swift \
   -o /tmp/tm-onboarding
 /tmp/tm-onboarding /tmp/tm-shots
+# the leaderboard window, the share card (also as the PNG that is shared) and the menu bar panel
+xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift app/Preview/Leaderboard/main.swift \
+  -o /tmp/tm-leaderboard
+/tmp/tm-leaderboard /tmp/tm-shots
 ```
 
 German screenshots: put the binary into an `.app` (`Contents/MacOS/`, an `Info.plist` with `CFBundleLocalizations` en and de) together with `Contents/Resources/de.lproj` from a built TokenMaccer.app and start it with `-AppleLanguages '(de)'`. A Debug build of the app edition opens the welcome at every start with the launch argument `-TMForceOnboarding` (it never marks it as done); a new install shows it once on its own, an existing one (history or leaderboard state present) never does.

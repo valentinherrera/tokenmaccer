@@ -11,6 +11,8 @@ A macOS desktop widget that shows your **Claude Code** token usage like a stock 
 
 *Screenshots use made-up demo data.*
 
+**Download:** [TokenMaccer.dmg](https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg), notarized, macOS 15 or newer ([details](#download-app), [tokenmaccer.app](https://tokenmaccer.app)). Or build it from source with the steps below.
+
 ## What it shows
 
 - **Input tokens** as the headline (uncached input + cache reads + cache writes), tap to switch to **USD**.
@@ -49,12 +51,6 @@ Without a certificate the installer still sets up the collector and tells you wh
 
 **Tested on:** macOS 26 with Xcode 26 (Apple Silicon), full install. CI builds on macOS 15 with Xcode 16. Not yet tested: Intel Macs, running the widget on macOS 15. Reports welcome as issues.
 
-<!-- PENDING RELEASE: draft for the downloadable app. Keep hidden until the GitHub release with the
-     notarized DMG exists (decision by the maintainer). Then remove this comment and the closing marker below.
-     Before that: docs/ on main, `supabase db push` and `supabase config push` for the hosted project;
-     scripts/release.sh refuses otherwise (scripts/check_hosted_release.sh). What is proven and what is still
-     open for the Sparkle feed (update N to N+1) and Homebrew: RELEASING.md.
-
 ## Download (app)
 
 The app includes its own collector and needs no Xcode, Terminal or Python.
@@ -68,19 +64,11 @@ No account is needed and your numbers stay on your Mac: without joining the opti
 
 Already using the `install.sh` setup? The app takes over your history from `~/.claude/tools/tokenmaccer/` on its first run (it only copies, the old folder stays). Use one of the two, not both: run `./uninstall.sh` once the app shows your numbers.
 
-END PENDING RELEASE -->
-
-<!-- PENDING RELEASE: applies to the downloadable app; publish together with "Download (app)" above.
-
 ### Updates
 
 The app updates itself with [Sparkle](https://sparkle-project.org), silently: it checks once a day from the first launch on, downloads a new version in the background and installs it when you quit TokenMaccer (a short note of what changed comes with each update). **Settings…** (⌘,) › **Updates** switches the automatic check or the automatic installation off; **TokenMaccer › Check for Updates…** or the button in the window checks at any time. Each update is notarized by Apple and signed with the maintainer's EdDSA key, which the app checks before installing. The check itself downloads `appcast.xml` from this repository's latest GitHub release and sends nothing about you or your usage. Apart from it, the app only goes online if you join the leaderboard.
 
 The widget follows on its own. When the app is replaced (by Sparkle, or by dragging a new version from the DMG into Applications), macOS keeps the old widget process running and rejects its numbers until the widget is removed and added again. On the first launch of a new version the app therefore ends the widget processes of its own bundle and asks WidgetKit to reload; the widget shows the new version within seconds. After a manual update, open TokenMaccer once. The app never restarts system processes.
-
-END PENDING RELEASE -->
-
-<!-- PENDING RELEASE: applies to the downloadable app; publish together with "Download (app)" above.
 
 ### Leaderboard and privacy
 
@@ -108,8 +96,6 @@ The USD figures, in the widget and on the leaderboard, are what your token usage
 ### Tested platforms
 
 Tested on macOS 26.6 on Apple Silicon only. The app targets macOS 15 or newer and is built universal (Apple Silicon and Intel), but it has never run on an Intel Mac or on macOS 15 on real hardware. Reports welcome as issues.
-
-END PENDING RELEASE -->
 
 ## Install with Claude Code
 
@@ -148,8 +134,6 @@ Options: `./install.sh --collector-only` skips the app. `BUNDLE_ID_PREFIX=com.yo
 ./uninstall.sh --purge   # also deletes ~/.claude/tools/tokenmaccer
 ```
 
-<!-- PENDING RELEASE: applies to the downloadable app; publish together with "Download (app)" above.
-
 ### Uninstall the app
 
 1. Remove the widget: right-click it on the desktop › **Remove Widget**.
@@ -167,8 +151,6 @@ rm -rf /Applications/TokenMaccer.app
 ```
 
 What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`; after joining the leaderboard also `leaderboard.json`, `leaderboard-top.json`, `leaderboard-groups.json` and the `avatars` folder in the Application Support folder and the keychain item "TokenMaccer leaderboard sign-in". **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
-
-END PENDING RELEASE -->
 
 ## Configuration
 

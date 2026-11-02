@@ -22,5 +22,5 @@
     "my_ranks": "POST /rest/v1/rpc/my_ranks {} -> 12 rows [period, unit, rank, participants, value]"
   },
   "report_body": "{\"periods\": {\"1D\"|\"7D\"|\"30D\"|\"YTD\"|\"1Y\"|\"ALL\": {\"input\": int, \"output\": int, \"usd\": number, \"start\": \"YYYY-MM-DD\"}}} (all six; at most every 25 min, else 429 + Retry-After)",
-  "remote_schema_deployed": false
+  "remote_schema_deployed": true
 }

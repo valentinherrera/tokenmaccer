@@ -12,6 +12,10 @@ Die einzige Netzwerkanfrage ist die **Update-Prüfung** ([Sparkle](https://spark
 
 Die Installation mit `install.sh` (aus dem Quellcode gebaut) stellt überhaupt keine Netzwerkanfragen.
 
+## Die Website tokenmaccer.app
+
+Die Website (Download-Seite, dieser Hinweis, Einladungslinks) wird bei [Vercel](https://vercel.com) gehostet. Wie jeder Webserver erhält Vercel deine IP-Adresse, die aufgerufene Adresse (bei einem Einladungslink also auch den Einladungscode der Gruppe) und die Anfrage-Header deines Browsers und bewahrt sie in seinen Logs auf, so lange Vercel das vorsieht: **TBD**. Die Seiten setzen keine Cookies, nutzen keine Analyse und laden nichts von anderen Servern. Deine Sprachwahl merken sie sich nur in deinem Browser (Local Storage). Eine Einladungsseite gibt den Code an die App auf deinem Mac weiter und sendet ihn sonst nirgendwohin.
+
 ## Wenn du dem Leaderboard beitrittst
 
 Der Beitritt ist freiwillig und standardmäßig aus. Du meldest dich in einem Anmeldefenster des Systems über Supabase Auth mit GitHub an.

@@ -12,6 +12,10 @@ The only network request is the **update check** ([Sparkle](https://sparkle-proj
 
 The `install.sh` setup (built from source) makes no network requests at all.
 
+## The website tokenmaccer.app
+
+The website (download page, this notice, invitation links) is hosted by [Vercel](https://vercel.com). Like any web server, Vercel receives your IP address, the address you open (for an invitation link, that includes the group's invitation code) and your browser's request headers, and keeps them in its logs for as long as Vercel provides: **TBD**. The pages set no cookies, use no analytics and load nothing from other servers. They remember your language choice only in your browser (local storage). An invitation page hands the code to the app on your Mac and sends it nowhere else.
+
 ## When you join the leaderboard
 
 Joining is optional and off by default. You sign in with GitHub through Supabase Auth in a system sign-in window.

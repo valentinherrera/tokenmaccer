@@ -7,7 +7,7 @@
 <meta name="description" content="A Mac widget that shows your Claude Code usage in tokens and USD at API prices. Free, open source, for macOS 15 or newer.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="assets/icon.png">
-<!-- Static page for GitHub Pages (source: main, /docs). No build step, no external requests: no web fonts, no
+<!-- Static page on Vercel (tokenmaccer.app, project root docs/, routes in vercel.json). No build step, no external requests: no web fonts, no
      analytics, no third-party scripts. Screenshots are rendered from made-up demo data (scripts/make_demo.py and the
      fixtures in app/Preview), never from anyone's real usage. -->
 <link rel="stylesheet" href="assets/colors.css">
@@ -91,7 +91,7 @@
 <body>
 <div class="wrap">
   <header>
-    <a class="brand" href="#"><img src="assets/icon.png" alt="">TokenMaccer</a>
+    <a class="brand" href="/"><img src="assets/icon.png" alt="">TokenMaccer</a>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
       <button type="button" data-set-lang="de" aria-pressed="false">DE</button>
@@ -169,13 +169,13 @@
         <p>Without the leaderboard, TokenMaccer only reads Claude Code's transcripts on your Mac and sends nothing anywhere; its one network request is the daily update check.</p>
         <p>If you join the leaderboard, it sends your token and USD totals per period at most every 30 minutes, never prompts, projects or file names.</p>
         <p>Groups are optional: only their members see a group, who is in it and its ranking. Leaving the leaderboard ends all your memberships.</p>
-        <p>Leave at any time, and your account and totals are deleted from the server. <a href="https://github.com/valentinherrera/tokenmaccer/blob/main/docs/privacy.md">Full privacy notice</a></p>
+        <p>Leave at any time, and your account and totals are deleted from the server. <a href="/privacy">Full privacy notice</a></p>
       </div>
       <div data-lang="de">
         <p>Ohne Leaderboard liest TokenMaccer nur die Transkripte von Claude Code auf deinem Mac und sendet nichts; die einzige Netzwerkanfrage ist die tägliche Update-Prüfung.</p>
         <p>Trittst du dem Leaderboard bei, sendet es höchstens alle 30 Minuten deine Token- und USD-Summen je Zeitraum, nie Prompts, Projekte oder Dateinamen.</p>
         <p>Gruppen sind freiwillig: Nur ihre Mitglieder sehen eine Gruppe, wer in ihr ist und ihre Rangliste. Mit dem Austritt aus dem Leaderboard enden alle deine Mitgliedschaften.</p>
-        <p>Du kannst jederzeit austreten, dann werden dein Konto und deine Summen auf dem Server gelöscht. <a href="https://github.com/valentinherrera/tokenmaccer/blob/main/docs/privacy.de.md">Vollständiger Datenschutzhinweis</a></p>
+        <p>Du kannst jederzeit austreten, dann werden dein Konto und deine Summen auf dem Server gelöscht. <a href="/privacy/de">Vollständiger Datenschutzhinweis</a></p>
       </div>
     </section>
 

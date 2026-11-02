@@ -6,6 +6,9 @@
 #   2. The hosted auth server allows GitHub sign-in and has e-mail sign-up switched off
 #      (supabase/config.toml [auth.email] enable_signup = false, applied with `supabase config push`).
 #   3. Every migration in supabase/migrations is applied to the hosted project (`supabase db push`).
+#   4. The website answers invitation links (https://tokenmaccer.app/join/<code> hands over to tokenmaccer://join/<code>,
+#      docs/join.html behind the rewrite in docs/vercel.json), and the app shares them as such
+#      (GroupInvite.siteLive = true in app/Shared/GroupInvite.swift).
 # Read only: one GET per link, one GET of the public auth settings, `supabase migration list`.
 #
 #   scripts/check_hosted_release.sh
@@ -14,6 +17,7 @@
 #   TM_AUTH_URL TM_AUTH_KEY  default: url and publishable_key in supabase/app-config.json
 #   TM_MIGRATION_LIST     a file with the output of `supabase migration list` instead of running it
 #   TM_MIGRATION_ARGS     default: --project-ref <project_ref from app-config.json>; e.g. --local
+#   TM_SITE_URL           default: https://tokenmaccer.app (e.g. http://localhost:3517 for `vercel dev` in docs/)
 # `supabase migration list` against the hosted project needs `supabase login` and the database password
 # (SUPABASE_DB_PASSWORD or the prompt).
 set -euo pipefail
@@ -31,7 +35,9 @@ PRIVACY="${TM_PRIVACY_URL:-$(sed -n 's/.*privacyURL = URL(string: "\([^"]*\)")!.
 if [ -z "$PRIVACY" ]; then
   bad "privacy link: no privacyURL found in app/App/OnboardingViews.swift"
 else
-  for link in "$PRIVACY" "${PRIVACY%.md}.de.md"; do
+  # A .md file (GitHub) has its German twin next to it as .de.md; a page on tokenmaccer.app has it under /de.
+  case "$PRIVACY" in *.md) german="${PRIVACY%.md}.de.md" ;; *) german="${PRIVACY%/}/de" ;; esac
+  for link in "$PRIVACY" "$german"; do
     code="$(curl -sS -o /dev/null -w '%{http_code}' -L --max-time 20 "$link" 2>/dev/null || true)"
     if [ "$code" = 200 ]; then ok "privacy link $link"; else bad "privacy link $link: HTTP ${code:-none} (push docs/ to main first)"; fi
   done
@@ -81,5 +87,24 @@ else
     version="$(basename "$file" | cut -d_ -f1)"
     if grep -qx "$version" <<<"$remote"; then ok "migration $version applied"; else bad "migration $version not applied (supabase db push)"; fi
   done
+fi
+
+# 4. Invitation links on the website
+SITE="${TM_SITE_URL:-https://tokenmaccer.app}"
+SITE="${SITE%/}"
+join="$SITE/join/k7m2p9qrst"
+page="$(curl -sS --max-time 20 -w '\n%{http_code}' "$join" 2>/dev/null || true)"
+status="${page##*$'\n'}"
+if [ "$status" != 200 ]; then
+  bad "invitation page $join: HTTP ${status:-none} (deploy docs/ to Vercel)"
+elif ! grep -q "tokenmaccer://join/" <<<"$page"; then
+  bad "invitation page $join: answers, but without the hand-over to tokenmaccer://join/ (docs/join.html?)"
+else
+  ok "invitation page $join"
+fi
+if grep -q 'static let siteLive = true' "$ROOT/app/Shared/GroupInvite.swift"; then
+  ok "app shares invitation links as $SITE/join/… (siteLive)"
+else
+  bad "app still shares the tokenmaccer:// fallback: set GroupInvite.siteLive = true in app/Shared/GroupInvite.swift"
 fi
 exit "$fail"

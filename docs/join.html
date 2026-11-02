@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join a TokenMaccer group</title>
+<meta name="description" content="You are invited to a group on the TokenMaccer leaderboard for Claude Code.">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="/assets/icon.png">
+<!-- Landing page of group invitations: https://tokenmaccer.app/join/<code> (vercel.json rewrites every /join/<code>
+     here). On a Mac it hands the code to the app once (tokenmaccer://join/<code>); the page stays as the fallback
+     with the same button, the download and the code to paste. The code never leaves the browser: no request, no
+     storage. Code rules mirror app/Shared/GroupInvite.swift (10 characters, alphabet without 0, o, 1, i, l). -->
+<link rel="stylesheet" href="/assets/colors.css">
+<style>
+  /* colours: only the semantic roles of assets/colors.css (Graphite & Amber) */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: var(--color-bg); color: var(--color-text);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  a { color: var(--color-accent); }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--color-text); text-decoration: none; }
+  .brand img { width: 32px; height: 32px; }
+  .lang { display: flex; gap: 2px; background: var(--color-surface); border-radius: 8px; padding: 2px; }
+  .lang button {
+    border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 14px; font-weight: 600;
+    padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .lang button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+  .card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 20px; padding: 32px 28px; margin: 24px 0 20px; }
+  .card > img { width: 72px; height: 72px; display: block; margin-bottom: 18px; }
+  h1 { font-size: 30px; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 10px; }
+  .lede { color: var(--color-text-secondary); margin: 0 0 24px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px;
+    font: inherit; font-weight: 650; font-size: 17px; padding: 12px 22px; border-radius: 12px; text-decoration: none; cursor: pointer;
+  }
+  .primary { background: var(--color-button-bg); color: var(--color-button-text); border: 0; }
+  .secondary { background: transparent; color: var(--color-text); border: 1px solid var(--color-border); }
+  .btn:hover { filter: brightness(1.05); }
+  .btn:focus-visible, .lang button:focus-visible, .copy:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
+
+  .code { display: flex; align-items: center; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--color-border); flex-wrap: wrap; }
+  .code span { color: var(--color-text-secondary); font-size: 15px; }
+  .code code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 18px; letter-spacing: 0.08em; }
+  .copy { border: 1px solid var(--color-border); background: transparent; color: var(--color-text); font: inherit; font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 8px; cursor: pointer; min-height: 32px; }
+
+  h2 { font-size: 18px; margin: 0 0 10px; }
+  ol { margin: 0; padding-left: 22px; }
+  ol li + li { margin-top: 6px; }
+  .help { padding: 0 4px; }
+  .note { color: var(--color-text-secondary); font-size: 15px; }
+  footer { padding: 28px 4px 44px; color: var(--color-text-secondary); font-size: 14px; }
+
+  [data-lang] { display: none; }
+  html[lang="en"] [data-lang="en"], html[lang="de"] [data-lang="de"] { display: revert; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 480px) {
+    .card { padding: 24px 20px; }
+    h1 { font-size: 26px; }
+    .actions .btn { flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/"><img src="/assets/icon.png" alt="">TokenMaccer</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-set-lang="de" aria-pressed="false">DE</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- valid code -->
+    <div class="card" id="invite" hidden>
+      <img src="/assets/icon.png" alt="">
+      <h1 data-lang="en">You're invited to a TokenMaccer group</h1>
+      <h1 data-lang="de">Du bist in eine TokenMaccer-Gruppe eingeladen</h1>
+      <p class="lede" data-lang="en">Compare your Claude Code usage with the group on the leaderboard. Only members see the group and its ranking.</p>
+      <p class="lede" data-lang="de">Vergleich deinen Claude-Code-Verbrauch mit der Gruppe im Leaderboard. Nur Mitglieder sehen die Gruppe und ihre Rangliste.</p>
+      <p class="lede" id="not-mac" hidden>
+        <span data-lang="en">TokenMaccer is a Mac app. Open this link on your Mac to join.</span>
+        <span data-lang="de">TokenMaccer ist eine Mac-App. Öffne diesen Link auf deinem Mac, um beizutreten.</span>
+      </p>
+      <div class="actions">
+        <a class="btn primary" id="open" href="#">
+          <span data-lang="en">Open in TokenMaccer</span><span data-lang="de">In TokenMaccer öffnen</span>
+        </a>
+        <a class="btn secondary" id="download" href="https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg">
+          <span data-lang="en">Download for Mac</span><span data-lang="de">Für den Mac laden</span>
+        </a>
+      </div>
+      <div class="code">
+        <span data-lang="en">Invitation code</span><span data-lang="de">Einladungscode</span>
+        <code id="code"></code>
+        <button type="button" class="copy" id="copy">
+          <span data-lang="en" id="copy-en">Copy</span><span data-lang="de" id="copy-de">Kopieren</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- invalid or missing code -->
+    <div class="card" id="invalid" hidden>
+      <img src="/assets/icon.png" alt="">
+      <h1 data-lang="en">This invitation link is incomplete</h1>
+      <h1 data-lang="de">Dieser Einladungslink ist unvollständig</h1>
+      <p class="lede" data-lang="en">An invitation code has 10 letters and digits. Ask the person who invited you to send the link again, or copy it in full.</p>
+      <p class="lede" data-lang="de">Ein Einladungscode hat 10 Buchstaben und Ziffern. Bitte die Person, die dich eingeladen hat, den Link noch einmal zu schicken, oder kopier ihn vollständig.</p>
+      <div class="actions">
+        <a class="btn secondary" href="/"><span data-lang="en">About TokenMaccer</span><span data-lang="de">Über TokenMaccer</span></a>
+      </div>
+    </div>
+
+    <div class="help" id="help" hidden>
+      <h2 data-lang="en">New to TokenMaccer?</h2>
+      <h2 data-lang="de">Noch kein TokenMaccer?</h2>
+      <ol data-lang="en">
+        <li>Download TokenMaccer, open the DMG and drag it onto <strong>Applications</strong>.</li>
+        <li>Open TokenMaccer once.</li>
+        <li>Come back to this page and click <strong>Open in TokenMaccer</strong>. The app signs you in with GitHub and joins the group right after.</li>
+      </ol>
+      <ol data-lang="de">
+        <li>Lade TokenMaccer, öffne die DMG und zieh die App auf <strong>Programme</strong>.</li>
+        <li>Öffne TokenMaccer einmal.</li>
+        <li>Komm auf diese Seite zurück und klick auf <strong>In TokenMaccer öffnen</strong>. Die App meldet dich mit GitHub an und tritt der Gruppe gleich danach bei.</li>
+      </ol>
+      <p class="note" data-lang="en">The button does nothing? In TokenMaccer choose <strong>Leaderboard › Groups… › Join…</strong> and paste the code.</p>
+      <p class="note" data-lang="de">Der Knopf tut nichts? Wähl in TokenMaccer <strong>Leaderboard › Gruppen … › Beitreten …</strong> und füg den Code ein.</p>
+    </div>
+  </main>
+
+  <footer>
+    <a href="/" data-lang="en">tokenmaccer.app</a><a href="/" data-lang="de">tokenmaccer.app</a>
+    · <a href="/privacy" data-lang="en">Privacy</a><a href="/privacy/de" data-lang="de">Datenschutz</a>
+  </footer>
+</div>
+<script>
+  (function () {
+    var root = document.documentElement;
+
+    // Language: ?lang=de|en, then the choice made on tokenmaccer.app before, then the browser's language.
+    function setLang(lang, remember) {
+      root.lang = lang;
+      document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === lang));
+      });
+      document.title = lang === 'de' ? 'Einer TokenMaccer-Gruppe beitreten' : 'Join a TokenMaccer group';
+      if (remember) { try { localStorage.setItem('lang', lang); } catch (e) {} }
+    }
+    var param = new URLSearchParams(location.search).get('lang');
+    var saved = null;
+    try { saved = localStorage.getItem('lang'); } catch (e) {}
+    var guess = (navigator.language || 'en').toLowerCase().indexOf('de') === 0 ? 'de' : 'en';
+    setLang(param === 'de' || param === 'en' ? param : saved === 'de' || saved === 'en' ? saved : guess, false);
+    document.querySelectorAll('[data-set-lang]').forEach(function (b) {
+      b.addEventListener('click', function () { setLang(b.getAttribute('data-set-lang'), true); });
+    });
+
+    // The code: the path segment after /join/, any case, trailing slash allowed (as GroupInvite.code(from:)).
+    var m = location.pathname.match(/^\/join\/([^\/]+)\/?$/);
+    var code = m ? decodeURIComponent(m[1]).replace(/\s+/g, '').toLowerCase() : '';
+    if (!/^[23456789abcdefghjkmnpqrstuvwxyz]{10}$/.test(code)) {
+      document.getElementById('invalid').hidden = false;
+      return;
+    }
+    var appLink = 'tokenmaccer://join/' + code;
+    document.getElementById('invite').hidden = false;
+    document.getElementById('help').hidden = false;
+    document.getElementById('code').textContent = code;
+    document.getElementById('open').setAttribute('href', appLink);
+
+    document.getElementById('copy').addEventListener('click', function () {
+      var done = function () {
+        document.getElementById('copy-en').textContent = 'Copied';
+        document.getElementById('copy-de').textContent = 'Kopiert';
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(done, function () {});
+      }
+    });
+
+    // A Mac (iPads report "Macintosh" too, but have touch points): hand the code to the app once. Without the app
+    // the browser shows nothing or a short notice, and this page stays with the download.
+    var isMac = /Macintosh/.test(navigator.userAgent) && !(navigator.maxTouchPoints > 1);
+    if (!isMac) {
+      document.getElementById('not-mac').hidden = false;
+      document.getElementById('open').hidden = true;
+      document.getElementById('download').hidden = true;
+      document.getElementById('help').hidden = true;
+      return;
+    }
+    // ?open=0 keeps the page without handing over (tests, or someone who only wants the code).
+    if (new URLSearchParams(location.search).get('open') !== '0') {
+      setTimeout(function () { location.href = appLink; }, 300);
+    }
+  })();
+</script>
+</body>
+</html>

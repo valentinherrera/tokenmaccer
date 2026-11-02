@@ -59,12 +59,12 @@ Without a certificate the installer still sets up the collector and tells you wh
 
 The app includes its own collector and needs no Xcode, Terminal or Python.
 
-1. Download [`TokenMaccer.dmg`](https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg) from the latest release and open it. (Homebrew: a cask is prepared in `packaging/homebrew/`; it needs a tap repository before `brew install --cask` works.)
+1. Download [`TokenMaccer.dmg`](https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg) from the latest release (or from [tokenmaccer.app](https://tokenmaccer.app)) and open it. (Homebrew: a cask is prepared in `packaging/homebrew/`; it needs a tap repository before `brew install --cask` works.)
 2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple. macOS asks once to confirm opening an app downloaded from the internet; click **Open**.
 3. On the first start a short welcome walks you through three steps: what TokenMaccer reads (it shows whether your Claude Code transcripts were found; if they live outside `~/.claude`, click **Choose Folder…**), adding the widget (right-click the desktop › **Edit Widgets…** › search for **TokenMaccer**; the step checks itself off as soon as the widget runs), and the optional [leaderboard](#leaderboard-and-privacy), which you can skip. **TokenMaccer › Welcome…** shows it again. Background updates run every 5 minutes, also after a restart. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
 4. Afterwards the window shows the status (transcripts, background updates, widget, leaderboard). Your numbers appear in the widget within a few minutes.
 
-No account is needed and your numbers stay on your Mac: without joining the optional [leaderboard](#leaderboard-and-privacy), the app's only network request is Sparkle's update check (below). Details: [privacy notice](docs/privacy.md) ([Deutsch](docs/privacy.de.md)).
+No account is needed and your numbers stay on your Mac: without joining the optional [leaderboard](#leaderboard-and-privacy), the app's only network request is Sparkle's update check (below). Details: [privacy notice](https://tokenmaccer.app/privacy) ([Deutsch](https://tokenmaccer.app/privacy/de)).
 
 Already using the `install.sh` setup? The app takes over your history from `~/.claude/tools/tokenmaccer/` on its first run (it only copies, the old folder stays). Use one of the two, not both: run `./uninstall.sh` once the app shows your numbers.
 
@@ -99,7 +99,7 @@ The menu bar shows today's tokens and, once you joined, today's place; its panel
 - **Leave at any time:** **Leave…** deletes your account on the leaderboard server together with your profile and all reported totals, and removes the sign-in from your Mac. It reports success only after the server confirmed the deletion; otherwise the window says **Leaving not finished** and offers to try again, or, if the sign-in on your Mac was lost or has expired, to sign in with GitHub once more and delete. **Stop › Stop Background Updates & Remove Data…** leaves the leaderboard first and removes nothing while that fails. Two things outlast Leave: the server keeps your GitHub user ID with the time of your last report for about an hour (the report limit; deleted with the first report it receives after that), and Supabase's own logs follow Supabase's retention.
 - **Without joining** TokenMaccer makes no request to the leaderboard server at all; there is no account and nothing to delete.
 
-Everything stored, where and for how long: [privacy notice](docs/privacy.md) ([Deutsch](docs/privacy.de.md)).
+Everything stored, where and for how long: [privacy notice](https://tokenmaccer.app/privacy) ([Deutsch](https://tokenmaccer.app/privacy/de)).
 
 ### What the USD figures mean
 

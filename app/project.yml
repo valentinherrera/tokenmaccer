@@ -36,6 +36,8 @@ targets:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: TokenMaccer
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.developer-tools
         TMAppGroup: $(DEVELOPMENT_TEAM).tokenmaccer
         TMEdition: $(TM_EDITION)
@@ -93,6 +95,8 @@ targets:
       path: Widget/Info.plist
       properties:
         CFBundleDisplayName: TokenMaccer
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         TMAppGroup: $(DEVELOPMENT_TEAM).tokenmaccer
         TMEdition: $(TM_EDITION)
         NSExtension:

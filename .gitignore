@@ -14,3 +14,5 @@ widget.json
 backups/
 *.log
 app/build-appedition/
+dist/
+app/build-release/

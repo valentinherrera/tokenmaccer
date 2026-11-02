@@ -15,10 +15,13 @@ public struct CollectorConfig: Sendable {
     public var rebuild: Bool
     /// App Group whose container receives widget.json (nil = standalone run).
     public var appGroup: String?
+    /// Data folder of a source install to take over before the first pass (app edition only, see
+    /// LegacyMigration): copied when dataDir has no store yet, so the order of app and agent cannot lose history.
+    public var legacyDir: String?
 
     public init(
         dataDir: String, widgetPath: String? = nil, sources: [String], prices: Prices, now: String? = nil,
-        rebuild: Bool = false, appGroup: String? = nil
+        rebuild: Bool = false, appGroup: String? = nil, legacyDir: String? = nil
     ) {
         self.dataDir = dataDir
         self.widgetPath = widgetPath ?? joinPath(dataDir, "widget.json")
@@ -27,6 +30,7 @@ public struct CollectorConfig: Sendable {
         self.now = now
         self.rebuild = rebuild
         self.appGroup = appGroup
+        self.legacyDir = legacyDir
     }
 }
 
@@ -57,7 +61,8 @@ public enum Collector {
           --app-group ID      App Group of the widget [TOKENMACCER_APP_GROUP]; inside TokenMaccer.app the app's group
           --widget-out PATH   widget.json [TOKENMACCER_WIDGET_PATH], default with an App Group
                               ~/Library/Group Containers/<ID>/widget.json, otherwise <data dir>/widget.json
-          --claude-dir PATH   Claude Code config dir [TOKENMACCER_CLAUDE_DIR, CLAUDE_CONFIG_DIR], default ~/.claude
+          --claude-dir PATH   Claude Code config dir [TOKENMACCER_CLAUDE_DIR, CLAUDE_CONFIG_DIR], then
+                              "claudeDir" in <data dir>/settings.json (written by the app), default ~/.claude
           --source PATH       extra transcript folder, repeatable [TOKENMACCER_EXTRA_SOURCES, ':'-separated]
           --prices PATH       price table [TOKENMACCER_PRICES], default: the copy linked into this binary
           --now ISO           pin the current local time [TOKENMACCER_NOW]
@@ -98,7 +103,9 @@ public enum Collector {
         }
         let x = { (p: String) in expandUser(p, environment: env) }
         let dataDir = x(value("--data-dir", "TOKENMACCER_DATA_DIR") ?? "~/Library/Application Support/TokenMaccer")
-        let claudeDir = x(value("--claude-dir", "TOKENMACCER_CLAUDE_DIR", "CLAUDE_CONFIG_DIR") ?? "~/.claude")
+        let claudeDir = x(
+            value("--claude-dir", "TOKENMACCER_CLAUDE_DIR", "CLAUDE_CONFIG_DIR")
+                ?? AppSettings.load(dataDir: dataDir).claudeDir ?? "~/.claude")
         let envExtra = (env["TOKENMACCER_EXTRA_SOURCES"] ?? "").split(separator: ":").map(String.init)
         let sources = [joinPath(claudeDir, "projects")] + (envExtra + extra).filter { !$0.isEmpty }.map(x)
         let prices: Prices
@@ -117,7 +124,8 @@ public enum Collector {
             ?? group.map { groupWidgetPath(home: x("~"), appGroup: $0) }
         return CollectorConfig(
             dataDir: dataDir, widgetPath: widgetPath, sources: sources,
-            prices: prices, now: value("--now", "TOKENMACCER_NOW"), rebuild: rebuild, appGroup: group)
+            prices: prices, now: value("--now", "TOKENMACCER_NOW"), rebuild: rebuild, appGroup: group,
+            legacyDir: group.map { _ in LegacyMigration.legacyDataDir(home: x("~")) })
     }
 
     /// Re-read everything without losing history: per day the version with more input wins.
@@ -159,6 +167,14 @@ public enum Collector {
         if flock(lock, LOCK_EX | LOCK_NB) != 0 {
             return CollectorResult(
                 exitCode: 0, stdout: "another collector run is in progress; skipping", stderr: "", newTurns: 0)
+        }
+        if let legacy = config.legacyDir {
+            // under the lock: an app start and an agent run cannot both copy and then overwrite each other
+            switch LegacyMigration.run(legacyDir: legacy, dataDir: config.dataDir) {
+            case .notNeeded: break
+            case .copied(let backups): out.append("took over the history in \(legacy) (\(backups) backups)")
+            case .skipped(let why): out.append("history not taken over: \(why)")
+            }
         }
         var store: Store
         switch files.load() {

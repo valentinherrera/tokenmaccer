@@ -4,8 +4,10 @@ import WidgetKit
 @main
 struct TokenMaccerApp: App {
     init() {
-        // For removal without the window: TokenMaccer.app/Contents/MacOS/TokenMaccer --unregister
-        if Edition.isApp, CommandLine.arguments.contains("--unregister") { Setup.unregisterFromCommandLine() }
+        // For removal without the window: TokenMaccer.app/Contents/MacOS/TokenMaccer --unregister [--remove-data]
+        if Edition.isApp, CommandLine.arguments.contains("--unregister") {
+            Setup.unregisterFromCommandLine(removeData: CommandLine.arguments.contains("--remove-data"))
+        }
     }
 
     var body: some Scene {

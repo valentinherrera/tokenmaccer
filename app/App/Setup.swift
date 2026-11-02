@@ -5,11 +5,13 @@ import SwiftUI
 import TokenMaccerCore
 import WidgetKit
 
-/// App edition: takes over a source install's history, registers the bundled collector as a background
-/// agent (SMAppService, every 300 s) and reports what the user needs to know on one small window.
+/// App edition: registers the bundled collector as a background agent (SMAppService, every 300 s) and
+/// reports what the user needs to know on one small window. The collector itself takes over a source
+/// install's history before its first pass (under its lock, see CollectorConfig.legacyDir).
 @MainActor @Observable
 final class Setup {
-    let claudeDir: String
+    /// Claude Code config folder; the transcripts are in its `projects/`.
+    private(set) var claudeDir: String
     let dataDir: String
     private(set) var transcriptsFound = false
     private(set) var service: SMAppService.Status = .notRegistered
@@ -27,26 +29,30 @@ final class Setup {
 
     init() {
         let env = ProcessInfo.processInfo.environment
-        home = WidgetData.realHome ?? NSHomeDirectory()
-        let configured = env["TOKENMACCER_CLAUDE_DIR"] ?? env["CLAUDE_CONFIG_DIR"]
-        let dir = configured.flatMap { $0.isEmpty ? nil : $0 } ?? "~/.claude"
-        claudeDir = dir == "~" || dir.hasPrefix("~/") ? home + dir.dropFirst() : dir
-        dataDir = home + "/Library/Application Support/TokenMaccer"
+        let realHome = WidgetData.realHome ?? NSHomeDirectory()
+        home = realHome
+        let data = realHome + "/Library/Application Support/TokenMaccer"
+        dataDir = data
+        // The background agent starts without the user's shell environment: a CLAUDE_CONFIG_DIR the app was
+        // started with is saved to settings.json, which the collector reads. Without one nothing is written
+        // and both stay at ~/.claude (or at the folder chosen earlier).
+        let configured = (env["TOKENMACCER_CLAUDE_DIR"] ?? env["CLAUDE_CONFIG_DIR"]).flatMap { $0.isEmpty ? nil : $0 }
+        let saved = AppSettings.load(dataDir: data)
+        let expand = { (dir: String) in dir == "~" || dir.hasPrefix("~/") ? realHome + dir.dropFirst() : dir }
+        if let configured, expand(configured) != saved.claudeDir {
+            try? AppSettings(claudeDir: expand(configured)).save(dataDir: data)
+        }
+        claudeDir = expand(configured ?? saved.claudeDir ?? "~/.claude")
         let plist = Bundle.main.object(forInfoDictionaryKey: "TMAgentPlist") as? String
         agent = plist.map { SMAppService.agent(plistName: $0) }
     }
 
     var helperURL: URL? { Bundle.main.url(forAuxiliaryExecutable: "tokenmaccer-collector") }
 
-    /// First appearance of the window: migrate, register, collect once.
+    /// First appearance of the window: register, collect once (the collector takes over old history first).
     func start() {
         guard !started else { return }
         started = true
-        switch LegacyMigration.run(legacyDir: LegacyMigration.legacyDataDir(home: home), dataDir: dataDir) {
-        case .notNeeded: break
-        case .copied(let n): note = "Took over the history of your install.sh setup (\(n) backups)."
-        case .skipped(let why): note = "Previous history not taken over: \(why)"
-        }
         if !UserDefaults.standard.bool(forKey: stoppedKey), agent?.status != .enabled { register() }
         refresh()
         Task { await updateNow() }
@@ -88,18 +94,79 @@ final class Setup {
 
     func openLoginItems() { SMAppService.openSystemSettingsLoginItems() }
 
-    /// `TokenMaccer --unregister`: removes the background agent and exits (used by the removal steps).
-    nonisolated static func unregisterFromCommandLine() -> Never {
-        guard let plist = Bundle.main.object(forInfoDictionaryKey: "TMAgentPlist") as? String else { exit(1) }
-        let agent = SMAppService.agent(plistName: plist)
+    /// "Choose Folder…": the user points at the Claude Code config folder (or its projects folder). The app is
+    /// not sandboxed, so the path alone is enough; it goes to settings.json for the background collector.
+    func chooseFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.showsHiddenFiles = true
+        panel.directoryURL = URL(fileURLWithPath: home)
+        panel.message = "Choose the Claude Code folder that contains “projects” (usually ~/.claude)."
+        panel.prompt = "Choose"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let dir = AppSettings.claudeDir(fromChosen: url.path)
         do {
-            if agent.status != .notRegistered && agent.status != .notFound { try agent.unregister() }
-            print("background updates removed")
-            exit(0)
+            try AppSettings(claudeDir: dir).save(dataDir: dataDir)
+            claudeDir = dir
+            note = nil
         } catch {
-            FileHandle.standardError.write(Data("could not remove background updates: \(error)\n".utf8))
-            exit(1)
+            note = "Could not save the folder: \(error.localizedDescription)"
         }
+        refresh()
+        Task { await updateNow() }
+    }
+
+    /// "Stop Background Updates & Remove Data…": unregisters the agent and deletes what the app edition wrote
+    /// (history and settings in Application Support, widget.json and the shared settings in the App Group).
+    /// A source install's folder (~/.claude/tools/tokenmaccer) is never touched. Afterwards only the app is left.
+    func removeEverything() {
+        let failures = Self.remove(data: true)
+        UserDefaults.standard.set(true, forKey: stoppedKey)
+        note = failures.isEmpty
+            ? "Background updates stopped and data removed. Move TokenMaccer from Applications to the Trash to finish."
+            : "Could not remove everything: " + failures.joined(separator: "; ")
+        refresh()
+    }
+
+    /// Unregisters the background agent and, with `data`, deletes the app edition's files. Returns the failures.
+    nonisolated static func remove(data: Bool) -> [String] {
+        var failures: [String] = []
+        if let plist = Bundle.main.object(forInfoDictionaryKey: "TMAgentPlist") as? String {
+            let agent = SMAppService.agent(plistName: plist)
+            do {
+                if agent.status != .notRegistered && agent.status != .notFound { try agent.unregister() }
+            } catch {
+                failures.append("background updates: \(error.localizedDescription)")
+            }
+        }
+        guard data else { return failures }
+        let fm = FileManager.default
+        let home = WidgetData.realHome ?? NSHomeDirectory()
+        var paths = [home + "/Library/Application Support/TokenMaccer"]
+        if let appGroup, let container = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup) {
+            paths.append(container.appendingPathComponent("widget.json").path)
+            UserDefaults(suiteName: appGroup)?.removePersistentDomain(forName: appGroup)
+            paths.append(container.appendingPathComponent("Library/Preferences/\(appGroup).plist").path)
+        }
+        for path in paths where fm.fileExists(atPath: path) {
+            do { try fm.removeItem(atPath: path) } catch { failures.append("\(path): \(error.localizedDescription)") }
+        }
+        return failures
+    }
+
+    /// `TokenMaccer --unregister [--remove-data]`: the same as the window's buttons, for the removal steps
+    /// in the README. Exits.
+    nonisolated static func unregisterFromCommandLine(removeData: Bool) -> Never {
+        guard Bundle.main.object(forInfoDictionaryKey: "TMAgentPlist") is String else { exit(1) }
+        let failures = remove(data: removeData)
+        if failures.isEmpty {
+            print(removeData ? "background updates and data removed" : "background updates removed")
+            exit(0)
+        }
+        FileHandle.standardError.write(Data(("could not remove: " + failures.joined(separator: "; ") + "\n").utf8))
+        exit(1)
     }
 
     /// Runs the bundled collector once (same binary the background agent runs).
@@ -110,12 +177,18 @@ final class Setup {
         if let appGroup { args += ["--app-group", appGroup] }
         let (status, output) = await Self.run(helperURL, args)
         running = false
+        let lines = output.split(separator: "\n").map(String.init)
+        if lines.contains(where: { $0.hasPrefix("took over the history") }) {
+            note = "Took over the history of your install.sh setup."
+        } else if let skipped = lines.first(where: { $0.hasPrefix("history not taken over") }) {
+            note = "Previous history not taken over: " + skipped.dropFirst("history not taken over: ".count)
+        }
         if status == 0, output.hasPrefix("another collector run is in progress") {
             note = "An update is already running in the background; the numbers follow in a moment."
         } else if status == 0 {
             if note?.hasPrefix("An update is already running") == true { note = nil }
-            // "<n> new turns · …": reload the widget at once when something new came in
-            if let n = Int(output.split(separator: " ").first ?? ""), n > 0 { WidgetCenter.shared.reloadAllTimelines() }
+            // last line "<n> new turns · …": reload the widget at once when something new came in
+            if let n = Int(lines.last?.split(separator: " ").first ?? ""), n > 0 { WidgetCenter.shared.reloadAllTimelines() }
             if note?.hasPrefix("Update failed") == true { note = nil }
         } else {
             note = "Update failed: " + (output.split(separator: "\n").last.map(String.init) ?? "exit \(status)")
@@ -149,6 +222,7 @@ final class Setup {
 /// First-run and status window of the app edition.
 struct SetupView: View {
     @State private var setup = Setup()
+    @State private var confirmRemoval = false
     private let tick = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     var body: some View {
@@ -170,7 +244,10 @@ struct SetupView: View {
                     StatusRow(
                         state: setup.transcriptsFound ? .ok : .problem, title: "Claude Code transcripts",
                         value: setup.transcriptsFound ? "Found" : "Not found",
-                        detail: abbreviate(setup.claudeDir + "/projects"))
+                        detail: abbreviate(setup.claudeDir + "/projects")
+                    ) {
+                        if !setup.transcriptsFound { Button("Choose Folder…") { setup.chooseFolder() } }
+                    }
                     service
                     StatusRow(
                         state: setup.lastUpdate == nil ? .off : .ok, title: "Last update",
@@ -193,8 +270,19 @@ struct SetupView: View {
             .scrollDisabled(true)
 
             HStack {
-                if setup.service == .enabled || setup.service == .requiresApproval {
-                    Button("Stop background updates") { setup.stop() }
+                Menu("Stop") {
+                    if setup.service == .enabled || setup.service == .requiresApproval {
+                        Button("Stop Background Updates") { setup.stop() }
+                    }
+                    Button("Stop Background Updates & Remove Data…") { confirmRemoval = true }
+                }
+                .fixedSize()
+                .confirmationDialog(
+                    "Stop background updates and remove TokenMaccer's data?", isPresented: $confirmRemoval
+                ) {
+                    Button("Remove Data", role: .destructive) { setup.removeEverything() }
+                } message: {
+                    Text("Deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash.")
                 }
                 Spacer()
                 if setup.running { ProgressView().controlSize(.small) }

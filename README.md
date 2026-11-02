@@ -49,6 +49,22 @@ Without a certificate the installer still sets up the collector and tells you wh
 
 **Tested on:** macOS 26 with Xcode 26 (Apple Silicon), full install. CI builds on macOS 15 with Xcode 16. Not yet tested: Intel Macs, running the widget on macOS 15. Reports welcome as issues.
 
+<!-- PENDING RELEASE: draft for the downloadable app. Keep hidden until the GitHub release with the
+     notarized DMG exists (decision by the maintainer). Then remove this comment and the closing marker below.
+
+## Download (app)
+
+No Xcode, no Terminal, no Python: the app brings its own collector.
+
+1. Download `TokenMaccer-1.0.0.dmg` from the [latest release](https://github.com/valentinherrera/tokenmaccer/releases/latest) and open it.
+2. Drag **TokenMaccer** onto **Applications**, then open it from Applications once. The app is notarized by Apple, so macOS opens it without a warning.
+3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**.
+4. Right-click the desktop › **Edit Widgets…** › search for **TokenMaccer** and add it. Your numbers appear within a few minutes.
+
+Already using the `install.sh` setup? The app takes over your history from `~/.claude/tools/tokenmaccer/` on its first run (it only copies, the old folder stays). Use one of the two, not both: run `./uninstall.sh` once the app shows your numbers.
+
+END PENDING RELEASE -->
+
 ## Install with Claude Code
 
 Paste this into Claude Code:
@@ -85,6 +101,27 @@ Options: `./install.sh --collector-only` skips the app. `BUNDLE_ID_PREFIX=com.yo
 ./uninstall.sh           # removes the launchd job and the app, keeps your history
 ./uninstall.sh --purge   # also deletes ~/.claude/tools/tokenmaccer
 ```
+
+<!-- PENDING RELEASE: applies to the downloadable app; publish together with "Download (app)" above.
+
+### Uninstall the app
+
+1. Remove the widget: right-click it on the desktop › **Remove Widget**.
+2. Open TokenMaccer and choose **Stop › Stop Background Updates & Remove Data…** (or **Stop Background Updates** to keep your history).
+3. Quit TokenMaccer and drag it from Applications to the Trash.
+
+The same in Terminal:
+
+```sh
+osascript -e 'quit app "TokenMaccer"'
+/Applications/TokenMaccer.app/Contents/MacOS/TokenMaccer --unregister --remove-data   # without --remove-data: keep history
+rm -rf /Applications/TokenMaccer.app
+defaults delete io.github.valentinherrera.tokenmaccer   # the app's own settings (one switch)
+```
+
+What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
+
+END PENDING RELEASE -->
 
 ## Configuration
 

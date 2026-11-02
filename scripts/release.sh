@@ -12,6 +12,7 @@
 #   TM_TEAM            default 3KM85F22L8
 #   TM_BUNDLE_ID_PREFIX default io.github.valentinherrera
 #   TM_NOTARY_PROFILE  default tokenmaccer-notary
+#   TM_NOTARIZE=0      local test build: signed but not notarized, written to dist/test/ (never upload these)
 #   TM_DOWNLOAD_URL_PREFIX  where the update archive will be downloaded from, default
 #                      https://github.com/valentinherrera/tokenmaccer/releases/download/vVERSION/
 # Sparkle's EdDSA private key must be in the login keychain (Sparkle's generate_keys, run once per maintainer);
@@ -30,7 +31,9 @@ VERSION="${1:-$(sed -n 's/^ *MARKETING_VERSION: *"\{0,1\}\([^"]*\)"\{0,1\}$/\1/p
 [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]] || { echo "invalid version: '$VERSION'" >&2; exit 2; }
 
 BUILD="$ROOT/app/build-release"   # derived data, archive, export: always from scratch
+NOTARIZE="${TM_NOTARIZE:-1}"
 DIST="$ROOT/dist"
+[ "$NOTARIZE" = 1 ] || DIST="$ROOT/dist/test"
 APP_NAME="TokenMaccer.app"
 DMG="$DIST/TokenMaccer-$VERSION.dmg"
 NOTES="$DIST/notarization-$VERSION.txt"
@@ -134,8 +137,12 @@ echo "  ok  build $BUILD_NUMBER, feed $FEED"
 
 step "Notarize the app"
 ditto -c -k --keepParent "$APP" "$BUILD/TokenMaccer-app.zip"
-notarize "$BUILD/TokenMaccer-app.zip" app
-xcrun stapler staple "$APP"
+if [ "$NOTARIZE" = 1 ]; then
+  notarize "$BUILD/TokenMaccer-app.zip" app
+  xcrun stapler staple "$APP"
+else
+  echo "NOT NOTARIZED (TM_NOTARIZE=0): local test build only" | tee -a "$NOTES"
+fi
 
 step "Build the DMG"
 STAGE="$BUILD/dmg"
@@ -146,8 +153,10 @@ hdiutil create -volname TokenMaccer -srcfolder "$STAGE" -fs HFS+ -format UDZO -o
 codesign --sign "$IDENTITY" --timestamp "$DMG"
 
 step "Notarize the DMG"
-notarize "$DMG" dmg
-xcrun stapler staple "$DMG"
+if [ "$NOTARIZE" = 1 ]; then
+  notarize "$DMG" dmg
+  xcrun stapler staple "$DMG"
+fi
 
 step "Sparkle update archive and appcast"
 SPARKLE_BIN="$BUILD/derived/SourcePackages/artifacts/sparkle/Sparkle/bin"
@@ -168,13 +177,15 @@ cp "$UPDATES/$ZIP" "$UPDATES/appcast.xml" "$DIST/"
 echo "update $ZIP -> $URL_PREFIX$ZIP" | tee -a "$NOTES"
 
 step "Final checks"
-spctl -a -vvv -t install "$DMG" 2>&1 | tee -a "$NOTES"
-xcrun stapler validate "$DMG"
-xcrun stapler validate "$APP"
-APP_CHECK="$(spctl -a -vv "$APP" 2>&1)"
-echo "$APP_CHECK" | tee -a "$NOTES"
-grep -q "source=Notarized Developer ID" <<<"$APP_CHECK" \
-  || die "Gatekeeper does not report the app as Notarized Developer ID"
+if [ "$NOTARIZE" = 1 ]; then
+  spctl -a -vvv -t install "$DMG" 2>&1 | tee -a "$NOTES"
+  xcrun stapler validate "$DMG"
+  xcrun stapler validate "$APP"
+  APP_CHECK="$(spctl -a -vv "$APP" 2>&1)"
+  echo "$APP_CHECK" | tee -a "$NOTES"
+  grep -q "source=Notarized Developer ID" <<<"$APP_CHECK" \
+    || die "Gatekeeper does not report the app as Notarized Developer ID"
+fi
 
 SHA="$(shasum -a 256 "$DMG" | cut -d' ' -f1)"
 echo "sha256 $SHA  $(basename "$DMG")" | tee -a "$NOTES"

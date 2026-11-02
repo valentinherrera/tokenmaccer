@@ -2,7 +2,7 @@
 
 [English](privacy.md) · Stand: 2. November 2026
 
-Dieser Hinweis gilt für die herunterladbare TokenMaccer-App und ihr freiwilliges Leaderboard. Er beschreibt, was der Code in diesem Repository tut. Wo eine Angabe von etwas abhängt, das der Code nicht festlegt (etwa wie lange Supabase seine Logs aufbewahrt), steht das dabei und ist mit **TBD** markiert.
+Dieser Hinweis gilt für die herunterladbare TokenMaccer-App und ihr freiwilliges Leaderboard. Er beschreibt, was der Code in diesem Repository tut. Wo eine Angabe nicht vom Code abhängt, sondern von einem Dienstleister (etwa wie lange Supabase seine Logs aufbewahrt), steht das dabei, zusammen mit der Angabe des Dienstleisters.
 
 ## Ohne Teilnahme am Leaderboard
 
@@ -14,7 +14,7 @@ Die Installation mit `install.sh` (aus dem Quellcode gebaut) stellt überhaupt k
 
 ## Die Website tokenmaccer.app
 
-Die Website (Download-Seite, dieser Hinweis, Einladungslinks) wird bei [Vercel](https://vercel.com) gehostet. Wie jeder Webserver erhält Vercel deine IP-Adresse, die aufgerufene Adresse (bei einem Einladungslink also auch den Einladungscode der Gruppe) und die Anfrage-Header deines Browsers und bewahrt sie in seinen Logs auf, so lange Vercel das vorsieht: **TBD**. Die Seiten setzen keine Cookies, nutzen keine Analyse und laden nichts von anderen Servern. Deine Sprachwahl merken sie sich nur in deinem Browser (Local Storage). Eine Einladungsseite gibt den Code an die App auf deinem Mac weiter und sendet ihn sonst nirgendwohin.
+Die Website (Download-Seite, dieser Hinweis, Einladungslinks) wird bei [Vercel](https://vercel.com) gehostet. Wie jeder Webserver erhält Vercel deine IP-Adresse, die aufgerufene Adresse (bei einem Einladungslink also auch den Einladungscode der Gruppe) und die Anfrage-Header deines Browsers und hält Anfragen in seinen Logs fest. Im Tarif dieser Website (Pro) zeigt Vercel diese Logs dem Maintainer einen Tag lang an; wie lange Vercel sie darüber hinaus auf eigenen Systemen aufbewahrt, gibt Vercel nicht an. Der Maintainer exportiert oder kopiert diese Logs nicht. Die Seiten setzen keine Cookies, nutzen keine Analyse und laden nichts von anderen Servern. Deine Sprachwahl merken sie sich nur in deinem Browser (Local Storage). Eine Einladungsseite gibt den Code an die App auf deinem Mac weiter und sendet ihn sonst nirgendwohin.
 
 ## Wenn du dem Leaderboard beitrittst
 
@@ -62,11 +62,11 @@ Nach jeder Meldung, direkt nach jeder Änderung an Gruppen, die du in der App vo
 
 ### Wie lange
 
-- **Konto, Sitzungen, Profil und Summen:** bis du austrittst. Inaktive Teilnehmende werden nicht automatisch gelöscht: Wenn du die Hintergrund-Aktualisierung stoppst, ohne auszutreten, bleiben deine letzten Summen auf dem Server; nach drei Tagen ohne Meldung verschwinden sie aus der Rangliste, gelöscht werden sie aber erst mit dem Austritt. Ob und wann der Maintainer inaktive Konten sonst entfernt: **TBD**.
+- **Konto, Sitzungen, Profil und Summen:** bis du austrittst. Inaktive Teilnehmende werden nicht automatisch gelöscht: Wenn du die Hintergrund-Aktualisierung stoppst, ohne auszutreten, bleiben deine letzten Summen auf dem Server; nach drei Tagen ohne Meldung verschwinden sie aus der Rangliste, gelöscht werden sie aber erst mit dem Austritt. Auch der Maintainer entfernt inaktive Konten nicht; von Hand entfernt er ein Konto nur auf deine Bitte hin oder um Missbrauch zu stoppen.
 - **Meldegrenze:** bleibt nach dem Austritt bestehen, damit Austreten und erneutes Beitreten das 25-Minuten-Limit nicht umgehen. Es wird mit der ersten Meldung gelöscht, die der Server erhält, sobald es älter als eine Stunde ist.
 - **Gruppen und Mitgliedschaften:** bis du die Gruppe oder das Leaderboard verlässt, die Besitzerin oder der Besitzer dich entfernt oder die Gruppe löscht.
 - **Beitrittsversuche:** bleiben nach dem Austritt bestehen; Einträge, die älter als einen Tag sind, werden beim nächsten Beitrittsversuch gelöscht, den irgendjemand unternimmt.
-- **Server-Logs:** so lange, wie Supabase sie für dieses Projekt aufbewahrt; die Dauer hängt vom Supabase-Tarif ab und wird nicht von TokenMaccer festgelegt: **TBD**.
+- **Server-Logs:** so lange, wie Supabase sie für dieses Projekt aufbewahrt. Das Projekt läuft im kostenlosen Supabase-Tarif, für den Supabase eine Log-Aufbewahrung von einem Tag angibt („API & Database“). Supabase speichert seine Logs in Rechenzentren in der EU. Die Dauer legt Supabase fest, nicht TokenMaccer, und sie ändert sich mit dem Tarif.
 
 ### Austreten und Löschen
 
@@ -80,8 +80,32 @@ Meldest du dich beim Austreten mit einem anderen GitHub-Konto an als dem, das be
 
 ## Verantwortlich und Kontakt
 
-Verantwortlich für das Leaderboard und die Website: PAUS UG (haftungsbeschränkt), Gustav-Poensgen-Str. 49, 40215 Düsseldorf, vertreten durch den Geschäftsführer Valentin Herrera, der dieses Repository pflegt (GitHub: [valentinherrera](https://github.com/valentinherrera)). E-Mail: valentin@paus.works. Impressum: <https://tokenmaccer.app/impressum>. Rechtsgrundlage der Verarbeitung und Angaben zu Übermittlungen außerhalb der EU: **TBD**.
+Verantwortlich für das Leaderboard und die Website: PAUS UG (haftungsbeschränkt), Gustav-Poensgen-Str. 49, 40215 Düsseldorf, vertreten durch den Geschäftsführer Valentin Herrera, der dieses Repository pflegt (GitHub: [valentinherrera](https://github.com/valentinherrera)). E-Mail: valentin@paus.works. Impressum: <https://tokenmaccer.app/impressum>.
 
-Dienstleister: [Supabase](https://supabase.com) betreibt den Server (Datenbank, Anmeldung, Edge Functions); [Vercel](https://vercel.com) hostet die Website. GitHub stellt die Anmeldung bereit; für dein GitHub-Konto gilt die Datenschutzerklärung von GitHub. Updates werden von GitHub Releases geladen.
+Dienstleister: [Supabase](https://supabase.com) betreibt den Server (Datenbank, Anmeldung, Edge Functions); [Vercel](https://vercel.com) hostet die Website. Beide verarbeiten die Daten in unserem Auftrag nach ihren Auftragsverarbeitungsverträgen. GitHub stellt die Anmeldung bereit; für dein GitHub-Konto gilt die Datenschutzerklärung von GitHub. Updates werden von GitHub Releases geladen.
+
+### Rechtsgrundlage
+
+- **Leaderboard und Gruppen:** Art. 6 Abs. 1 lit. b DSGVO. Das Speichern und Anzeigen deines Anzeigenamens, Benutzernamens, deiner Summen und deines Platzes sowie deiner Gruppen ist die Leistung, die du mit dem Beitritt anforderst; du beendest sie jederzeit mit **Austreten …**. Die Profilbilder, die die App von GitHub lädt, gehören zu dieser Rangliste.
+- **Name und E-Mail-Adresse aus GitHub:** Das Leaderboard nutzt sie nicht; Supabase Auth speichert sie, weil GitHub sie bei der Anmeldung übergibt. Art. 6 Abs. 1 lit. f, unser berechtigtes Interesse an einer Anmeldung über GitHub statt eines eigenen Kontosystems.
+- **Report-Limit, Zähler für Beitrittsversuche und die Sicherheitsprüfungen dahinter:** Art. 6 Abs. 1 lit. f, unser berechtigtes Interesse, das Leaderboard vor Manipulation und Überlastung zu schützen.
+- **Server-Logs bei Supabase und Vercel:** Art. 6 Abs. 1 lit. f, unser berechtigtes Interesse an Betrieb und Sicherheit von Server und Website.
+- **Update-Prüfung:** Sie läuft direkt von deinem Mac zu GitHub, wir erhalten daraus nichts. Art. 6 Abs. 1 lit. f, unser Interesse, Sicherheits- und Fehlerkorrekturen auszuliefern; du kannst sie abschalten.
+
+Die Teilnahme am Leaderboard ist weder gesetzlich noch vertraglich vorgeschrieben. Trittst du nicht bei, funktioniert die App genauso, nur ohne Leaderboard. Es gibt keine automatisierte Entscheidungsfindung und kein Profiling.
+
+### Übermittlungen außerhalb der EU
+
+Datenbank, Anmeldung und Backups des Leaderboards liegen in der Supabase-Region eu-west-1 (AWS, Irland), und Supabase speichert seine Logs in der EU. Vertragspartner ist Supabase Pte. Ltd. in Singapur, unterstützt von Supabase, Inc. in den USA; Übermittlungen an sie stützen sich auf die EU-Standardvertragsklauseln im Auftragsverarbeitungsvertrag von Supabase (Art. 46 Abs. 2 lit. c DSGVO).
+
+Vercel Inc. (USA) ist unter dem EU-U.S. Data Privacy Framework zertifiziert; Übermittlungen an Vercel stützen sich daher auf den Angemessenheitsbeschluss der EU-Kommission dazu (Art. 45 DSGVO); der Auftragsverarbeitungsvertrag von Vercel enthält zusätzlich die EU-Standardvertragsklauseln.
+
+GitHub (USA), über das du dich anmeldest und von dem Updates und Profilbilder geladen werden, ist ebenfalls unter dem EU-U.S. Data Privacy Framework zertifiziert und verarbeitet diese Daten als eigener Verantwortlicher nach GitHubs Datenschutzerklärung.
+
+### Deine Rechte
+
+Du hast das Recht auf Auskunft über deine Daten (Art. 15 DSGVO), auf Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18) und Datenübertragbarkeit (Art. 20). Soweit wir uns auf unser berechtigtes Interesse stützen (Art. 6 Abs. 1 lit. f), kannst du der Verarbeitung aus Gründen, die sich aus deiner besonderen Situation ergeben, widersprechen (Art. 21). Schreib dazu an valentin@paus.works. **Austreten …** in der App löscht dein Konto und deine Leaderboard-Daten sofort (was bleibt und wie lange, steht unter „Austreten und Löschen“ und „Wie lange“).
+
+Außerdem hast du das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu beschweren. Für uns zuständig ist die Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen, Postfach 20 04 44, 40102 Düsseldorf, <https://www.ldi.nrw.de>.
 
 Fragen, Anliegen zu deinen Daten oder Hinweise auf ein Problem: als Issue unter <https://github.com/valentinherrera/tokenmaccer/issues>. Issues sind öffentlich; bitte dort keine personenbezogenen Daten posten. Für alles Private schreib an valentin@paus.works.

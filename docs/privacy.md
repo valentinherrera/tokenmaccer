@@ -2,7 +2,7 @@
 
 [Deutsch](privacy.de.md) · Last updated: 2 November 2026
 
-This notice covers the downloadable TokenMaccer app and its optional leaderboard. It describes what the code in this repository does; where a fact depends on something the code does not decide (for example how long Supabase keeps its logs), it says so and marks it **TBD**.
+This notice covers the downloadable TokenMaccer app and its optional leaderboard. It describes what the code in this repository does; where a fact depends on a service provider rather than on the code (for example how long Supabase keeps its logs), it says so and gives the provider's own statement.
 
 ## Without joining the leaderboard
 
@@ -14,7 +14,7 @@ The `install.sh` setup (built from source) makes no network requests at all.
 
 ## The website tokenmaccer.app
 
-The website (download page, this notice, invitation links) is hosted by [Vercel](https://vercel.com). Like any web server, Vercel receives your IP address, the address you open (for an invitation link, that includes the group's invitation code) and your browser's request headers, and keeps them in its logs for as long as Vercel provides: **TBD**. The pages set no cookies, use no analytics and load nothing from other servers. They remember your language choice only in your browser (local storage). An invitation page hands the code to the app on your Mac and sends it nowhere else.
+The website (download page, this notice, invitation links) is hosted by [Vercel](https://vercel.com). Like any web server, Vercel receives your IP address, the address you open (for an invitation link, that includes the group's invitation code) and your browser's request headers, and records requests in its logs. On the plan this website uses (Pro), Vercel shows these logs to the maintainer for one day; Vercel does not state how long it keeps them on its own systems beyond that. The maintainer does not export or copy these logs. The pages set no cookies, use no analytics and load nothing from other servers. They remember your language choice only in your browser (local storage). An invitation page hands the code to the app on your Mac and sends it nowhere else.
 
 ## When you join the leaderboard
 
@@ -62,11 +62,11 @@ After every report, right after every group change you make in the app, and when
 
 ### How long
 
-- **Account, sessions, profile and totals:** until you leave. There is no automatic deletion of inactive participants: if you stop background updates without leaving, your last totals stay on the server; they drop off the board after three days without a report but are only deleted when you leave. Whether and when the maintainer removes inactive accounts otherwise: **TBD**.
+- **Account, sessions, profile and totals:** until you leave. There is no automatic deletion of inactive participants: if you stop background updates without leaving, your last totals stay on the server; they drop off the board after three days without a report but are only deleted when you leave. The maintainer does not remove inactive accounts either; an account is removed by hand only when you ask for it or to stop abuse.
 - **Report limit:** stays after you leave, so leaving and joining again cannot get around the 25-minute limit. It is deleted with the first report the server receives once it is more than one hour old.
 - **Groups and memberships:** until you leave the group or the leaderboard, the owner removes you, or the owner deletes the group.
 - **Join attempts:** stay after you leave; entries older than a day are deleted with the next join attempt anyone makes.
-- **Server logs:** as long as Supabase keeps them for this project; the period depends on Supabase's plan and is not set by TokenMaccer: **TBD**.
+- **Server logs:** as long as Supabase keeps them for this project. The project is on Supabase's free plan, for which Supabase states a log retention of one day ("API & Database"). Supabase stores its logs in data centres in the EU. The period is set by Supabase, not by TokenMaccer, and changes if the plan changes.
 
 ### Leaving and deleting
 
@@ -80,8 +80,32 @@ If you sign in with a different GitHub account than the one that joined while le
 
 ## Who is responsible, and contact
 
-Responsible (controller) for the leaderboard and the website: PAUS UG (haftungsbeschränkt), Gustav-Poensgen-Str. 49, 40215 Düsseldorf, Germany, represented by its managing director Valentin Herrera, who maintains this repository (GitHub: [valentinherrera](https://github.com/valentinherrera)). Email: valentin@paus.works. Legal notice: <https://tokenmaccer.app/impressum>. Legal basis of the processing and information on transfers outside the EU: **TBD**.
+Responsible (controller) for the leaderboard and the website: PAUS UG (haftungsbeschränkt), Gustav-Poensgen-Str. 49, 40215 Düsseldorf, Germany, represented by its managing director Valentin Herrera, who maintains this repository (GitHub: [valentinherrera](https://github.com/valentinherrera)). Email: valentin@paus.works. Legal notice: <https://tokenmaccer.app/impressum>.
 
-Service providers: [Supabase](https://supabase.com) hosts the server (database, sign-in, Edge Functions); [Vercel](https://vercel.com) hosts the website. GitHub provides the sign-in; GitHub's own privacy statement applies to your GitHub account. Updates are downloaded from GitHub Releases.
+Service providers: [Supabase](https://supabase.com) hosts the server (database, sign-in, Edge Functions); [Vercel](https://vercel.com) hosts the website. Both process the data on our behalf under their data processing addendums. GitHub provides the sign-in; GitHub's own privacy statement applies to your GitHub account. Updates are downloaded from GitHub Releases.
+
+### Legal basis
+
+- **Leaderboard and groups:** Art. 6(1)(b) GDPR. Storing and showing your display name, username, totals and place, and your groups, is the service you ask for when you join; you end it at any time with **Leave…**. The profile pictures the app downloads from GitHub are part of this board.
+- **Name and email address from GitHub:** the leaderboard does not use them; Supabase Auth stores them because GitHub passes them on at sign-in. Art. 6(1)(f), our legitimate interest in a sign-in through GitHub instead of an account system of our own.
+- **Report limit, join-attempt counter and the security checks behind them:** Art. 6(1)(f), our legitimate interest in keeping the leaderboard free of manipulation and overload.
+- **Server logs at Supabase and Vercel:** Art. 6(1)(f), our legitimate interest in running and securing the server and the website.
+- **Update check:** it goes directly from your Mac to GitHub, and we receive nothing from it. Art. 6(1)(f), our interest in delivering security and bug fixes; you can switch it off.
+
+Taking part in the leaderboard is neither required by law nor by contract. If you do not join, the app works the same, only without the leaderboard. There is no automated decision-making or profiling.
+
+### Transfers outside the EU
+
+The leaderboard's database, sign-in and backups are stored in Supabase's region eu-west-1 (AWS, Ireland), and Supabase stores its logs in the EU. Supabase's contracting company is Supabase Pte. Ltd. in Singapore, supported by Supabase, Inc. in the USA; transfers to them rely on the EU Standard Contractual Clauses in Supabase's data processing addendum (Art. 46(2)(c) GDPR).
+
+Vercel Inc. (USA) is certified under the EU-U.S. Data Privacy Framework, so transfers to Vercel rely on the EU Commission's adequacy decision for it (Art. 45 GDPR); Vercel's data processing addendum adds the EU Standard Contractual Clauses.
+
+GitHub (USA), which you use for sign-in and from which updates and profile pictures are downloaded, is also certified under the EU-U.S. Data Privacy Framework and processes these data as its own controller under GitHub's privacy statement.
+
+### Your rights
+
+You have the right to access your data (Art. 15 GDPR), to have it corrected (Art. 16) or deleted (Art. 17), to restrict its processing (Art. 18) and to receive it in a portable format (Art. 20). Where we rely on our legitimate interest (Art. 6(1)(f)), you can object to the processing on grounds relating to your particular situation (Art. 21). Write to valentin@paus.works. **Leave…** in the app deletes your account and leaderboard data at once (what stays, and for how long, is listed under "Leaving and deleting" and "How long").
+
+You also have the right to lodge a complaint with a data protection supervisory authority. The authority responsible for us is the Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen, Postfach 20 04 44, 40102 Düsseldorf, Germany, <https://www.ldi.nrw.de>.
 
 Questions, requests about your data, or reports of a problem: open an issue at <https://github.com/valentinherrera/tokenmaccer/issues>. Issues are public; do not post personal data there. For anything private, write to valentin@paus.works.

@@ -18,8 +18,11 @@
 #   TM_MIGRATION_LIST     a file with the output of `supabase migration list` instead of running it
 #   TM_MIGRATION_ARGS     default: --project-ref <project_ref from app-config.json>; e.g. --local
 #   TM_SITE_URL           default: https://tokenmaccer.app (e.g. http://localhost:3517 for `vercel dev` in docs/)
-# `supabase migration list` against the hosted project needs `supabase login` and the database password
-# (SUPABASE_DB_PASSWORD or the prompt).
+# `supabase migration list` against the hosted project needs `supabase login` and the database password in
+# SUPABASE_DB_PASSWORD (`read -s SUPABASE_DB_PASSWORD; export SUPABASE_DB_PASSWORD`). The script passes it
+# with --password: without it, CLI v2.121 tries to create a temporary login role, which the hosted project
+# refuses ("permission denied to alter role cli_login_postgres"). Without the variable the check fails by
+# name instead of running the CLI; any CLI error is printed, not swallowed.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -63,11 +66,42 @@ print("; ".join(problems) or "ok")
 if [ "$verdict" = ok ]; then ok "auth $AUTH_URL: GitHub on, e-mail sign-up off"; else bad "auth $AUTH_URL: $verdict"; fi
 
 # 3. Migrations applied
+listing=""
+cli_error=""
 if [ -n "${TM_MIGRATION_LIST:-}" ]; then
   listing="$(cat "$TM_MIGRATION_LIST")"
+elif [ -z "${TM_MIGRATION_ARGS:-}" ] && [ -z "${SUPABASE_DB_PASSWORD:-}" ]; then
+  cli_error="SUPABASE_DB_PASSWORD is not set (read -s SUPABASE_DB_PASSWORD; export SUPABASE_DB_PASSWORD)"
 else
-  read -r -a margs <<<"${TM_MIGRATION_ARGS:---project-ref $(cfg project_ref)}"
-  listing="$(cd "$ROOT" && supabase migration list "${margs[@]}" 2>/dev/null || true)"
+  if [ -n "${TM_MIGRATION_ARGS:-}" ]; then
+    read -r -a margs <<<"$TM_MIGRATION_ARGS"
+  else
+    margs=(--project-ref "$(cfg project_ref)" --password "$SUPABASE_DB_PASSWORD")
+  fi
+  errfile="$(mktemp)"
+  if listing="$(cd "$ROOT" && supabase migration list "${margs[@]}" </dev/null 2>"$errfile")"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  if [ "$rc" -ne 0 ]; then
+    # Outside a terminal the CLI reports errors as JSON on stdout ({"_tag": "Error", "error": {"message"}}),
+    # otherwise as text on stderr. Show whichever there is, without the update notice.
+    cli_error="$(/usr/bin/python3 -I -c '
+import json, sys
+out, err = sys.argv[1], open(sys.argv[2]).read()
+try:
+    msg = json.loads(out)["error"]["message"]
+except (ValueError, KeyError, TypeError):
+    lines = [l for l in (err + "\n" + out).splitlines()
+             if l.strip() and "new version of Supabase CLI" not in l and "recommend updating" not in l]
+    msg = " / ".join(lines[-4:]) or "no output"
+print(" ".join(str(msg).split())[:400])
+' "$listing" "$errfile")"
+    cli_error="supabase migration list exited $rc: $cli_error"
+    listing=""
+  fi
+  rm -f "$errfile"
 fi
 # Outside a terminal the CLI prints JSON ({"migrations": [{"local", "remote", "time"}]}), in a terminal a
 # table "local | remote | time". Take the remote versions from either.
@@ -80,8 +114,10 @@ except (ValueError, KeyError, TypeError, AttributeError):
     rows = [line.split("|")[1].strip() for line in text.splitlines() if line.count("|") >= 2]
 print("\n".join(v for v in rows if re.fullmatch(r"[0-9]+", v)))
 ' <<<"$listing")"
-if [ -z "$remote" ]; then
-  bad "migrations: no remote versions listed (supabase login, database password?)"
+if [ -n "$cli_error" ]; then
+  bad "migrations: $cli_error"
+elif [ -z "$remote" ]; then
+  bad "migrations: no remote versions listed"
 else
   for file in "$ROOT"/supabase/migrations/*.sql; do
     version="$(basename "$file" | cut -d_ -f1)"

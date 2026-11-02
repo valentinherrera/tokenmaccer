@@ -1,6 +1,6 @@
 # Homebrew cask for TokenMaccer. Template: scripts/release.sh fills in @VERSION@ and @SHA256@ (sha256 of
 # TokenMaccer-VERSION.dmg) and writes dist/tokenmaccer.rb, which goes to a tap repository as Casks/tokenmaccer.rb
-# (the tap does not exist yet; creating it is the maintainer's decision).
+# (tap: github.com/valentinherrera/homebrew-tap).
 cask "tokenmaccer" do
   version "@VERSION@"
   sha256 "@SHA256@"
@@ -19,7 +19,7 @@ cask "tokenmaccer" do
 
   # Sparkle updates the app itself
   auto_updates true
-  depends_on macos: ">= :sequoia"
+  depends_on macos: :sequoia
 
   app "TokenMaccer.app"
 
@@ -32,7 +32,8 @@ cask "tokenmaccer" do
 
   # --remove-data leaves the leaderboard first (if joined), then deletes Application Support/TokenMaccer; it removes
   # nothing while leaving fails, so that folder (it holds the leaderboard state) is not in the trash list.
-  # Not yet run through `brew install/uninstall --zap` (no tap yet): test before the tap goes public.
+  # `brew install` tested 2 Nov 2026 (into a separate --appdir). `brew uninstall` and `--zap` not yet run on a Mac
+  # without another TokenMaccer install: both act on the bundle id, so on a maintainer's Mac they hit the real app.
   zap script: {
         executable: "#{appdir}/TokenMaccer.app/Contents/MacOS/TokenMaccer",
         args:       ["--unregister", "--remove-data"],

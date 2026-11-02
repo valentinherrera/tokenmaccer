@@ -2,6 +2,7 @@ import CoreServices
 import Darwin
 import Foundation
 import OSLog
+import Security
 import WidgetKit
 
 /// App edition: after an update (Sparkle, or the app replaced by hand from the DMG) a launch of the app brings
@@ -88,6 +89,8 @@ enum SelfHeal {
             changedAt = Date(timeIntervalSince1970: TimeInterval(st.st_ctimespec.tv_sec)
                              + TimeInterval(st.st_ctimespec.tv_nsec) / 1_000_000_000)
         }
+        let mine = signature(getpid())
+        let widgetIdentifier = (Bundle.main.bundleIdentifier ?? "") + ".widget"
         let uid = getuid()
         let me = getpid()
         var pids = [pid_t](repeating: 0, count: 4096)
@@ -102,10 +105,12 @@ enum SelfHeal {
             // old bundle away, proc_pidpath can fail (measured 02.11.2026), the start path still names it.
             let current = currentPath(pid)
             let launch = launchPath(pid)
-            let matches = [current, launch].compactMap { $0 }.contains {
-                SelfHealPlan.isWidgetProcess(path: $0, appName: appName, widgetName: widgetName)
-            }
-            guard matches else { continue }
+            let paths = [current, launch].compactMap { $0 }
+            // cheap filter first (executable name), then the code signature decides
+            guard paths.contains(where: { ($0 as NSString).lastPathComponent == widgetName }),
+                SelfHealPlan.isOwnWidget(signature: signature(pid), paths: paths, widgetIdentifier: widgetIdentifier,
+                                         team: mine?.team, appName: appName, widgetName: widgetName)
+            else { continue }
             let startedAt = Date(timeIntervalSince1970: TimeInterval(info.pbi_start_tvsec)
                                  + TimeInterval(info.pbi_start_tvusec) / 1_000_000)
             if SelfHealPlan.isStale(currentPath: current, launchPath: launch, installed: installed,
@@ -119,6 +124,23 @@ enum SelfHeal {
     /// Sends SIGTERM to the given processes. Returns how many received it.
     private static func end(_ pids: [pid_t]) -> Int {
         pids.filter { kill($0, SIGTERM) == 0 }.count
+    }
+
+    /// Identifier and team of a running process's code signature; nil when it cannot be read (for example when
+    /// its executable was deleted).
+    private static func signature(_ pid: pid_t) -> SelfHealPlan.Signature? {
+        var code: SecCode?
+        guard SecCodeCopyGuestWithAttributes(nil, [kSecGuestAttributePid: pid] as CFDictionary, [], &code) == errSecSuccess,
+            let code
+        else { return nil }
+        var staticCode: SecStaticCode?
+        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess, let staticCode else { return nil }
+        var info: CFDictionary?
+        guard SecCodeCopySigningInformation(staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &info)
+            == errSecSuccess, let dict = info as? [String: Any]
+        else { return nil }
+        return SelfHealPlan.Signature(identifier: dict[kSecCodeInfoIdentifier as String] as? String,
+                                      team: dict[kSecCodeInfoTeamIdentifier as String] as? String)
     }
 
     private static func currentPath(_ pid: pid_t) -> String? {

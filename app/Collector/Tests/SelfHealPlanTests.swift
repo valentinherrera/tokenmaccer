@@ -93,4 +93,27 @@ final class SelfHealPlanTests: XCTestCase {
             path: "/Users/x/Applications/ClaudeUsage.app/Contents/PlugIns/ClaudeUsageWidget.appex/Contents/MacOS/ClaudeUsageWidget",
             appName: "TokenMaccer", widgetName: "TokenMaccerWidget"))
     }
+
+    /// The code signature decides when it can be read; the path tail only when it cannot.
+    func testOwnWidgetBySignature() {
+        let id = "io.github.x.tokenmaccer.widget"
+        let own = "/Applications/TokenMaccer.app/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"
+        let renamed = "/Applications/TokenMaccer 2.app/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"
+        func isOwn(_ sig: SelfHealPlan.Signature?, _ paths: [String], team: String? = "TEAM1") -> Bool {
+            SelfHealPlan.isOwnWidget(signature: sig, paths: paths, widgetIdentifier: id, team: team,
+                                     appName: "TokenMaccer", widgetName: "TokenMaccerWidget")
+        }
+        XCTAssertTrue(isOwn(.init(identifier: id, team: "TEAM1"), [own]))
+        XCTAssertTrue(isOwn(.init(identifier: id, team: "TEAM1"), [renamed]), "a renamed copy of this app is still ours")
+        XCTAssertFalse(isOwn(.init(identifier: "com.example.tokenmaccer.widget", team: nil), [own]),
+                       "same bundle path, other bundle identifier (a development build): not ours")
+        XCTAssertFalse(isOwn(.init(identifier: id, team: "OTHER"), [own]), "same identifier from another team: not ours")
+        XCTAssertFalse(isOwn(.init(identifier: id, team: nil), [own]), "ad-hoc copy while this app is team-signed")
+        XCTAssertTrue(isOwn(.init(identifier: id, team: nil), [own], team: nil), "unsigned build: identifier alone")
+        // signature unreadable (executable deleted or moved): the path tail decides, as before
+        XCTAssertTrue(isOwn(nil, [own]))
+        XCTAssertTrue(isOwn(.init(identifier: nil, team: nil), [own]))
+        XCTAssertFalse(isOwn(nil, [renamed]))
+        XCTAssertFalse(isOwn(nil, []))
+    }
 }

@@ -50,6 +50,28 @@ enum SelfHealPlan {
         path.hasSuffix("/\(appName).app/Contents/PlugIns/\(widgetName).appex/Contents/MacOS/\(widgetName)")
     }
 
+    /// The code signature of a running process, as far as it could be read.
+    struct Signature: Equatable {
+        var identifier: String?
+        var team: String?
+    }
+
+    /// A running process is this app's widget extension. Decided by the code signature when it can be read:
+    /// the identifier must be the widget's bundle identifier (`<app bundle id>.widget`) and, when this app is
+    /// signed by a team, the team must be the same. That keeps a renamed copy of this app in, and a foreign
+    /// bundle with the same names (another fork, a development build with another bundle prefix) out, whatever
+    /// its path. Only when the signature cannot be read (executable deleted or moved away) the path tail
+    /// decides, as before.
+    static func isOwnWidget(signature: Signature?, paths: [String], widgetIdentifier: String, team: String?,
+                            appName: String, widgetName: String) -> Bool {
+        if let signature, let identifier = signature.identifier {
+            guard identifier == widgetIdentifier else { return false }
+            if let team { return signature.team == team }
+            return true
+        }
+        return paths.contains { isWidgetProcess(path: $0, appName: appName, widgetName: widgetName) }
+    }
+
     /// A widget process that does not run the installed widget executable: its executable path is gone or
     /// elsewhere (bundle moved away by Sparkle, deleted, trashed), it was started from elsewhere, or it started
     /// before the installed executable was written (bundle replaced in place, also with the same build number).

@@ -76,7 +76,8 @@ else
   if [ -n "${TM_MIGRATION_ARGS:-}" ]; then
     read -r -a margs <<<"$TM_MIGRATION_ARGS"
   else
-    margs=(--project-ref "$(cfg project_ref)" --password "$SUPABASE_DB_PASSWORD")
+    # The CLI picks JSON or a text table depending on who calls it (agent detection); ask for JSON.
+    margs=(--project-ref "$(cfg project_ref)" --password "$SUPABASE_DB_PASSWORD" --output-format json)
   fi
   errfile="$(mktemp)"
   if listing="$(cd "$ROOT" && supabase migration list "${margs[@]}" </dev/null 2>"$errfile")"; then
@@ -100,24 +101,52 @@ print(" ".join(str(msg).split())[:400])
 ' "$listing" "$errfile")"
     cli_error="supabase migration list exited $rc: $cli_error"
     listing=""
+  else
+    # Some CLI versions print the table on stderr; parse both.
+    listing="$listing"$'\n'"$(cat "$errfile")"
   fi
   rm -f "$errfile"
 fi
-# Outside a terminal the CLI prints JSON ({"migrations": [{"local", "remote", "time"}]}), in a terminal a
-# table "local | remote | time". Take the remote versions from either.
+# JSON (one document or one per line; any object with a "remote" key, at any depth) or a text table
+# "local | remote | time" with | or │ as separator. Take the remote versions from either.
 remote="$(/usr/bin/python3 -I -c '
 import json, re, sys
 text = sys.stdin.read()
+found = []
+def walk(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k.lower() == "remote" and isinstance(v, (str, int)):
+                found.append(str(v))
+            else:
+                walk(v)
+    elif isinstance(o, list):
+        for v in o:
+            walk(v)
+docs = []
 try:
-    rows = [str(m.get("remote") or "") for m in json.loads(text)["migrations"]]
-except (ValueError, KeyError, TypeError, AttributeError):
-    rows = [line.split("|")[1].strip() for line in text.splitlines() if line.count("|") >= 2]
-print("\n".join(v for v in rows if re.fullmatch(r"[0-9]+", v)))
+    docs.append(json.loads(text))
+except ValueError:
+    for line in text.splitlines():
+        try:
+            docs.append(json.loads(line))
+        except ValueError:
+            cells = [c.strip() for c in re.split(r"[|│]", line)]
+            if len(cells) >= 3:
+                if cells[0] == "":
+                    cells = cells[1:]
+                found.append(cells[1])
+for d in docs:
+    walk(d)
+print("\n".join(v for v in found if re.fullmatch(r"[0-9]{14}", v)))
 ' <<<"$listing")"
 if [ -n "$cli_error" ]; then
   bad "migrations: $cli_error"
 elif [ -z "$remote" ]; then
-  bad "migrations: no remote versions listed"
+  # Versions and times only, no secrets: show what came back so the next fix is not a guess.
+  shown="$(grep -v -e "new version of Supabase CLI" -e "recommend updating" <<<"$listing" | grep -v '^[[:space:]]*$' | head -8 | cut -c1-200 || true)"
+  bad "migrations: no remote versions found in the CLI output; it began with:"
+  while IFS= read -r line; do echo "       $line"; done <<<"${shown:-<empty>}"
 else
   for file in "$ROOT"/supabase/migrations/*.sql; do
     version="$(basename "$file" | cut -d_ -f1)"

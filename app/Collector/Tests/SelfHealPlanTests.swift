@@ -8,17 +8,20 @@ final class SelfHealPlanTests: XCTestCase {
         XCTAssertFalse(SelfHealPlan.buildChanged(last: "5", current: "5"))
     }
 
-    func testModeFromDefaults() {
-        XCTAssertEqual(SelfHealPlan.Mode(defaultsValue: nil), .full)
-        XCTAssertEqual(SelfHealPlan.Mode(defaultsValue: "off"), .off)
-        XCTAssertEqual(SelfHealPlan.Mode(defaultsValue: "soft"), .soft)
-        XCTAssertEqual(SelfHealPlan.Mode(defaultsValue: "nonsense"), .full)
+    func testSwitchFromDefaults() {
+        XCTAssertTrue(SelfHealPlan.isEnabled(defaultsValue: nil))
+        XCTAssertFalse(SelfHealPlan.isEnabled(defaultsValue: "off"))
+        XCTAssertTrue(SelfHealPlan.isEnabled(defaultsValue: "soft"))
     }
 
     func testWidgetProcessMatchesOnlyOwnExtension() {
         let own = "/Applications/TokenMaccer.app/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"
         XCTAssertTrue(SelfHealPlan.isWidgetProcess(path: own, appName: "TokenMaccer", widgetName: "TokenMaccerWidget"))
-        // the old bundle moved to the Trash by the update still counts
+        // the old bundle moved away by Sparkle (measured path) still counts
+        let sparkle = "/Users/x/Library/Caches/io.github.x.tokenmaccer/org.sparkle-project.Sparkle/Installation/1Ty/63Z/"
+            + "TokenMaccer.app/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"
+        XCTAssertTrue(SelfHealPlan.isWidgetProcess(path: sparkle, appName: "TokenMaccer", widgetName: "TokenMaccerWidget"))
+        // the old bundle moved to the Trash still counts
         let trashed = "/Users/x/.Trash/TokenMaccer.app/Contents/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"
         XCTAssertTrue(SelfHealPlan.isWidgetProcess(path: trashed, appName: "TokenMaccer", widgetName: "TokenMaccerWidget"))
         XCTAssertFalse(SelfHealPlan.isWidgetProcess(
@@ -30,17 +33,5 @@ final class SelfHealPlanTests: XCTestCase {
         XCTAssertFalse(SelfHealPlan.isWidgetProcess(
             path: "/Users/x/Applications/ClaudeUsage.app/Contents/PlugIns/ClaudeUsageWidget.appex/Contents/MacOS/ClaudeUsageWidget",
             appName: "TokenMaccer", widgetName: "TokenMaccerWidget"))
-    }
-
-    func testChronodRestartOnlyAsFallback() {
-        func restart(_ mode: SelfHealPlan.Mode, active: Bool, seen: String?) -> Bool {
-            SelfHealPlan.needsChronodRestart(mode: mode, widgetWasActive: active, widgetBuildAfterWait: seen, current: "5")
-        }
-        XCTAssertTrue(restart(.full, active: true, seen: "4"))
-        XCTAssertTrue(restart(.full, active: true, seen: nil))
-        XCTAssertFalse(restart(.full, active: true, seen: "5"), "soft steps worked")
-        XCTAssertFalse(restart(.full, active: false, seen: nil), "widget not on the desktop: nothing to heal")
-        XCTAssertFalse(restart(.soft, active: true, seen: "4"))
-        XCTAssertFalse(restart(.off, active: true, seen: "4"))
     }
 }

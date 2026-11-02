@@ -10,14 +10,11 @@ enum SelfHealPlan {
     static let lastBuildKey = "lastLaunchedBuild"
     /// Build of the widget process that wrote the last read note (set by the widget, read by the app).
     static let widgetBuildKey = "widgetBuild"
-    /// Per-machine switch in the app's own defaults, for tests: "off" disables the self-heal, "soft" never
-    /// restarts chronod. Anything else (or nothing) is the shipped behaviour.
+    /// Per-machine switch in the app's own defaults, for tests: "off" disables the self-heal
+    /// (defaults write <bundle id> TMSelfHeal off). Anything else, or nothing, leaves it on.
     static let modeKey = "TMSelfHeal"
 
-    enum Mode: String, Sendable {
-        case off, soft, full
-        init(defaultsValue: String?) { self = defaultsValue.flatMap(Mode.init(rawValue:)) ?? .full }
-    }
+    static func isEnabled(defaultsValue: String?) -> Bool { defaultsValue != "off" }
 
     /// A different build than the one recorded last time. The first launch ever (nothing recorded) counts too:
     /// it may follow an update from a build that did not record anything yet.
@@ -28,13 +25,5 @@ enum SelfHealPlan {
     /// only the tail is compared: …/<App>.app/Contents/PlugIns/<Widget>.appex/Contents/MacOS/<Widget>.
     static func isWidgetProcess(path: String, appName: String, widgetName: String) -> Bool {
         path.hasSuffix("/\(appName).app/Contents/PlugIns/\(widgetName).appex/Contents/MacOS/\(widgetName)")
-    }
-
-    /// Restart chronod only when the soft steps were not enough: the widget was on the desktop shortly before
-    /// (it read within `WidgetHealth.freshFor`), and after the wait it still has not run from the new build.
-    static func needsChronodRestart(
-        mode: Mode, widgetWasActive: Bool, widgetBuildAfterWait: String?, current: String
-    ) -> Bool {
-        mode == .full && widgetWasActive && widgetBuildAfterWait != current
     }
 }

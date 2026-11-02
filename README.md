@@ -65,6 +65,16 @@ Already using the `install.sh` setup? The app takes over your history from `~/.c
 
 END PENDING RELEASE -->
 
+<!-- PENDING RELEASE: applies to the downloadable app; publish together with "Download (app)" above.
+
+### Updates
+
+The app updates itself with [Sparkle](https://sparkle-project.org). On its second launch it asks once whether to check for updates automatically (once a day); **TokenMaccer › Check for Updates…** or the button in the window checks at any time. An update is installed with one click and the app restarts. Each update is notarized by Apple and signed with the maintainer's EdDSA key, which the app checks before installing. The only network request is the check itself: it downloads `appcast.xml` from this repository's latest GitHub release and sends nothing about you or your usage.
+
+The widget follows on its own. When the app is replaced (by Sparkle, or by dragging a new version from the DMG into Applications), macOS keeps the old widget process running and rejects its numbers until the widget is removed and added again. On the first launch of a new version the app therefore ends the widget processes of its own bundle and asks WidgetKit to reload; the widget shows the new version within seconds. After a manual update, open TokenMaccer once. The app never restarts system processes.
+
+END PENDING RELEASE -->
+
 ## Install with Claude Code
 
 Paste this into Claude Code:

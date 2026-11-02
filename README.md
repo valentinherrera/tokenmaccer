@@ -61,6 +61,8 @@ No Xcode, no Terminal, no Python: the app brings its own collector.
 3. The window shows whether your Claude Code transcripts were found and that background updates are on (every 5 minutes, also after a restart). If your transcripts live outside `~/.claude`, click **Choose Folder…**. To also count an archive folder you move old sessions into, add `"extraSources": ["/path/to/archive"]` to `~/Library/Application Support/TokenMaccer/settings.json`.
 4. Right-click the desktop › **Edit Widgets…** › search for **TokenMaccer** and add it. Your numbers appear within a few minutes.
 
+No account and no network access are needed: your numbers stay on your Mac as long as you do not join the optional [leaderboard](#leaderboard-and-privacy). The only other request is Sparkle's update check (below).
+
 Already using the `install.sh` setup? The app takes over your history from `~/.claude/tools/tokenmaccer/` on its first run (it only copies, the old folder stays). Use one of the two, not both: run `./uninstall.sh` once the app shows your numbers.
 
 END PENDING RELEASE -->
@@ -69,9 +71,32 @@ END PENDING RELEASE -->
 
 ### Updates
 
-The app updates itself with [Sparkle](https://sparkle-project.org). On its second launch it asks once whether to check for updates automatically (once a day); **TokenMaccer › Check for Updates…** or the button in the window checks at any time. An update is installed with one click and the app restarts. Each update is notarized by Apple and signed with the maintainer's EdDSA key, which the app checks before installing. The only network request is the check itself: it downloads `appcast.xml` from this repository's latest GitHub release and sends nothing about you or your usage.
+The app updates itself with [Sparkle](https://sparkle-project.org). On its second launch it asks once whether to check for updates automatically (once a day); **TokenMaccer › Check for Updates…** or the button in the window checks at any time. An update is installed with one click and the app restarts. Each update is notarized by Apple and signed with the maintainer's EdDSA key, which the app checks before installing. The check itself downloads `appcast.xml` from this repository's latest GitHub release and sends nothing about you or your usage. Apart from it, the app only goes online if you join the leaderboard.
 
 The widget follows on its own. When the app is replaced (by Sparkle, or by dragging a new version from the DMG into Applications), macOS keeps the old widget process running and rejects its numbers until the widget is removed and added again. On the first launch of a new version the app therefore ends the widget processes of its own bundle and asks WidgetKit to reload; the widget shows the new version within seconds. After a manual update, open TokenMaccer once. The app never restarts system processes.
+
+END PENDING RELEASE -->
+
+<!-- PENDING RELEASE: applies to the downloadable app; publish together with "Download (app)" above.
+
+### Leaderboard and privacy
+
+Optional, off by default. In the window, **Join…** under **Leaderboard** shows what is shared, asks for a display name of your choice and signs you in with GitHub (through [Supabase](https://supabase.com) Auth, in a system sign-in window, PKCE). Afterwards the widget shows your place quietly next to the headline, for the period and unit you selected, for example `#3 of 12`.
+
+- **What is sent:** at most every 30 minutes, the six period totals the widget shows (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their USD value at API prices, and the first day of each period. Never project names, prompts, file names, models or any other content.
+- **Who sees what:** other participants see your display name, your GitHub username and these totals.
+- **Where:** a Supabase project of the maintainer (EU, Ireland). The server checks every report for plausibility and accepts at most one per 25 minutes.
+- **Sign-in:** the access and refresh token are kept in your login keychain, in an item only TokenMaccer's background collector can read. The app sends nothing itself; the collector reports after its regular pass.
+- **Leave at any time:** **Leave…** deletes your account on the leaderboard server together with your profile and all reported totals, and removes the sign-in from your Mac. **Stop › Stop Background Updates & Remove Data…** leaves the leaderboard first.
+- **Without joining** TokenMaccer makes no request to the leaderboard server at all; there is no account and nothing to delete.
+
+### USD is the API-price value, not your bill
+
+The USD figures, in the widget and on the leaderboard, are what your token usage would cost at Anthropic's public API list prices (`collector/prices.json`). They are not a bill: with a Claude subscription you pay your plan's price, and TokenMaccer never sees any billing data.
+
+### Tested platforms
+
+Tested on macOS 26.6 on Apple Silicon only. The app targets macOS 15 or newer and is built universal (Apple Silicon and Intel), but it has never run on an Intel Mac or on macOS 15 on real hardware. Reports welcome as issues.
 
 END PENDING RELEASE -->
 
@@ -120,6 +145,8 @@ Options: `./install.sh --collector-only` skips the app. `BUNDLE_ID_PREFIX=com.yo
 2. Open TokenMaccer and choose **Stop › Stop Background Updates & Remove Data…**. This removes everything the app wrote, its own settings included, so a later reinstall starts fresh. To keep your history, choose **Stop Background Updates** instead; after a reinstall, click **Turn On** in the TokenMaccer window.
 3. Quit TokenMaccer and drag it from Applications to the Trash.
 
+If you joined the leaderboard, **Remove Data** (and `--remove-data`) leaves it first and deletes your entry on the server; when the server cannot be reached, nothing is removed and the window says so. Only stopping background updates keeps you on the leaderboard with your last totals, which drop off the board after three days without a report.
+
 The same in Terminal:
 
 ```sh
@@ -128,7 +155,7 @@ osascript -e 'quit app "TokenMaccer"'
 rm -rf /Applications/TokenMaccer.app
 ```
 
-What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`. **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
+What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`; after joining the leaderboard also `leaderboard.json` in the Application Support folder and the keychain item "TokenMaccer leaderboard sign-in". **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
 
 END PENDING RELEASE -->
 

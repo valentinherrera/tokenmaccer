@@ -40,3 +40,11 @@ for a in "${apps[@]+"${apps[@]}"}"; do
   "$LSREGISTER" -u "$a" >/dev/null 2>&1 || true
 done
 echo "unregistered ${#apps[@]} build copies of TokenMaccer.app (files kept)"
+
+# The App Intents index keeps pointing at the last registered copy: after the build copies are gone, the installed
+# widget's clicks fail ("There is no metadata for NextBoard", measured 02.11.2026 after a preflight run) until the
+# installed app is registered again. The app does the same at every launch (StaleCopies); this covers a running app.
+installed=/Applications/TokenMaccer.app
+if [ "${#apps[@]}" -gt 0 ] && [ -d "$installed" ]; then
+  "$LSREGISTER" -f "$installed" >/dev/null 2>&1 && echo "registered $installed again (widget clicks)"
+fi

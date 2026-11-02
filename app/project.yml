@@ -144,6 +144,9 @@ targets:
     platform: macOS
     sources:
       - Collector/Tests
+      # widget read outcomes and the status the app edition shows (WidgetHealthTests)
+      - Shared/Model.swift
+      - Shared/WidgetHealth.swift
       - path: ../collector/prices.json
         buildPhase: resources
     dependencies:

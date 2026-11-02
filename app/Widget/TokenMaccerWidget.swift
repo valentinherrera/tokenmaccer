@@ -24,7 +24,10 @@ struct Provider: TimelineProvider {
     }
 
     private func current() -> Entry {
-        Entry(date: .now, data: WidgetData.load(), period: Selection.period, unit: Selection.unit)
+        let (data, result) = WidgetData.read()
+        // App edition: leave a note for the app's status window (it cannot see into the sandbox otherwise).
+        if Edition.isApp { WidgetHealth.record(result, in: Selection.defaults) }
+        return Entry(date: .now, data: data, period: Selection.period, unit: Selection.unit)
     }
 }
 

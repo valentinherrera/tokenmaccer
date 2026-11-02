@@ -14,6 +14,8 @@ final class Setup {
     private(set) var transcriptsFound = false
     private(set) var service: SMAppService.Status = .notRegistered
     private(set) var lastUpdate: Date?
+    /// What the widget itself reported after its last read (not what the collector wrote).
+    private(set) var widget: WidgetStatus = .notSeen
     private(set) var running = false
     private(set) var note: String?
 
@@ -56,6 +58,7 @@ final class Setup {
             && isDir.boolValue
         service = agent?.status ?? .notFound
         lastUpdate = WidgetData.load()?.updatedDate
+        widget = WidgetHealth.status(in: Selection.defaults)
     }
 
     func register(openSettings: Bool = true) {
@@ -173,6 +176,7 @@ struct SetupView: View {
                         state: setup.lastUpdate == nil ? .off : .ok, title: "Last update",
                         value: setup.lastUpdate.map { $0.formatted(date: .omitted, time: .shortened) } ?? "Not yet",
                         detail: nil)
+                    widget
                 }
                 Section {
                     Label {
@@ -219,6 +223,27 @@ struct SetupView: View {
             StatusRow(state: .off, title: "Background updates", value: "Off", detail: nil) {
                 Button("Turn On") { setup.register() }
             }
+        }
+    }
+
+    @ViewBuilder private var widget: some View {
+        switch setup.widget {
+        case .notSeen:
+            StatusRow(state: .off, title: "Widget", value: "Not added yet", detail: nil)
+        case .showing(let read):
+            StatusRow(state: .ok, title: "Widget", value: "Showing your numbers",
+                      detail: "Read at " + read.formatted(date: .omitted, time: .shortened))
+        case .idle(let read):
+            StatusRow(state: .off, title: "Widget", value: "Not on the desktop",
+                      detail: "Last read " + read.formatted(date: .abbreviated, time: .shortened))
+        case .failed(.missing, _):
+            StatusRow(state: .off, title: "Widget", value: "Waiting for data",
+                      detail: "The widget found no numbers yet; they follow after the next update.")
+        case .failed(let result, _):
+            StatusRow(state: .problem, title: "Widget", value: "Cannot read the data",
+                      detail: result == .noContainer
+                        ? "macOS did not give the widget access to TokenMaccer's shared folder."
+                        : "The widget could not read widget.json.")
         }
     }
 

@@ -57,9 +57,16 @@ struct WidgetData: Codable {
         return String(validatingCString: pw.pointee.pw_dir)
     }
 
-    static func load(from url: URL? = defaultURL) -> WidgetData? {
-        guard let url, let data = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode(WidgetData.self, from: data)
+    static func load(from url: URL? = defaultURL) -> WidgetData? { read(from: url).data }
+
+    /// Like `load`, and says why nothing came back (the widget reports this to the app, see WidgetHealth).
+    static func read(from url: URL? = defaultURL) -> (data: WidgetData?, result: WidgetRead) {
+        guard let url else { return (nil, .noContainer) }
+        guard let bytes = try? Data(contentsOf: url) else {
+            return (nil, FileManager.default.fileExists(atPath: url.path) ? .unreadable : .missing)
+        }
+        guard let decoded = try? JSONDecoder().decode(WidgetData.self, from: bytes) else { return (nil, .unreadable) }
+        return (decoded, .ok)
     }
 
     var updatedDate: Date? { ISO8601DateFormatter().date(from: updated) }

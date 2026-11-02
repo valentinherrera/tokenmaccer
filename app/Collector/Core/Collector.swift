@@ -142,7 +142,8 @@ public enum Collector {
     }
 
     /// One collection pass: lock, load, back up, ingest, write store (only with new turns) and widget.json.
-    public static func run(_ config: CollectorConfig) -> CollectorResult {
+    /// `leaderboard`: the opt-in leaderboard step (app edition); it does nothing unless the user joined.
+    public static func run(_ config: CollectorConfig, leaderboard: LeaderboardSync? = nil) -> CollectorResult {
         let t0 = Date()
         var out: [String] = []
         func fail(_ message: String) -> CollectorResult {
@@ -198,7 +199,12 @@ public enum Collector {
             if n > 0 || config.rebuild || !fm.fileExists(atPath: files.store) {
                 try saveAtomic(files.store, JSONWriter.encode(store.json))
             }
-            let w = WidgetBuilder(store: store, prices: config.prices).widgetData(now: now)
+            var w = WidgetBuilder(store: store, prices: config.prices).widgetData(now: now)
+            if let leaderboard {
+                let step = leaderboard.apply(widget: w, now: Date())
+                w = step.widget
+                if let log = step.log { out.append(log) }
+            }
             try saveAtomic(config.widgetPath, JSONWriter.encode(w))
             let secs = String(format: "%.1f", Date().timeIntervalSince(t0))
             out.append("\(n) new turns · \(secs) s · updated \(w["updated"]?.string ?? "")")

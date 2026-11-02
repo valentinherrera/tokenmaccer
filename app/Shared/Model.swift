@@ -33,10 +33,20 @@ struct Period: Codable {
     let to: String
 }
 
+/// A leaderboard place ("#rank of participants"), only in widget.json after the user joined.
+struct Place: Codable, Hashable {
+    let rank: Int
+    let of: Int
+}
+
 struct WidgetData: Codable {
     let updated: String
     let periods: [String: Period]
     let order: [String]
+    /// Leaderboard places per period and unit ("tokens", "usd"); absent unless the user joined.
+    var ranks: [String: [String: Place]]? = nil
+
+    func place(period: String, unit: Unit) -> Place? { ranks?[period]?[unit.rawValue] }
 
     /// App edition: the bundled collector writes widget.json into the App Group container.
     /// Source edition (install.sh): the Python collector writes to ~/.claude/tools/tokenmaccer/, which the

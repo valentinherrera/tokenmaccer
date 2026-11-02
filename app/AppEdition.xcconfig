@@ -3,6 +3,8 @@
 //     -xcconfig AppEdition.xcconfig clean build
 // Settings here override the project for every target; per-target entitlements go through TM_*_ENTITLEMENTS.
 TM_EDITION = app
+// Swift sees the edition too (the widget bundle declares the leaderboard widget only here)
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) TM_APP_EDITION
 DEVELOPMENT_TEAM = 3KM85F22L8
 BUNDLE_ID_PREFIX = io.github.valentinherrera
 CODE_SIGN_STYLE = Manual

@@ -824,7 +824,7 @@ public struct LeaderboardSync: Sendable {
                 // the app's leaderboard window: the boards, then the avatars of who is on them (best effort)
                 if let boards = try? authorized(c, now: now, { try c.top(token: $0, now: now) }) {
                     try? boards.save(dataDir: dataDir)
-                    AvatarCache(dataDir: dataDir).refresh(boards.logins, transport: c.transport, now: now)
+                    AvatarCache(dataDir: dataDir).refresh(LeaderboardWidgetFile.avatarOrder(boards), transport: c.transport, now: now)
                 }
             } catch LeaderboardError.notParticipant {
                 state.joined = false

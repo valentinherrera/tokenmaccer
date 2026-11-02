@@ -10,7 +10,7 @@ struct BoardRowValue: Equatable, Identifiable {
     var login: String?
     var value: Double
     var isMe: Bool
-    var id: String { "\(rank)-\(name)-\(isMe)" }
+    var id: String { "\(rank)-\(login ?? name)-\(isMe)" }
 }
 
 struct BoardValue: Equatable {
@@ -79,10 +79,24 @@ struct LeaderboardWidgetData: Decodable {
         return try? d.decode(LeaderboardWidgetData.self, from: bytes)
     }
 
+    /// nil only when there is no file (not joined). A file that exists but cannot be read counts as joined and
+    /// waiting, so a joined user is never asked to join again.
     static func load(from url: URL? = defaultURL) -> LeaderboardWidgetData? {
         guard let url, let bytes = try? Data(contentsOf: url) else { return nil }
-        return decode(bytes)
+        return decode(bytes) ?? LeaderboardWidgetData(fetchedAt: nil, boards: [], avatars: [:])
     }
+
+    /// The widget gallery's board: made-up names, no pictures.
+    static let sample: LeaderboardWidgetData = {
+        let names = ["Mara", "octo-dev", "Jonas", "Priya", "Theo", "Ana", "kenji", "Lena"]
+        let entries = names.enumerated().map { i, n in
+            Entry(rank: i + 1, displayName: n, githubLogin: nil, value: 800_000_000 / Double(i + 1), isMe: i == 4)
+        }
+        let boards = Selection.periods.flatMap { p in
+            ["tokens", "usd"].map { Board(period: p, unit: $0, participants: 120, entries: entries) }
+        }
+        return LeaderboardWidgetData(fetchedAt: Date(), boards: boards, avatars: [:])
+    }()
 
     func avatar(_ login: String?) -> Data? { login.flatMap { avatars[$0.lowercased()] } }
 

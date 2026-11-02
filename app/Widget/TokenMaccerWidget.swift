@@ -52,7 +52,10 @@ struct WidgetView: View {
 struct TokenMaccerWidgets: WidgetBundle {
     var body: some Widget {
         TokenMaccerWidget()
+        // the leaderboard exists in the app edition only (the install.sh edition has no collector that joins)
+        #if TM_APP_EDITION
         LeaderboardWidget()
+        #endif
     }
 }
 
@@ -77,9 +80,16 @@ struct BoardEntry: TimelineEntry {
 }
 
 struct BoardProvider: TimelineProvider {
-    func placeholder(in context: Context) -> BoardEntry { current() }
+    // the widget gallery and the placeholder show a made-up board, never the participants' real names
+    func placeholder(in context: Context) -> BoardEntry { sample() }
 
-    func getSnapshot(in context: Context, completion: @escaping (BoardEntry) -> Void) { completion(current()) }
+    func getSnapshot(in context: Context, completion: @escaping (BoardEntry) -> Void) {
+        completion(context.isPreview ? sample() : current())
+    }
+
+    private func sample() -> BoardEntry {
+        BoardEntry(date: .now, data: .sample, period: "7D", unit: .tokens)
+    }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<BoardEntry>) -> Void) {
         // the boards change at most every 30 minutes; the collector asks for a reload when its copy changed
@@ -99,9 +109,7 @@ struct LeaderboardWidget: Widget {
         }
         .configurationDisplayName("TokenMaccer Leaderboard")
         .description("Your place among Claude Code users: the top places and your own row.")
-        // the leaderboard exists in the app edition only (the install.sh edition has no collector that joins):
-        // without a family the widget gallery does not offer it
-        .supportedFamilies(Edition.isApp ? [.systemMedium, .systemLarge] : [])
+        .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
 

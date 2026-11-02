@@ -132,4 +132,20 @@ extension CollectorTests {
         XCTAssertEqual(try readBack().boards.first?.entries.count, 3)
         XCTAssertTrue(spy.requests.isEmpty)
     }
+
+    func testAvatarOrderPutsWidgetPeopleFirst() throws {
+        let b = boards(count: 30, meRank: 25)
+        let order = LeaderboardWidgetFile.avatarOrder(b)
+        XCTAssertEqual(Array(order.prefix(9)), (1...8).map { "user-\($0)" } + ["me-gh"])
+        XCTAssertEqual(order.count, 30)  // nobody lost, nobody twice
+    }
+
+    func testUnreadableWidgetFileCountsAsWaitingNotNotJoined() throws {
+        try FileManager.default.createDirectory(atPath: (widgetFile as NSString).deletingLastPathComponent,
+                                                withIntermediateDirectories: true)
+        try Data("{broken".utf8).write(to: URL(fileURLWithPath: widgetFile))
+        let read = LeaderboardWidgetData.load(from: URL(fileURLWithPath: widgetFile))
+        XCTAssertEqual(LeaderboardWidgetData.state(read, period: "7D", unit: .tokens, places: 3), .waiting)
+        XCTAssertNil(LeaderboardWidgetData.load(from: URL(fileURLWithPath: widgetFile + ".missing")))
+    }
 }

@@ -36,19 +36,31 @@ public struct LeaderboardWidgetFile: Codable, Equatable, Sendable {
     public static func make(state: LeaderboardState?, boards: LeaderboardBoards?, dataDir: String) -> LeaderboardWidgetFile? {
         guard let state, state.joined else { return nil }
         guard let boards else { return LeaderboardWidgetFile(fetchedAt: nil, boards: [], avatars: [:]) }
-        let trimmed = boards.boards.map { b -> LeaderboardBoard in
-            var rows = Array(b.entries.prefix(places))
-            if !rows.contains(where: { $0.isMe }), let me = b.entries.first(where: { $0.isMe }) { rows.append(me) }
-            return LeaderboardBoard(period: b.period, unit: b.unit, participants: b.participants, entries: rows)
-        }
+        let trimmed = trim(boards)
         var avatars: [String: Data] = [:]
-        for login in LeaderboardBoards(fetchedAt: boards.fetchedAt, boards: trimmed).logins {
+        for login in trimmed.logins {
             guard let file = AvatarCache.file(dataDir: dataDir, login: login),
                 let data = FileManager.default.contents(atPath: file), data.count <= maxAvatarBytes
             else { continue }
             avatars[login.lowercased()] = data
         }
-        return LeaderboardWidgetFile(fetchedAt: boards.fetchedAt, boards: trimmed, avatars: avatars)
+        return LeaderboardWidgetFile(fetchedAt: boards.fetchedAt, boards: trimmed.boards, avatars: avatars)
+    }
+
+    /// Per board the first `places` rows and the own row.
+    static func trim(_ boards: LeaderboardBoards) -> LeaderboardBoards {
+        LeaderboardBoards(fetchedAt: boards.fetchedAt, boards: boards.boards.map { b in
+            var rows = Array(b.entries.prefix(places))
+            if !rows.contains(where: { $0.isMe }), let me = b.entries.first(where: { $0.isMe }) { rows.append(me) }
+            return LeaderboardBoard(period: b.period, unit: b.unit, participants: b.participants, entries: rows)
+        })
+    }
+
+    /// Avatar download order: the people the widget shows first (12 per pass would otherwise go to the first
+    /// boards' 50 places), then the rest of the window's boards.
+    public static func avatarOrder(_ boards: LeaderboardBoards) -> [String] {
+        var seen = Set<String>()
+        return (trim(boards).logins + boards.logins).filter { seen.insert($0.lowercased()).inserted }
     }
 
     /// Brings the widget's file in line with the data folder. Returns true when it changed (worth a widget reload).
@@ -60,8 +72,8 @@ public struct LeaderboardWidgetFile: Codable, Equatable, Sendable {
                               dataDir: dataDir)
         else {
             guard fm.fileExists(atPath: target) else { return false }
-            try? fm.removeItem(atPath: target)
-            return true
+            // Leave promises this removal; a failure leaves the file and the next pass tries again
+            return (try? fm.removeItem(atPath: target)) != nil
         }
         guard let data = try? encoder.encode(file) else { return false }
         if fm.contents(atPath: target) == data { return false }

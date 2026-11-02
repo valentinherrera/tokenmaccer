@@ -34,11 +34,32 @@ USD values are estimates at public API list prices (`collector/prices.json`). If
 
 ## Requirements
 
-- macOS 15 or newer
-- Xcode 16 or newer and [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
-- An "Apple Development" signing certificate. A free Apple ID works: Xcode > Settings > Accounts > add your Apple ID > Manage Certificates > "+" > Apple Development. Widgets need a signed app; nothing is uploaded to Apple.
+| What | Why | How to check / get it |
+|---|---|---|
+| A Mac with **macOS 15** or newer | WidgetKit APIs used by the widget | Apple menu > About This Mac |
+| **Claude Code**, used at least once | The collector reads its local transcripts in `~/.claude/projects` | `ls ~/.claude/projects` |
+| **Xcode 16** or newer, opened once | Builds the app; the first launch accepts the license and installs components | `xcodebuild -version` |
+| **Command Line Tools** | Provide `/usr/bin/python3` for the collector | `xcode-select -p`, else `xcode-select --install` |
+| **Homebrew** and **[XcodeGen](https://github.com/yonaskolb/XcodeGen)** | Generates the Xcode project from `app/project.yml` | `brew install xcodegen` |
+| An **"Apple Development" certificate** | macOS only shows widgets from signed apps | see below |
 
-## Install
+**Getting the certificate (free, about two minutes):** open Xcode > Settings > Accounts, add your Apple ID, select your team, click **Manage Certificates…**, then **+** > **Apple Development**. A free Apple ID is enough; no paid developer account, nothing is uploaded to Apple. The installer reads your team ID from this certificate.
+
+Without a certificate the installer still sets up the collector and tells you what is missing; run it again once the certificate exists.
+
+**Tested on:** macOS 26 with Xcode 26 (Apple Silicon), full install. CI builds on macOS 15 with Xcode 16. Not yet tested: Intel Macs, running the widget on macOS 15. Reports welcome as issues.
+
+## Install with Claude Code
+
+Paste this into Claude Code:
+
+```
+Install TokenMaccer from https://github.com/valentinherrera/tokenmaccer: check the requirements in its README, clone it to ~/tokenmaccer and run ./install.sh. If xcodegen is missing, install it with Homebrew. If no Apple Development certificate is found, stop and tell me how to create one.
+```
+
+Claude clones the repo, checks the requirements and runs the installer. Creating the certificate in Xcode is the one step you do yourself. Afterwards add the widget (see below).
+
+## Install manually
 
 ```sh
 git clone https://github.com/valentinherrera/tokenmaccer.git
@@ -54,7 +75,9 @@ The installer
 
 Then right-click the desktop, choose **Edit Widgets…** and search for **TokenMaccer**.
 
-Options: `./install.sh --collector-only` skips the app. `BUNDLE_ID_PREFIX=com.yourname ./install.sh` sets your own bundle id prefix.
+Options: `./install.sh --collector-only` skips the app. `BUNDLE_ID_PREFIX=com.yourname ./install.sh` sets your own bundle id prefix. Running `./install.sh` again updates an existing install.
+
+**Note:** macOS decides when a desktop widget redraws. The widget asks for a refresh every 5 minutes, but the actual update can lag a few minutes behind; the app window always shows the latest numbers.
 
 ## Uninstall
 

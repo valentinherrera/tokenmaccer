@@ -44,6 +44,7 @@ The share card ("#3 of 120 this week") is drawn on your Mac. It goes only where 
 - `leaderboard.json` in `~/Library/Application Support/TokenMaccer/`: your display name, GitHub username, account ID, your latest places, the times of the last report and the last attempt, the last error.
 - The keychain item "TokenMaccer leaderboard sign-in" with the access and refresh token. Only TokenMaccer's background collector can read it.
 - `leaderboard-top.json` (the boards of the leaderboard window, see above) and the folder `avatars/` with the cached profile pictures, in the same folder as `leaderboard.json`.
+- `leaderboard-widget.json` in the App Group container: a copy for the leaderboard widget, per board the first eight places and your own, with the profile pictures of these people.
 
 ### How long
 
@@ -53,7 +54,7 @@ The share card ("#3 of 120 this week") is drawn on your Mac. It goes only where 
 
 ### Leaving and deleting
 
-**Leave…** in the app deletes your sign-in account on the server. Your profile, totals, sessions and GitHub identity on the server go with it. Then the app removes the sign-in from your keychain, `leaderboard.json`, `leaderboard-top.json` and the cached profile pictures. It reports success only after the server confirmed the deletion. Not deleted by Leave: the report limit entry (see above) and entries in Supabase's logs.
+**Leave…** in the app deletes your sign-in account on the server. Your profile, totals, sessions and GitHub identity on the server go with it. Then the app removes the sign-in from your keychain, `leaderboard.json`, `leaderboard-top.json`, `leaderboard-widget.json` and the cached profile pictures. It reports success only after the server confirmed the deletion. Not deleted by Leave: the report limit entry (see above) and entries in Supabase's logs.
 
 If you sign in with a different GitHub account than the one that joined while leaving, the app refuses it and deletes the account that sign-in created on the server again, unless that account takes part in the leaderboard itself.
 

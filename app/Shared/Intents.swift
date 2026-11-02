@@ -28,6 +28,34 @@ struct NextPeriod: AppIntent {
     }
 }
 
+/// The leaderboard widget's period chips and unit button.
+struct SelectBoardPeriod: AppIntent {
+    static let title: LocalizedStringResource = "Select leaderboard period"
+    static let isDiscoverable = false
+
+    @Parameter(title: "Period") var period: String
+
+    init() { period = "7D" }
+    init(_ p: String) { period = p }
+
+    func perform() async throws -> some IntentResult {
+        BoardSelection.period = period
+        WidgetCenter.shared.reloadAllTimelines()
+        return .result()
+    }
+}
+
+struct ToggleBoardUnit: AppIntent {
+    static let title: LocalizedStringResource = "Leaderboard in tokens or USD"
+    static let isDiscoverable = false
+
+    func perform() async throws -> some IntentResult {
+        BoardSelection.unit = BoardSelection.unit == .tokens ? .usd : .tokens
+        WidgetCenter.shared.reloadAllTimelines()
+        return .result()
+    }
+}
+
 struct ToggleUnit: AppIntent {
     static let title: LocalizedStringResource = "Tokens or USD"
     static let isDiscoverable = false

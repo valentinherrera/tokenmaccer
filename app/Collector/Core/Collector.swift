@@ -206,6 +206,9 @@ public enum Collector {
                 if let log = step.log { out.append(log) }
             }
             try saveAtomic(config.widgetPath, JSONWriter.encode(w))
+            if leaderboard != nil, LeaderboardWidgetFile.sync(dataDir: config.dataDir, widgetPath: config.widgetPath) {
+                out.append(LeaderboardWidgetFile.updatedLog)
+            }
             let secs = String(format: "%.1f", Date().timeIntervalSince(t0))
             out.append("\(n) new turns · \(secs) s · updated \(w["updated"]?.string ?? "")")
         } catch {

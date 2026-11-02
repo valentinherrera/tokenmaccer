@@ -48,11 +48,7 @@ final class BoardStore {
         let rows = b.entries.map {
             BoardRowValue(rank: $0.rank, name: $0.displayName, login: $0.githubLogin, value: $0.value, isMe: $0.isMe)
         }
-        // leaderboard_top() appends the own row after the first `limit` places when it is not among them
-        if rows.count > LeaderboardBoards.limit, let last = rows.last, last.isMe {
-            return .board(BoardValue(participants: b.participants, top: Array(rows.prefix(LeaderboardBoards.limit)), own: last))
-        }
-        return .board(BoardValue(participants: b.participants, top: rows, own: nil))
+        return .board(BoardValue(participants: b.participants, rows: rows, places: LeaderboardBoards.limit))
     }
 }
 

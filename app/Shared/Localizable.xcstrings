@@ -397,6 +397,16 @@
         }
       }
     },
+    "Click to open TokenMaccer and join." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klick hier, um TokenMaccer zu öffnen und beizutreten."
+          }
+        }
+      }
+    },
     "Compare with others" : {
       "localizations" : {
         "de" : {
@@ -767,6 +777,16 @@
         }
       }
     },
+    "Leaderboard in tokens or USD" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaderboard in Token oder USD"
+          }
+        }
+      }
+    },
     "Leaderboard place %lld of %lld (%@, %@)" : {
       "localizations" : {
         "de" : {
@@ -1117,6 +1137,16 @@
         }
       }
     },
+    "Participants: %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilnehmende: %lld"
+          }
+        }
+      }
+    },
     "Period" : {
       "localizations" : {
         "de" : {
@@ -1253,6 +1283,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Such nach „TokenMaccer“."
+          }
+        }
+      }
+    },
+    "Select leaderboard period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaderboard-Zeitraum wählen"
           }
         }
       }
@@ -1600,6 +1640,16 @@
     "TokenMaccer" : {
       "shouldTranslate" : false
     },
+    "TokenMaccer Leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TokenMaccer Leaderboard"
+          }
+        }
+      }
+    },
     "TokenMaccer counts every 5 minutes." : {
       "localizations" : {
         "de" : {
@@ -1686,6 +1736,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Einheit"
+          }
+        }
+      }
+    },
+    "Unit: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einheit: %@"
           }
         }
       }
@@ -1966,6 +2026,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dein Leaderboard-Eintrag existiert nicht mehr. Tritt erneut bei, um mitzumachen."
+          }
+        }
+      }
+    },
+    "Your place among Claude Code users: the top places and your own row." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Platz im Leaderboard: die ersten Plätze und deine eigene Zeile."
           }
         }
       }

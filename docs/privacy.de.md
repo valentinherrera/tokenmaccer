@@ -44,6 +44,7 @@ Die Teilen-Karte („#3 von 120 diese Woche“) entsteht auf deinem Mac. Sie geh
 - `leaderboard.json` in `~/Library/Application Support/TokenMaccer/`: dein Anzeigename, GitHub-Nutzername, deine Konto-ID, deine letzten Plätze, die Zeitpunkte der letzten Meldung und des letzten Versuchs, der letzte Fehler.
 - Der Schlüsselbund-Eintrag „TokenMaccer leaderboard sign-in“ mit Access- und Refresh-Token. Lesen kann ihn nur der Hintergrund-Collector von TokenMaccer.
 - `leaderboard-top.json` (die Ranglisten des Leaderboard-Fensters, siehe oben) und der Ordner `avatars/` mit den zwischengespeicherten Profilbildern, im selben Ordner wie `leaderboard.json`.
+- `leaderboard-widget.json` im App-Group-Container: eine Kopie für das Leaderboard-Widget, je Rangliste die ersten acht Plätze und deinen eigenen, mit den Profilbildern dieser Personen.
 
 ### Wie lange
 
@@ -53,7 +54,7 @@ Die Teilen-Karte („#3 von 120 diese Woche“) entsteht auf deinem Mac. Sie geh
 
 ### Austreten und Löschen
 
-**Austreten …** in der App löscht dein Anmeldekonto auf dem Server. Profil, Summen, Sitzungen und deine GitHub-Identität auf dem Server werden mitgelöscht. Danach entfernt die App die Anmeldung aus deinem Schlüsselbund, `leaderboard.json`, `leaderboard-top.json` und die zwischengespeicherten Profilbilder. Erfolg meldet sie erst, wenn der Server die Löschung bestätigt hat. Nicht durch Austreten gelöscht werden der Eintrag der Meldegrenze (siehe oben) und Einträge in den Logs von Supabase.
+**Austreten …** in der App löscht dein Anmeldekonto auf dem Server. Profil, Summen, Sitzungen und deine GitHub-Identität auf dem Server werden mitgelöscht. Danach entfernt die App die Anmeldung aus deinem Schlüsselbund, `leaderboard.json`, `leaderboard-top.json`, `leaderboard-widget.json` und die zwischengespeicherten Profilbilder. Erfolg meldet sie erst, wenn der Server die Löschung bestätigt hat. Nicht durch Austreten gelöscht werden der Eintrag der Meldegrenze (siehe oben) und Einträge in den Logs von Supabase.
 
 Meldest du dich beim Austreten mit einem anderen GitHub-Konto an als dem, das beigetreten ist, lehnt die App das ab und löscht das Konto, das diese Anmeldung auf dem Server angelegt hat, wieder, es sei denn, dieses Konto nimmt selbst am Leaderboard teil.
 

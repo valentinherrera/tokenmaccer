@@ -176,6 +176,7 @@ final class Setup {
         var paths = [home + "/Library/Application Support/TokenMaccer"]
         if let appGroup, let container = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup) {
             paths.append(container.appendingPathComponent("widget.json").path)
+            paths.append(container.appendingPathComponent(LeaderboardWidgetData.fileName).path)
             UserDefaults(suiteName: appGroup)?.removePersistentDomain(forName: appGroup)
             paths.append(container.appendingPathComponent("Library/Preferences/\(appGroup).plist").path)
         }

@@ -56,32 +56,7 @@ struct LeaderboardProblem: Equatable {
 
 // MARK: Leaderboard window
 
-struct BoardRowValue: Equatable, Identifiable {
-    var rank: Int
-    var name: String
-    var login: String?
-    var value: Double
-    var isMe: Bool
-    var id: String { "\(rank)-\(name)-\(isMe)" }
-}
-
-struct BoardValue: Equatable {
-    var participants: Int
-    /// The first places, in order.
-    var top: [BoardRowValue]
-    /// The own row when it is not among `top` (shown below a gap).
-    var own: BoardRowValue?
-
-    var me: BoardRowValue? { own ?? top.first { $0.isMe } }
-}
-
-enum BoardState: Equatable {
-    case notJoined
-    /// Joined, but the collector has not fetched the boards yet.
-    case waiting
-    /// nil: nobody has a current total for this period and unit.
-    case board(BoardValue?)
-}
+// BoardRowValue, BoardValue, BoardState: Shared/LeaderboardWidgetData.swift (the leaderboard widget uses them too)
 
 struct LeaderboardWindowView: View {
     let state: BoardState
@@ -236,28 +211,6 @@ struct LeaderboardWindowView: View {
             }
         }
         .font(.caption).foregroundStyle(.secondary)
-    }
-}
-
-struct AvatarView: View {
-    let image: NSImage?
-    let name: String
-    var size: CGFloat = 28
-
-    var body: some View {
-        Group {
-            if let image {
-                Image(nsImage: image).resizable().interpolation(.high)
-            } else {
-                Circle().fill(.quaternary)
-                    .overlay(Text(verbatim: String(name.prefix(1)).uppercased())
-                        .font(.system(size: size * 0.45, weight: .semibold))
-                        .foregroundStyle(.secondary))
-            }
-        }
-        .frame(width: size, height: size)
-        .clipShape(Circle())
-        .accessibilityHidden(true)
     }
 }
 

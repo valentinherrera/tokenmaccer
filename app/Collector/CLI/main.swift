@@ -36,6 +36,24 @@ func reply(_ obj: [String: Any]) -> Never {
     exit((obj["ok"] as? Bool) == true ? 0 : 1)
 }
 
+/// The background agent writes widget.json into the App Group container. Look the container up through
+/// containermanagerd instead of only building the path: the lookup checks our signature (team-prefixed App Group)
+/// and hands out a sandbox extension for the folder. Writing to the bare path skips that and macOS asks the user
+/// "access data from other apps?".
+func useContainer(_ config: inout CollectorConfig) {
+    guard let group = config.appGroup, let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group),
+        !args.contains("--widget-out"), (env["TOKENMACCER_WIDGET_PATH"] ?? "").isEmpty
+    else { return }
+    config.widgetPath = url.appendingPathComponent("widget.json").path
+}
+
+/// Ask WidgetKit for a fresh timeline right away instead of waiting for the 5-minute refresh. The request goes
+/// out over XPC; give it a moment before the process exits.
+func reloadWidgets() {
+    WidgetCenter.shared.reloadAllTimelines()
+    RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+}
+
 if args.first == "leaderboard" {
     var rest = Array(args.dropFirst())
     let action = rest.isEmpty ? "" : rest.removeFirst()
@@ -46,11 +64,19 @@ if args.first == "leaderboard" {
     }
     let wantsSignIn = rest.contains("--sign-in")
     rest.removeAll { $0 == "--sign-in" }
-    let config: CollectorConfig
+    var config: CollectorConfig
     do {
         config = try Collector.configuration(arguments: rest, environment: env, appGroup: hostGroup)
     } catch {
         reply(["ok": false, "error": "\(error)"])
+    }
+    useContainer(&config)
+    // join, rename and leave change what the leaderboard widget may show (Leave removes its copy of the boards)
+    func done(_ obj: [String: Any]) -> Never {
+        if config.appGroup != nil, LeaderboardWidgetFile.sync(dataDir: config.dataDir, widgetPath: config.widgetPath) {
+            reloadWidgets()
+        }
+        reply(obj)
     }
     // the same lock as a collection pass: a running pass finishes its report first
     try? FileManager.default.createDirectory(atPath: config.dataDir, withIntermediateDirectories: true)
@@ -68,17 +94,17 @@ if args.first == "leaderboard" {
         else { reply(["ok": false, "error": "expected {\"code\": …, \"verifier\": …} on stdin"]) }
         do {
             let state = try sync.join(code: code, verifier: verifier, displayName: displayName)
-            reply(["ok": true, "display_name": state.displayName ?? "", "github_login": state.githubLogin ?? ""])
+            done(["ok": true, "display_name": state.displayName ?? "", "github_login": state.githubLogin ?? ""])
         } catch {
-            reply(["ok": false, "error": "\(error)"])
+            done(["ok": false, "error": "\(error)"])
         }
     case "rename":
         guard let displayName else { reply(["ok": false, "error": "rename needs --display-name NAME"]) }
         do {
             let state = try sync.rename(displayName: displayName)
-            reply(["ok": true, "display_name": state.displayName ?? "", "github_login": state.githubLogin ?? ""])
+            done(["ok": true, "display_name": state.displayName ?? "", "github_login": state.githubLogin ?? ""])
         } catch {
-            reply(["ok": false, "error": "\(error)"])
+            done(["ok": false, "error": "\(error)"])
         }
     case "leave":
         // --sign-in: a fresh GitHub sign-in ({"code": …, "verifier": …} on stdin) for a lost or dead one
@@ -92,9 +118,9 @@ if args.first == "leaderboard" {
         }
         do {
             try sync.leave(signIn: signIn)
-            reply(["ok": true])
+            done(["ok": true])
         } catch {
-            reply(["ok": false, "error": "\(error)"])
+            done(["ok": false, "error": "\(error)"])
         }
     default:
         reply(["ok": false, "error": "usage: leaderboard join|rename|leave|endpoint [--display-name NAME]"])
@@ -104,24 +130,15 @@ if args.first == "leaderboard" {
 do {
     // The background agent passes --app-group; a host app's Info.plist may name it as well.
     var config = try Collector.configuration(arguments: args, environment: env, appGroup: hostGroup)
-    if let group = config.appGroup, let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) {
-        // Look the container up through containermanagerd instead of only building the path: the lookup
-        // checks our signature (team-prefixed App Group) and hands out a sandbox extension for the folder.
-        // Writing to the bare path skips that and macOS asks the user "access data from other apps?".
-        if !args.contains("--widget-out"), (env["TOKENMACCER_WIDGET_PATH"] ?? "").isEmpty {
-            config.widgetPath = url.appendingPathComponent("widget.json").path
-        }
-    }
+    useContainer(&config)
     let result = Collector.run(config, leaderboard: leaderboardSync(config))
     if !result.stdout.isEmpty { print(result.stdout) }
     if !result.stderr.isEmpty { FileHandle.standardError.write(Data((result.stderr + "\n").utf8)) }
-    if result.exitCode == 0, result.newTurns > 0 || result.stdout.contains("leaderboard: reported"),
-        config.appGroup != nil
+    if result.exitCode == 0, config.appGroup != nil,
+        result.newTurns > 0 || result.stdout.contains("leaderboard: reported")
+            || result.stdout.contains(LeaderboardWidgetFile.updatedLog)
     {
-        // Ask WidgetKit for a fresh timeline right away instead of waiting for the 5-minute refresh.
-        // The request goes out over XPC; give it a moment before the process exits.
-        WidgetCenter.shared.reloadAllTimelines()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        reloadWidgets()
     }
     exit(result.exitCode)
 } catch {

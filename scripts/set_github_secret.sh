@@ -43,8 +43,17 @@ if [ "${status}" -ne 0 ]; then
 fi
 
 # Check: with a secret in place, the authorize endpoint redirects to GitHub instead of answering 400.
-code="$(curl -s -m 30 -o /dev/null -w '%{http_code}' \
-    -H "apikey: ${PUBLISHABLE_KEY}" "${URL}/auth/v1/authorize?provider=github")"
+# The hosted auth service applies a config push after a few seconds, so retry for up to a minute.
+tries=0
+while :; do
+    code="$(curl -s -m 30 -o /dev/null -w '%{http_code}' \
+        -H "apikey: ${PUBLISHABLE_KEY}" "${URL}/auth/v1/authorize?provider=github")"
+    tries=$((tries + 1))
+    if [ "${code}" = "302" ] || [ "${code}" = "303" ] || [ "${tries}" -ge 12 ]; then
+        break
+    fi
+    sleep 5
+done
 if [ "${code}" = "302" ] || [ "${code}" = "303" ]; then
     echo "gesetzt"
 else

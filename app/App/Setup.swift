@@ -127,6 +127,11 @@ final class Setup {
     /// the app clears its defaults once more and exits there, before that save.
     func removeEverything() {
         let failures = Self.remove(data: true)
+        if let first = failures.first, first.hasPrefix("leaderboard:") {
+            note = "Nothing removed. " + first.dropFirst("leaderboard: ".count) + "."
+            refresh()
+            return
+        }
         if !clearOnQuit {
             clearOnQuit = true
             _ = NotificationCenter.default.addObserver(
@@ -145,6 +150,16 @@ final class Setup {
     /// Unregisters the background agent and, with `data`, deletes the app edition's files. Returns the failures.
     nonisolated static func remove(data: Bool) -> [String] {
         var failures: [String] = []
+        let home = WidgetData.realHome ?? NSHomeDirectory()
+        if data {
+            // a leaderboard entry must not outlive the data: leave first, and stop if the server says no
+            let left = Leaderboard.leaveBeforeRemoval(
+                dataDir: home + "/Library/Application Support/TokenMaccer",
+                helper: Bundle.main.url(forAuxiliaryExecutable: "tokenmaccer-collector"))
+            if !left.ok {
+                return ["leaderboard: \(left.error ?? "unknown error"). Leave the leaderboard first, then try again"]
+            }
+        }
         if let plist = Bundle.main.object(forInfoDictionaryKey: "TMAgentPlist") as? String {
             let agent = SMAppService.agent(plistName: plist)
             do {
@@ -155,7 +170,6 @@ final class Setup {
         }
         guard data else { return failures }
         let fm = FileManager.default
-        let home = WidgetData.realHome ?? NSHomeDirectory()
         var paths = [home + "/Library/Application Support/TokenMaccer"]
         if let appGroup, let container = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroup) {
             paths.append(container.appendingPathComponent("widget.json").path)
@@ -253,6 +267,8 @@ final class Setup {
 /// First-run and status window of the app edition.
 struct SetupView: View {
     @State private var setup = Setup()
+    @State private var leaderboard = Leaderboard(
+        dataDir: (WidgetData.realHome ?? NSHomeDirectory()) + "/Library/Application Support/TokenMaccer")
     @State private var confirmRemoval = false
     private let tick = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
@@ -264,7 +280,9 @@ struct SetupView: View {
                     .frame(width: 48, height: 48)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("TokenMaccer").font(.title2.weight(.semibold))
-                    Text("Claude Code token usage on your desktop. Everything stays on this Mac.")
+                    Text(leaderboard.joined
+                         ? "Claude Code token usage on your desktop. Only your period totals go to the leaderboard."
+                         : "Claude Code token usage on your desktop. Everything stays on this Mac.")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             }
@@ -296,6 +314,7 @@ struct SetupView: View {
                         Text(note).font(.callout).foregroundStyle(.secondary)
                     }
                 }
+                LeaderboardSection(leaderboard: leaderboard, setup: setup)
             }
             .formStyle(.grouped)
             .scrollDisabled(true)
@@ -313,7 +332,9 @@ struct SetupView: View {
                 ) {
                     Button("Remove Data", role: .destructive) { setup.removeEverything() }
                 } message: {
-                    Text("Deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash.")
+                    Text(leaderboard.joined || leaderboard.leavePending
+                         ? "Leaves the leaderboard (your profile and totals are deleted from the server) and deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash."
+                         : "Deletes your token history and the widget's numbers on this Mac. Claude Code's transcripts are not touched. Afterwards move TokenMaccer to the Trash.")
                 }
                 CheckForUpdatesButton()
                 Spacer()
@@ -327,7 +348,10 @@ struct SetupView: View {
         .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
         .onAppear { setup.start() }
-        .onReceive(tick) { _ in setup.refresh() }
+        .onReceive(tick) { _ in
+            setup.refresh()
+            leaderboard.refresh()
+        }
     }
 
     @ViewBuilder private var service: some View {

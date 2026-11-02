@@ -96,6 +96,25 @@ struct TickerView: View {
         }
     }
 
+    /// Leaderboard place for the shown period and unit, quiet; nothing without one (not joined, or no place yet).
+    @ViewBuilder private var rank: some View {
+        if let place = data?.place(period: period, unit: unit) {
+            Text("#\(place.rank) of \(place.of)")
+                .font(.system(size: 11, weight: .medium))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .accessibilityLabel("Leaderboard place \(place.rank) of \(place.of)")
+        }
+    }
+
+    private var pillAndRank: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            changePill
+            rank
+        }
+    }
+
     private func subline(_ p: Period) -> some View {
         let parts = [
             unit == .tokens ? Format.usd(p.usd) : Format.tokens(p.input) + " in",
@@ -144,7 +163,7 @@ struct TickerView: View {
         VStack(alignment: .leading, spacing: 3) {
             header
             headline(p, fontSize: 26)
-            changePill
+            pillAndRank
             Spacer(minLength: 2)
             curve(p)
         }
@@ -156,7 +175,7 @@ struct TickerView: View {
             HStack(alignment: .top, spacing: 10) {
                 VStack(alignment: .leading, spacing: 4) {
                     headline(p, fontSize: 28)
-                    changePill
+                    pillAndRank
                     subline(p)
                 }
                 .frame(width: 140, alignment: .leading)
@@ -173,6 +192,8 @@ struct TickerView: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 headline(p, fontSize: 34)
                 changePill
+                Spacer(minLength: 4)
+                rank
             }
             Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 2) {
                 GridRow {

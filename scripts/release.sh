@@ -40,7 +40,7 @@ export DEVELOPER_DIR
 VERSION="${1:-$(sed -n 's/^ *MARKETING_VERSION: *"\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$ROOT/app/project.yml" | head -1)}"
 [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]] || { echo "invalid version: '$VERSION'" >&2; exit 2; }
 
-BUILD="$ROOT/app/build-release"   # derived data, archive, export: always from scratch
+BUILD="$ROOT/app/build-release.noindex"   # derived data, archive, export: always from scratch
 NOTARIZE="${TM_NOTARIZE:-1}"
 DIST="$ROOT/dist"
 [ "$NOTARIZE" = 1 ] || DIST="$ROOT/dist/test"

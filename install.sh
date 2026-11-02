@@ -111,8 +111,14 @@ BUNDLE_ID_PREFIX="${BUNDLE_ID_PREFIX:-local.$(id -un | tr -cd 'a-zA-Z0-9')}"
 say "Building TokenMaccer.app (team $DEVELOPMENT_TEAM, bundle id $BUNDLE_ID_PREFIX.tokenmaccer)"
 cd "$REPO/app"
 xcodegen generate --quiet
+# Builds go to build.noindex: Spotlight skips *.noindex folders, so the build copy never shows up as a second
+# TokenMaccer in the widget gallery or in Open With. Older versions built into app/build; remove that copy.
+if [ -d build ]; then
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$REPO/app/build/Build/Products/Release/TokenMaccer.app" 2>/dev/null || true
+  rm -rf build
+fi
 xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
-  -derivedDataPath build DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" BUNDLE_ID_PREFIX="$BUNDLE_ID_PREFIX" \
+  -derivedDataPath build.noindex DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" BUNDLE_ID_PREFIX="$BUNDLE_ID_PREFIX" \
   -quiet build
 
 say "Installing to $APP_DIR/TokenMaccer.app"
@@ -121,8 +127,8 @@ mkdir -p "$APP_DIR"
 pkill -x TokenMaccer 2>/dev/null || true
 pkill -x TokenMaccerWidget 2>/dev/null || true
 rm -rf "$APP_DIR/TokenMaccer.app"
-cp -R build/Build/Products/Release/TokenMaccer.app "$APP_DIR/"
-/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$REPO/app/build/Build/Products/Release/TokenMaccer.app" 2>/dev/null || true
+cp -R build.noindex/Build/Products/Release/TokenMaccer.app "$APP_DIR/"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$REPO/app/build.noindex/Build/Products/Release/TokenMaccer.app" 2>/dev/null || true
 open "$APP_DIR/TokenMaccer.app"
 
 say "Done. Add the widget: right-click the desktop > Edit Widgets... > search \"TokenMaccer\"."

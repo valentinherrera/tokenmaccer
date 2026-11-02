@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Checks the String Catalog (app/Shared/Localizable.xcstrings) for missing German.
 
-  scripts/check_strings.py                      every entry of the catalog has a German translation
-  scripts/check_strings.py --derived app/build  and every string the last build found in the Swift sources of the
-                                                app, the widget and the collector core is in the catalog
+  scripts/check_strings.py                              every entry of the catalog has a German translation
+  scripts/check_strings.py --derived app/build.noindex  and every string the last build found in the Swift sources
+                                                        of the app, the widget and the collector core is in the catalog
 
 The build writes what it finds to *.stringsdata files (SWIFT_EMIT_LOC_STRINGS in app/project.yml): Text("…"),
 String(localized: …), LocalizedStringResource and the like. A string that is shown but missing here would appear

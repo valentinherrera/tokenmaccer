@@ -80,15 +80,15 @@ swift_checks() {
   xcodegen generate --quiet
   step "build, open-source edition (unsigned, warnings as errors)"
   xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
-    -derivedDataPath build CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM=CI00000000 build -quiet
+    -derivedDataPath build.noindex CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM=CI00000000 build -quiet
   step "XCTest (Swift collector)"
   xcodebuild -project TokenMaccer.xcodeproj -scheme tokenmaccer-collector \
-    -derivedDataPath build CODE_SIGNING_ALLOWED=NO test -quiet
+    -derivedDataPath build.noindex CODE_SIGNING_ALLOWED=NO test -quiet
   step "build, app edition (unsigned, universal, warnings as errors)"
   xcodebuild -project TokenMaccer.xcodeproj -scheme TokenMaccer -configuration Release \
-    -derivedDataPath build-appedition -xcconfig AppEdition.xcconfig \
+    -derivedDataPath build-appedition.noindex -xcconfig AppEdition.xcconfig \
     CODE_SIGNING_ALLOWED=NO GCC_TREAT_WARNINGS_AS_ERRORS=YES clean build -quiet
-  local app=build-appedition/Build/Products/Release/TokenMaccer.app/Contents
+  local app=build-appedition.noindex/Build/Products/Release/TokenMaccer.app/Contents
   for bin in "$app/MacOS/TokenMaccer" "$app/MacOS/tokenmaccer-collector" \
              "$app/PlugIns/TokenMaccerWidget.appex/Contents/MacOS/TokenMaccerWidget"; do
     lipo "$bin" -verify_arch arm64 x86_64
@@ -99,15 +99,15 @@ swift_checks() {
   step "Swift and Python collector agree on demo data"
   "$SYSTEM_PYTHON" scripts/make_demo.py "$TMP/parity"
   "$SYSTEM_PYTHON" -I scripts/compare_collectors.py --claude-dir "$TMP/parity" \
-    --swift app/build/Build/Products/Debug/tokenmaccer-collector
+    --swift app/build.noindex/Build/Products/Debug/tokenmaccer-collector
   step "every string the build found has German in the String Catalog"
-  "$SYSTEM_PYTHON" -I scripts/check_strings.py --derived app/build-appedition
+  "$SYSTEM_PYTHON" -I scripts/check_strings.py --derived app/build-appedition.noindex
   step "Sparkle signature check of release.sh type-checks"
   xcrun swiftc -typecheck scripts/verify_ed_signature.swift
   step "release build ignores leaderboard server overrides (Debug honours them)"
   scripts/check_release_endpoint.sh \
-    app/build-appedition/Build/Products/Release/TokenMaccer.app/Contents/MacOS/tokenmaccer-collector \
-    app/build/Build/Products/Debug/tokenmaccer-collector
+    app/build-appedition.noindex/Build/Products/Release/TokenMaccer.app/Contents/MacOS/tokenmaccer-collector \
+    app/build.noindex/Build/Products/Debug/tokenmaccer-collector
   step "preview render with demo data"
   "$SYSTEM_PYTHON" scripts/make_demo.py "$TMP/claude"
   TOKENMACCER_CLAUDE_DIR="$TMP/claude" TOKENMACCER_DATA_DIR="$TMP/data" \

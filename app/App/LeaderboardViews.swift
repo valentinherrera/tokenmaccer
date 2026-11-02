@@ -511,7 +511,7 @@ struct MenuRow: View {
                 Spacer()
                 if let shortcut {
                     Text(verbatim: shortcut)
-                        .foregroundStyle(hover && enabled ? AnyShapeStyle(Palette.onAccent.opacity(0.8)) : AnyShapeStyle(.secondary))
+                        .foregroundStyle(hover && enabled ? AnyShapeStyle(Palette.onAccent) : AnyShapeStyle(.secondary))
                 }
             }
             .foregroundStyle(hover && enabled ? AnyShapeStyle(Palette.onAccent) : enabled ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))

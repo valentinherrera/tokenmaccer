@@ -18,6 +18,8 @@ the local database container. Every user created here is deleted at the end, als
 Refuses to run against anything but 127.0.0.1/localhost. SB_SERVICE is never printed.
 """
 
+from __future__ import annotations
+
 import base64
 import hashlib
 import http.server
@@ -30,6 +32,7 @@ import tempfile
 import threading
 import urllib.error
 import urllib.request
+from typing import Any, ClassVar, Dict, List, Tuple
 
 URL = os.environ['SB_URL'].rstrip('/')
 ANON = os.environ['SB_ANON']
@@ -39,18 +42,18 @@ HELPER = os.environ['TM_HELPER']
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RUN = secrets.token_hex(3)
 KEYCHAIN_SERVICE = f'tokenmaccer-e2e-{RUN}'
-CHECKS = []
+CHECKS: List[Tuple[str, bool]] = []
 
 if not (URL.startswith('http://127.0.0.1:') or URL.startswith('http://localhost:')):
     sys.exit('local stack only')
 
 
-def check(name, cond, info=''):
+def check(name: str, cond: object, info: object = '') -> None:
     CHECKS.append((name, bool(cond)))
     print(('ok   ' if cond else 'FAIL ') + name + ('' if cond else f'  [{info}]'))
 
 
-def call(method, path, key, token=None, body=None):
+def call(method: str, path: str, key: str, token: str | None = None, body: Any = None) -> Tuple[int, Any]:
     headers = {'apikey': key, 'Authorization': f'Bearer {token or key}', 'Content-Type': 'application/json'}
     data = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(URL + path, data=data, method=method, headers=headers)
@@ -66,7 +69,7 @@ def call(method, path, key, token=None, body=None):
             return e.code, raw.decode(errors='replace')[:200]
 
 
-def psql(sql):
+def psql(sql: str) -> str:
     r = subprocess.run(
         ['docker', 'exec', DB, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-Atqc', sql],
         capture_output=True,
@@ -79,7 +82,9 @@ def psql(sql):
     return r.stdout.strip()
 
 
-def helper(args, data_dir, stdin=None, url=URL, service=KEYCHAIN_SERVICE):
+def helper(
+    args: List[str], data_dir: str, stdin: str | None = None, url: str = URL, service: str = KEYCHAIN_SERVICE
+) -> Tuple[int, str, str]:
     env = {
         'PATH': '/usr/bin:/bin',
         'HOME': os.environ['HOME'],
@@ -92,13 +97,13 @@ def helper(args, data_dir, stdin=None, url=URL, service=KEYCHAIN_SERVICE):
     return r.returncode, r.stdout.strip(), r.stderr.strip()
 
 
-def collect(data_dir, claude_dir, url=URL):
+def collect(data_dir: str, claude_dir: str, url: str = URL) -> Tuple[int, str, str]:
     return helper(
         ['--claude-dir', claude_dir, '--widget-out', os.path.join(data_dir, 'widget.json')], data_dir, url=url
     )
 
 
-def state(data_dir):
+def state(data_dir: str) -> Any:
     try:
         with open(os.path.join(data_dir, 'leaderboard.json')) as f:
             return json.load(f)
@@ -106,12 +111,12 @@ def state(data_dir):
         return None
 
 
-def widget(data_dir):
+def widget(data_dir: str) -> Any:
     with open(os.path.join(data_dir, 'widget.json')) as f:
         return json.load(f)
 
 
-def new_user(n, github=True):
+def new_user(n: int, github: bool = True) -> Tuple[str, str, str, str | None]:
     email = f'test-e2e-{n}-{RUN}@example.com'
     password = secrets.token_urlsafe(18)
     st, body = call(
@@ -132,7 +137,7 @@ def new_user(n, github=True):
     return uid, email, password, login
 
 
-def add_flow_state(uid, code, challenge):
+def add_flow_state(uid: str, code: str, challenge: str) -> None:
     """The PKCE flow state GoTrue stores after the GitHub callback (what the code exchange looks up)."""
     psql(
         'insert into auth.flow_state (id, user_id, auth_code, code_challenge_method, code_challenge, provider_type, '
@@ -143,7 +148,7 @@ def add_flow_state(uid, code, challenge):
     )
 
 
-def pkce_flow(uid):
+def pkce_flow(uid: str) -> str:
     """A fresh GitHub sign-in for `uid` as the helper gets it on stdin: flow state in GoTrue, code + verifier."""
     verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=').decode()
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
@@ -152,7 +157,7 @@ def pkce_flow(uid):
     return json.dumps({'code': code, 'verifier': verifier})
 
 
-def server_rows(uid):
+def server_rows(uid: str) -> str:
     return psql(
         f"select (select count(*) from auth.users where id = '{uid}') || ',' || "
         f"(select count(*) from public.profiles where id = '{uid}') || ',' || "
@@ -160,12 +165,12 @@ def server_rows(uid):
     )
 
 
-def report_body(scale):
+def report_body(scale: int) -> Dict[str, Any]:
     import datetime as dt
 
     today = dt.date.today()
 
-    def p(inp, start):
+    def p(inp: int, start: dt.date) -> Dict[str, Any]:
         return {
             'input': inp * scale,
             'output': inp * scale // 100,
@@ -186,21 +191,21 @@ def report_body(scale):
 
 
 class Counter(http.server.BaseHTTPRequestHandler):
-    hits = []
+    hits: ClassVar[List[str]] = []
 
-    def handle_one(self):
+    def handle_one(self) -> None:
         Counter.hits.append(self.path)
         self.send_response(503)
         self.end_headers()
 
     do_GET = do_POST = handle_one
 
-    def log_message(self, *a):
+    def log_message(self, *a: Any) -> None:
         pass
 
 
-def main():
-    users = []
+def main() -> None:
+    users: List[str] = []
     tmp = tempfile.mkdtemp(prefix='tm-e2e-')
     claude = os.path.join(tmp, 'claude')
     a_dir, gate_dir, control_dir = (os.path.join(tmp, d) for d in ('a', 'gate', 'control'))
@@ -213,7 +218,7 @@ def main():
     try:
         a_uid, _, _, a_login = new_user(1)
         users.append(a_uid)
-        others = []
+        others: List[str] = []
         for n, scale in ((2, 10**9), (3, 1)):
             uid, email, password, _ = new_user(n)
             users.append(uid)

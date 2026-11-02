@@ -125,7 +125,10 @@ final class Leaderboard {
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<URL, Error>) in
             let session = ASWebAuthenticationSession(
                 url: url, callback: .customScheme(LeaderboardEndpoint.callbackScheme)
-            ) { callback, error in
+            ) { @Sendable callback, error in
+                // AuthenticationServices calls this on an XPC queue, not the main thread. Without @Sendable the
+                // closure inherits the class's @MainActor isolation and Swift 6 traps on the executor check
+                // (crash 02.11.2026, _dispatch_assert_queue_fail). It only resumes the continuation.
                 if let callback {
                     cont.resume(returning: callback)
                 } else {
@@ -171,7 +174,12 @@ final class Leaderboard {
 
 final class AuthAnchor: NSObject, ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        MainActor.assumeIsolated { NSApp.keyWindow ?? NSApp.windows.first ?? NSWindow() }
+        // Normally called on the main thread; if AuthenticationServices ever asks from another queue, hop instead
+        // of trapping in assumeIsolated (same crash class as the completion handler above).
+        if Thread.isMainThread {
+            return MainActor.assumeIsolated { NSApp.keyWindow ?? NSApp.windows.first ?? NSWindow() }
+        }
+        return DispatchQueue.main.sync { MainActor.assumeIsolated { NSApp.keyWindow ?? NSApp.windows.first ?? NSWindow() } }
     }
 }
 

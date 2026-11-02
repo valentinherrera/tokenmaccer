@@ -16,6 +16,8 @@ and must be refused. Against the hosted project, test joining with a real GitHub
 SB_SERVICE is read from the environment only and never printed.
 """
 
+from __future__ import annotations
+
 import datetime as dt
 import json
 import os
@@ -24,16 +26,19 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+from typing import Any, Dict, List, Tuple
 
 URL = os.environ['SB_URL'].rstrip('/')
 ANON = os.environ['SB_ANON']
 SERVICE = os.environ['SB_SERVICE']
 DB_CONTAINER = os.environ.get('SB_DB_CONTAINER', '')
 RUN = secrets.token_hex(3)
-CHECKS = []
+CHECKS: List[Tuple[str, bool]] = []
 
 
-def call(method, path, key, token=None, body=None):
+def call(
+    method: str, path: str, key: str, token: str | None = None, body: Any = None
+) -> Tuple[int, Any, Dict[str, str]]:
     headers = {'apikey': key, 'Authorization': f'Bearer {token or key}', 'Content-Type': 'application/json'}
     data = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(URL + path, data=data, method=method, headers=headers)
@@ -43,6 +48,7 @@ def call(method, path, key, token=None, body=None):
             return r.status, (json.loads(raw) if raw else None), dict(r.headers)
     except urllib.error.HTTPError as e:
         raw = e.read()
+        parsed: Any
         try:
             parsed = json.loads(raw) if raw else None
         except ValueError:
@@ -50,7 +56,7 @@ def call(method, path, key, token=None, body=None):
         return e.code, parsed, dict(e.headers)
 
 
-def add_github_identity(uid, login, provider_id):
+def add_github_identity(uid: str, login: str, provider_id: str) -> bool:
     """Insert a GitHub identity row as the auth server would at sign-in (local stack only)."""
     sql = (
         'insert into auth.identities '
@@ -68,15 +74,15 @@ def add_github_identity(uid, login, provider_id):
     return r.returncode == 0
 
 
-def check(name, cond, info=''):
+def check(name: str, cond: object, info: object = '') -> None:
     CHECKS.append((name, bool(cond)))
     print(('ok   ' if cond else 'FAIL ') + name + ('' if cond else f'  [{info}]'))
 
 
-def report(scale, usd):
+def report(scale: int, usd: float) -> Dict[str, Any]:
     today = dt.datetime.now(dt.timezone.utc).date()
 
-    def p(days, inp, start):
+    def p(days: int, inp: int, start: dt.date) -> Dict[str, Any]:
         return {
             'input': inp * scale,
             'output': inp * scale // 100,
@@ -96,13 +102,13 @@ def report(scale, usd):
     }
 
 
-def main():
+def main() -> int:
     if not DB_CONTAINER:
         print('SB_DB_CONTAINER not set: GitHub identities cannot be created over HTTP, nothing run')
         return 2
-    created = []
+    created: List[str] = []
     try:
-        users = []
+        users: List[str] = []
         for n in range(1, 4):
             email = f'test-{n}-{RUN}@example.com'
             password = secrets.token_urlsafe(18)

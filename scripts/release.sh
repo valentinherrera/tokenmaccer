@@ -147,9 +147,9 @@ echo "  ok  build $BUILD_NUMBER, feed $FEED"
 [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]] || die "CFBundleVersion is not a plain number: $BUILD_NUMBER"
 PREVIOUS=0
 for feed_xml in "$(cat "$DIST/appcast.xml" 2>/dev/null)" "$(curl -fsSL --max-time 20 "$FEED" 2>/dev/null)"; do
-  for n in $(grep -oE '<sparkle:version>[0-9]+</sparkle:version>' <<<"$feed_xml" | grep -oE '[0-9]+'); do
-    [ "$n" -gt "$PREVIOUS" ] && PREVIOUS="$n"
-  done
+  while IFS= read -r n; do
+    [ -n "$n" ] && [ "$n" -gt "$PREVIOUS" ] && PREVIOUS="$n"
+  done < <(grep -oE '<sparkle:version>[0-9]+</sparkle:version>' <<<"$feed_xml" | grep -oE '[0-9]+')
 done
 [ "$BUILD_NUMBER" -gt "$PREVIOUS" ] \
   || die "build $BUILD_NUMBER is not higher than the released build $PREVIOUS; raise CURRENT_PROJECT_VERSION in app/project.yml"

@@ -157,6 +157,20 @@ def pkce_flow(uid: str) -> str:
     return json.dumps({'code': code, 'verifier': verifier})
 
 
+def sign_in(uid: str) -> Any:
+    """Tokens for `uid` through the PKCE code exchange (email sign-in is off, see supabase/config.toml)."""
+    flow = json.loads(pkce_flow(uid))
+    st, tok = call(
+        'POST',
+        '/auth/v1/token?grant_type=pkce',
+        ANON,
+        body={'auth_code': flow['code'], 'code_verifier': flow['verifier']},
+    )
+    if st != 200:
+        raise RuntimeError(f'sign-in {uid}: {st} {tok}')
+    return tok
+
+
 def server_rows(uid: str) -> str:
     return psql(
         f"select (select count(*) from auth.users where id = '{uid}') || ',' || "
@@ -220,11 +234,9 @@ def main() -> None:
         users.append(a_uid)
         others: List[str] = []
         for n, scale in ((2, 10**9), (3, 1)):
-            uid, email, password, _ = new_user(n)
+            uid, _, _, _ = new_user(n)
             users.append(uid)
-            st, tok = call(
-                'POST', '/auth/v1/token?grant_type=password', ANON, body={'email': email, 'password': password}
-            )
+            st, tok = 200, sign_in(uid)
             st2, _ = call(
                 'POST', '/rest/v1/rpc/join_leaderboard', ANON, tok['access_token'], {'p_display_name': f'Synth {n}'}
             )

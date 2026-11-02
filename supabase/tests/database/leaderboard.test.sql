@@ -1,9 +1,9 @@
--- Leaderboard: RLS, plausibility, ranking, leave. Run with `supabase test db`.
+-- Leaderboard: RLS, plausibility, ranking, leave, rate limit. Run with `supabase test db`.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
 
-select plan(49);
+select plan(63);
 
 -- Fixtures: synthetic users only -----------------------------------------------------------------
 insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -144,6 +144,18 @@ select throws_ok(
 select throws_ok(
   $$select apply_report('00000000-0000-0000-0000-00000000000c', pg_temp.report(1, 1))$$,
   '42501', 'not a participant', 'someone who did not join cannot report');
+select throws_ok(
+  $$select apply_report('00000000-0000-0000-0000-00000000000a',
+      jsonb_set(pg_temp.report(1, 1), '{periods,7D,start}', to_jsonb(current_date - 7)))$$,
+  '22023', 'inconsistent period starts', 'a 7D window that does not end on the 1D day is refused');
+select throws_ok(
+  $$select apply_report('00000000-0000-0000-0000-00000000000a',
+      jsonb_set(pg_temp.report(1, 1), '{periods,YTD,start}', to_jsonb(current_date - 400)))$$,
+  '22023', 'inconsistent period starts', 'a YTD that does not start on 1 January is refused');
+select throws_ok(
+  $$select apply_report('00000000-0000-0000-0000-00000000000a',
+      jsonb_set(pg_temp.report(1, 1), '{periods,ALL,start}', to_jsonb(current_date + 1)))$$,
+  '22023', 'inconsistent period starts', 'an ALL period starting after today is refused');
 
 -- Valid reports: B has more tokens, A spends more USD.
 select lives_ok($$select apply_report('00000000-0000-0000-0000-00000000000a', pg_temp.report(1, 5))$$,
@@ -208,6 +220,49 @@ select is((select count(*)::int from profiles where id = '00000000-0000-0000-000
 delete from auth.users where id = '00000000-0000-0000-0000-00000000000b';
 select is((select count(*)::int from totals where user_id = '00000000-0000-0000-0000-00000000000b'), 0,
   'deleting the auth account removes profile and totals');
+
+-- Rate limit survives leave, join and a new account ----------------------------------------------
+-- A reported above (same transaction, so now() is unchanged) and has just left.
+select is((select count(*)::int from private.report_limits where subject = 'github:9000000001'), 1,
+  'the rate-limit slot of A is kept after leave');
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select throws_ok($$select * from private.report_limits$$, '42501', null, 'clients cannot read the rate-limit table');
+select is((select display_name from join_leaderboard('Alpha again')), 'Alpha again', 'A joins again after leaving');
+reset role;
+set local role service_role;
+select throws_ok($$select apply_report('00000000-0000-0000-0000-00000000000a', pg_temp.report(1, 1))$$,
+  'P0001', 'rate limited', 'leave then join does not reset the rate limit');
+reset role;
+-- The same GitHub user with a new auth account (account deleted, signed in again).
+delete from auth.users where id = '00000000-0000-0000-0000-00000000000a';
+insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values ('00000000-0000-0000-0000-0000000000a2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+        'test-a2@example.com', '{"provider":"github","providers":["github"]}', '{"user_name":"test-a"}', now(), now());
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+values ('9000000001', '00000000-0000-0000-0000-0000000000a2',
+        '{"sub":"9000000001","user_name":"test-a","preferred_username":"test-a"}', 'github', now(), now(), now());
+select pg_temp.as_user('00000000-0000-0000-0000-0000000000a2');
+select lives_ok($$select join_leaderboard('Alpha new')$$, 'the same GitHub user joins with a new account');
+reset role;
+set local role service_role;
+select throws_ok($$select apply_report('00000000-0000-0000-0000-0000000000a2', pg_temp.report(1, 1))$$,
+  'P0001', 'rate limited', 'a new auth account of the same GitHub user does not reset the rate limit');
+reset role;
+-- Positive control: once the slot is 26 minutes old the report goes through; rows older than an hour go.
+update private.report_limits set last_report_at = now() - interval '26 minutes' where subject = 'github:9000000001';
+insert into private.report_limits (subject, last_report_at) values ('uid:old-left-participant', now() - interval '2 hours');
+set local role service_role;
+select lives_ok($$select apply_report('00000000-0000-0000-0000-0000000000a2', pg_temp.report(1, 1))$$,
+  'after 25 minutes the same GitHub user may report again');
+reset role;
+select is((select last_report_at from private.report_limits where subject = 'github:9000000001'), now(),
+  'the accepted report claims the slot');
+select is((select count(*)::int from private.report_limits where subject = 'uid:old-left-participant'), 0,
+  'slots older than one hour are deleted with the next report');
+select is((select last_report_at from profiles where id = '00000000-0000-0000-0000-0000000000a2'), now(),
+  'profiles.last_report_at still records the last accepted report');
+select is((select count(*)::int from private.report_limits where subject like 'uid:%'), 0,
+  'participants with a GitHub identity are limited by GitHub id, not by auth uid');
 
 select * from finish();
 rollback;

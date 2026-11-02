@@ -1,6 +1,7 @@
 {
   "project_ref": "qcjbdnwxijosfxyngbfk",
   "url": "https://qcjbdnwxijosfxyngbfk.supabase.co",
+  "region": "eu-west-1 (AWS, Ireland; from `supabase projects list`, 02.11.2026)",
   "publishable_key": "sb_publishable_tfwEaH4P3kOsz7O1N5EbNQ_tn2_eF-a",
   "anon_key_legacy": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjamJkbnd4aWpvc2Z4eW5nYmZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgxNDY4OTIsImV4cCI6MjA4MzcyMjg5Mn0.P803BGGhpG4AJhUVoh8lx9iEf7w55AZsTX9wbks-em4",
   "auth": {

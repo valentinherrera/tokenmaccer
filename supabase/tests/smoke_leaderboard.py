@@ -18,7 +18,9 @@ SB_SERVICE is read from the environment only and never printed.
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
+import hashlib
 import json
 import os
 import secrets
@@ -72,6 +74,31 @@ def add_github_identity(uid: str, login: str, provider_id: str) -> bool:
         timeout=60,
     )
     return r.returncode == 0
+
+
+def sign_in(uid: str) -> Tuple[int, Any, Dict[str, str]]:
+    """Tokens for `uid` through the PKCE code exchange, as after the GitHub callback (email sign-in is off,
+    see supabase/config.toml): the flow state GoTrue would store is inserted, then the code is exchanged."""
+    verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b'=').decode()
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b'=').decode()
+    code = secrets.token_hex(16)
+    sql = (
+        'insert into auth.flow_state (id, user_id, auth_code, code_challenge_method, code_challenge, provider_type, '
+        'provider_access_token, provider_refresh_token, authentication_method, created_at, updated_at, '
+        'auth_code_issued_at, email_optional) values '
+        f"(gen_random_uuid(), '{uid}', '{code}', 's256', '{challenge}', 'github', '', '', 'oauth', "
+        'now(), now(), now(), false)'
+    )
+    r = subprocess.run(
+        ['docker', 'exec', DB_CONTAINER, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-qc', sql],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    if r.returncode != 0:
+        return 0, None, {}
+    return call('POST', '/auth/v1/token?grant_type=pkce', ANON, body={'auth_code': code, 'code_verifier': verifier})
 
 
 def check(name: str, cond: object, info: object = '') -> None:
@@ -131,15 +158,17 @@ def main() -> int:
                     f'user {n} gets a synthetic GitHub identity',
                     add_github_identity(body['id'], f'test-{n}-{RUN}', f'{RUN}{n}'),
                 )
-            st, tok, _ = call(
-                'POST', '/auth/v1/token?grant_type=password', ANON, body={'email': email, 'password': password}
-            )
+            st, tok, _ = sign_in(body['id'])
             check(f'user {n} signs in', st == 200 and tok and tok.get('access_token'), st)
             users.append(tok['access_token'])
         a, b, c = users
 
         st, body, _ = call('POST', '/rest/v1/profiles?select=id', ANON, body={'display_name': 'x'})
         check('anon cannot write profiles', st in (401, 403), st)
+        st, body, _ = call(
+            'POST', '/auth/v1/signup', ANON, body={'email': f'test-signup-{RUN}@example.com', 'password': 'x' * 12}
+        )
+        check('email sign-up is off (only GitHub accounts)', st in (400, 403, 422), (st, body))
         st, body, _ = call('GET', '/rest/v1/totals?select=*', ANON)
         check('anon cannot read totals', st in (401, 403), st)
 

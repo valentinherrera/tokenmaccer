@@ -166,7 +166,7 @@ osascript -e 'quit app "TokenMaccer"'
 rm -rf /Applications/TokenMaccer.app
 ```
 
-What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`; after joining the leaderboard also `leaderboard.json`, `leaderboard-top.json` and the `avatars` folder in the Application Support folder and the keychain item "TokenMaccer leaderboard sign-in". **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
+What the app writes, so you can check: `~/Library/Application Support/TokenMaccer/` (history, settings), `~/Library/Preferences/io.github.valentinherrera.tokenmaccer.plist` (the app's own settings) and `widget.json` plus shared settings in `~/Library/Group Containers/3KM85F22L8.tokenmaccer/`; after joining the leaderboard also `leaderboard.json`, `leaderboard-top.json`, `leaderboard-groups.json` and the `avatars` folder in the Application Support folder and the keychain item "TokenMaccer leaderboard sign-in". **Remove Data** (or `--remove-data`) deletes all of these; after the window path macOS may keep the preferences file empty, with no settings in it. Claude Code's transcripts and an `install.sh` setup's `~/.claude/tools/tokenmaccer/` are never touched.
 
 END PENDING RELEASE -->
 
@@ -193,7 +193,7 @@ xcrun swiftc -parse-as-library app/Shared/*.swift app/App/OnboardingViews.swift 
   -o /tmp/tm-onboarding
 /tmp/tm-onboarding /tmp/tm-shots
 # the leaderboard window, the share card (also as the PNG that is shared) and the menu bar panel
-xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift app/Preview/Leaderboard/main.swift \
+xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift app/App/GroupViews.swift app/Preview/Leaderboard/main.swift \
   -o /tmp/tm-leaderboard
 /tmp/tm-leaderboard /tmp/tm-shots
 ```

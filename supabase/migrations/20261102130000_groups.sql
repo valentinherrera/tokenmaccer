@@ -20,7 +20,7 @@
 -- Leaving the leaderboard (or deleting the account) removes every membership. Groups the leaver owned go to
 -- the member who joined first; a group without another member is deleted.
 --
--- Errors: join_group() answers an unknown code with null; P0002 no such member (HTTP 404), PT403 not the owner / not a member, PT409 a limit is
+-- Errors: join_group() answers an unknown code with null; PT404 no such member (HTTP 404), PT403 not the owner / not a member, PT409 a limit is
 -- reached (message says which), PT429 too many join attempts (detail = seconds to wait), 22023 bad input,
 -- 42501 not a participant of the leaderboard.
 
@@ -315,6 +315,7 @@ begin
         return private.group_info(v_group.id);
     end if;
 
+    perform 1 from public.profiles where id = v_uid for update;      -- one create/join at a time per user
     perform 1 from public.groups where id = v_group.id for update;  -- serialises the member count
     if (select count(*) from public.group_members where group_id = v_group.id) >= c_max_members then
         raise exception 'this group is full (% members)', c_max_members using errcode = 'PT409';
@@ -405,7 +406,7 @@ declare
 begin
     select user_id into v_user from public.group_members where id = p_member and group_id = p_group;
     if v_user is null then
-        raise exception 'no such member' using errcode = 'P0002';
+        raise exception 'no such member' using errcode = 'PT404';
     end if;
     if v_user = v_group.owner_id then
         raise exception 'the owner cannot be removed, leave the group instead' using errcode = '22023';

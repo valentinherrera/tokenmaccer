@@ -68,6 +68,14 @@ struct LeaderboardWindowView: View {
     var avatar: (String) -> NSImage? = { _ in nil }
     var share: () -> Void = {}
     var join: () -> Void = {}
+    /// The boards to choose from besides the global one: the user's groups (id, name). Empty: no board menu.
+    var scopes: [BoardScopeValue] = []
+    /// The chosen group's id; nil for the global board.
+    var scope: Binding<String?> = .constant(nil)
+    /// Opens the Groups sheet (create, join, manage); nil hides the button.
+    var manageGroups: (() -> Void)? = nil
+
+    private var groupChosen: Bool { scope.wrappedValue != nil }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -88,6 +96,21 @@ struct LeaderboardWindowView: View {
 
     private var controls: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let manageGroups, state != .notJoined {
+                HStack {
+                    Picker("Board", selection: scope) {
+                        Label("Global", systemImage: "globe").tag(String?.none)
+                        if !scopes.isEmpty { Divider() }
+                        ForEach(scopes) { s in
+                            Label { Text(verbatim: s.name) } icon: { Image(systemName: "person.2") }.tag(Optional(s.id))
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .fixedSize()
+                    Spacer()
+                    Button("Groups…", systemImage: "person.2", action: manageGroups)
+                }
+            }
             Picker("Period", selection: $period) {
                 ForEach(["1D", "7D", "30D", "YTD", "1Y", "ALL"], id: \.self) { Text(verbatim: $0).tag($0) }
             }
@@ -107,8 +130,14 @@ struct LeaderboardWindowView: View {
                         .font(.callout.weight(.medium)).monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
-                Button("Share…", systemImage: "square.and.arrow.up", action: share)
-                    .disabled(!canShare)
+                if groupChosen {
+                    // a group's card is its invitation: there is always something to share
+                    Button("Invite…", systemImage: "square.and.arrow.up", action: share)
+                        .disabled(state == .groupGone || state == .notJoined)
+                } else {
+                    Button("Share…", systemImage: "square.and.arrow.up", action: share)
+                        .disabled(!canShare)
+                }
             }
         }
     }
@@ -135,9 +164,19 @@ struct LeaderboardWindowView: View {
         case .waiting:
             EmptyBoard(symbol: "hourglass", title: "The ranking is not loaded yet",
                        detail: "It appears with the next report, within 30 minutes.") { ProgressView().controlSize(.small) }
+        case .board(nil) where groupChosen:
+            EmptyBoard(symbol: "person.3", title: "Nobody here yet",
+                       detail: "No member of this group has a current total for this period. Invite friends with the link.") {
+                Button("Invite…", action: share)
+            }
         case .board(nil):
             EmptyBoard(symbol: "person.3", title: "Nobody here yet",
                        detail: "No participant has a current total for this period.") { EmptyView() }
+        case .groupGone:
+            EmptyBoard(symbol: "person.2.slash", title: "You're no longer in this group",
+                       detail: "You left it, the owner removed you, or the group was deleted.") {
+                Button("Show Global Leaderboard") { scope.wrappedValue = nil }
+            }
         case .board(let b?):
             ScrollView {
                 LazyVStack(spacing: 2) {
@@ -240,6 +279,19 @@ struct ShareCardValue: Equatable {
     var period: String
     var usd: Bool
     var value: Double
+    /// Set when a group is chosen: the card becomes the group's invitation. `rank` 0 = no own place on its board.
+    var group: GroupCardValue? = nil
+}
+
+struct GroupCardValue: Equatable {
+    var name: String
+    var code: String
+}
+
+/// A board the leaderboard window can show besides the global one.
+struct BoardScopeValue: Equatable, Identifiable {
+    var id: String
+    var name: String
 }
 
 /// The image people post: their place, the board, the app and where to get it. Drawn with ImageRenderer, so only
@@ -257,29 +309,26 @@ struct ShareCard: View {
                 Text("Claude Code leaderboard").font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.6))
             }
             Spacer(minLength: 0)
-            HStack(alignment: .center, spacing: 18) {
-                Text(verbatim: "#\(card.rank)")
-                    .font(.system(size: 76, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(Palette.accent)
-                    .padding(.horizontal, 22).padding(.vertical, 4)
-                    .background(Capsule().fill(Color.black.opacity(0.85)))
-                    .overlay(Capsule().strokeBorder(.white.opacity(0.85), lineWidth: 5))
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("of \(card.participants) \(PeriodPhrase.text(card.period))")
-                        .font(.system(size: 30, weight: .semibold))
-                        .lineLimit(2).minimumScaleFactor(0.7)
-                    Text(verbatim: "\(card.period) · \(card.usd ? "USD" : String(localized: "Tokens")) · \(card.usd ? Format.usd(card.value) : Format.tokens(Int(card.value)))")
-                        .font(.system(size: 17, weight: .medium)).monospacedDigit()
-                        .foregroundStyle(.white.opacity(0.65))
-                }
+            if let group = card.group {
+                invitation(group)
+            } else {
+                place
             }
             Spacer(minLength: 0)
             HStack {
-                Text("A Mac widget for your Claude Code usage.").foregroundStyle(.white.opacity(0.6))
+                Group {
+                    if card.group == nil {
+                        Text("A Mac widget for your Claude Code usage.")
+                    } else {
+                        Text("Compare your Claude Code usage with us.")
+                    }
+                }
+                .foregroundStyle(.white.opacity(0.6))
                 Spacer(minLength: 12)
                 // The link must stay on one line so it can be typed off the picture; the tagline gives way.
-                Text(verbatim: Brand.inviteHost).foregroundStyle(Palette.accent.opacity(0.9))
+                Text(verbatim: card.group.map { GroupInvite.webLink($0.code).replacingOccurrences(of: "https://", with: "") }
+                     ?? Brand.inviteHost)
+                    .foregroundStyle(Palette.accent.opacity(0.9))
                     .fixedSize()
             }
             .font(.system(size: 14, weight: .medium))
@@ -289,6 +338,42 @@ struct ShareCard: View {
         .frame(width: Self.size.width, height: Self.size.height)
         .background(Palette.fieldGradient)
         .environment(\.colorScheme, .dark)
+    }
+
+    /// A group's card: the invitation, with the own place in the group when there is one.
+    private func invitation(_ group: GroupCardValue) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Join my group").font(.system(size: 20, weight: .medium)).foregroundStyle(.white.opacity(0.65))
+            Text(verbatim: group.name)
+                .font(.system(size: 52, weight: .semibold, design: .rounded))
+                .foregroundStyle(Palette.accent)
+                .lineLimit(1).minimumScaleFactor(0.5)
+            if card.rank > 0 {
+                Text("I'm #\(card.rank) of \(card.participants) \(PeriodPhrase.text(card.period))")
+                    .font(.system(size: 20, weight: .medium)).monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+        }
+    }
+
+    private var place: some View {
+        HStack(alignment: .center, spacing: 18) {
+            Text(verbatim: "#\(card.rank)")
+                .font(.system(size: 76, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(Palette.accent)
+                .padding(.horizontal, 22).padding(.vertical, 4)
+                .background(Capsule().fill(Color.black.opacity(0.85)))
+                .overlay(Capsule().strokeBorder(.white.opacity(0.85), lineWidth: 5))
+            VStack(alignment: .leading, spacing: 6) {
+                Text("of \(card.participants) \(PeriodPhrase.text(card.period))")
+                    .font(.system(size: 30, weight: .semibold))
+                    .lineLimit(2).minimumScaleFactor(0.7)
+                Text(verbatim: "\(card.period) · \(card.usd ? "USD" : String(localized: "Tokens")) · \(card.usd ? Format.usd(card.value) : Format.tokens(Int(card.value)))")
+                    .font(.system(size: 17, weight: .medium)).monospacedDigit()
+                    .foregroundStyle(.white.opacity(0.65))
+            }
+        }
     }
 
     /// The card as PNG at 2x (1200 x 680 pixels).
@@ -302,7 +387,8 @@ struct ShareCard: View {
 
     /// The text that goes with the image (and alone where a service takes no image).
     static func message(_ card: ShareCardValue) -> String {
-        String(localized: "I'm #\(card.rank) of \(card.participants) \(PeriodPhrase.text(card.period)) on the TokenMaccer leaderboard for Claude Code. Get the app: \(Brand.inviteURL.absoluteString)")
+        if let group = card.group { return GroupInvite.message(group: group.name, code: group.code) }
+        return String(localized: "I'm #\(card.rank) of \(card.participants) \(PeriodPhrase.text(card.period)) on the TokenMaccer leaderboard for Claude Code. Get the app: \(Brand.inviteURL.absoluteString)")
     }
 }
 
@@ -315,7 +401,11 @@ struct ShareSheetView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Share Your Place").font(.title3.weight(.semibold))
+            if let group = card.group {
+                Text("Invite to “\(group.name)”").font(.title3.weight(.semibold))
+            } else {
+                Text("Share Your Place").font(.title3.weight(.semibold))
+            }
             // the rendered image itself, so the preview is exactly what is shared
             Group {
                 if let preview = ShareCard.png(card).flatMap(NSImage.init(data:)) {
@@ -327,7 +417,13 @@ struct ShareSheetView: View {
             .frame(width: ShareCard.size.width * 0.7, height: ShareCard.size.height * 0.7)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .accessibilityLabel(Text(verbatim: ShareCard.message(card)))
-            Text("The image and a link to the download page. Your token count is on the card; nothing else is.")
+            Group {
+                if card.group == nil {
+                    Text("The image and a link to the download page. Your token count is on the card; nothing else is.")
+                } else {
+                    Text("The image and the invitation link. Anyone with the link can join the group until its owner renews the link.")
+                }
+            }
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack {

@@ -43,6 +43,8 @@ enum BoardState: Equatable {
     case waiting
     /// nil: nobody has a current total for this period and unit.
     case board(BoardValue?)
+    /// A group was chosen that the user is no longer in (left, removed, or the group was deleted).
+    case groupGone
 }
 
 /// leaderboard-widget.json. A missing file means: not joined (Leave removes it).
@@ -62,10 +64,19 @@ struct LeaderboardWidgetData: Decodable {
         let entries: [Entry]
     }
 
+    /// A group the user is in, with its boards (trimmed like the global ones).
+    struct Group: Decodable {
+        let id: String
+        let name: String
+        let boards: [Board]
+    }
+
     let fetchedAt: Date?
     let boards: [Board]
     /// lower-case GitHub username → image bytes
     let avatars: [String: Data]
+    /// nil: not fetched yet, or written by an older collector (both read as "waiting" for a group widget).
+    var groups: [Group]? = nil
 
     static let fileName = "leaderboard-widget.json"
 
@@ -100,11 +111,27 @@ struct LeaderboardWidgetData: Decodable {
 
     func avatar(_ login: String?) -> Data? { login.flatMap { avatars[$0.lowercased()] } }
 
-    /// The widget's state for one board; `data` nil = not joined.
-    static func state(_ data: LeaderboardWidgetData?, period: String, unit: Unit, places: Int) -> BoardState {
+    func group(_ id: String?) -> Group? {
+        guard let id else { return nil }
+        return groups?.first { $0.id.lowercased() == id.lowercased() }
+    }
+
+    /// The widget's state for one board; `data` nil = not joined. `group`: a group's id, nil for the global board. A
+    /// group missing from a fetched list is gone, never silently replaced by the global board.
+    static func state(_ data: LeaderboardWidgetData?, group: String? = nil, period: String, unit: Unit, places: Int)
+        -> BoardState
+    {
         guard let data else { return .notJoined }
-        guard data.fetchedAt != nil else { return .waiting }
-        guard let b = data.boards.first(where: { $0.period == period && $0.unit == unit.rawValue }), !b.entries.isEmpty
+        var boards = data.boards
+        if let group {
+            // a group's board needs only the group list, not the global boards
+            guard let list = data.groups else { return .waiting }
+            guard let g = list.first(where: { $0.id.lowercased() == group.lowercased() }) else { return .groupGone }
+            boards = g.boards
+        } else if data.fetchedAt == nil {
+            return .waiting
+        }
+        guard let b = boards.first(where: { $0.period == period && $0.unit == unit.rawValue }), !b.entries.isEmpty
         else { return .board(nil) }
         let rows = b.entries.map {
             BoardRowValue(rank: $0.rank, name: $0.displayName, login: $0.githubLogin, value: $0.value, isMe: $0.isMe)

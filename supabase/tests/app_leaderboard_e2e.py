@@ -3,8 +3,10 @@
 
 What runs for real: `tokenmaccer-collector leaderboard join` (PKCE code exchange, tokens into a keychain
 item of a throwaway service name, join_leaderboard), the collector pass (report to /functions/v1/report,
-places into widget.json), the 30-minute cadence, `leaderboard leave` (delete-account, tokens and state
-gone) and the opt-in gate (a counting HTTP server sees no request from a collector that has not joined;
+places into widget.json), the 30-minute cadence, `leaderboard group …` (create, join by code, refresh into
+leaderboard-groups.json, a 403 that must not end the participation, an unknown code, leave; the owner's
+group passes to the next member when the owner leaves the leaderboard), `leaderboard leave` (delete-account,
+tokens and state gone) and the opt-in gate (a counting HTTP server sees no request from a collector that has not joined;
 positive control: a joined one does reach it).
 
 What is simulated: GitHub. Users are synthetic (test-e2e-<n>-<run>@example.com); their GitHub identity
@@ -109,6 +111,28 @@ def state(data_dir: str) -> Any:
             return json.load(f)
     except FileNotFoundError:
         return None
+
+
+def last_json(out: str) -> Any:
+    try:
+        return json.loads(out.splitlines()[-1]) if out else {}
+    except ValueError:
+        return {}
+
+
+def groups_file(data_dir: str) -> Any:
+    try:
+        with open(os.path.join(data_dir, 'leaderboard-groups.json')) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return None
+
+
+def board_names(group: Any, period: str, unit: str) -> List[str]:
+    for b in group.get('boards', []):
+        if b.get('period') == period and b.get('unit') == unit:
+            return [e.get('displayName') for e in b.get('entries', [])]
+    return []
 
 
 def widget(data_dir: str) -> Any:
@@ -233,10 +257,12 @@ def main() -> None:
         a_uid, _, _, a_login = new_user(1)
         users.append(a_uid)
         others: List[str] = []
+        tokens: List[str] = []
         for n, scale in ((2, 10**9), (3, 1)):
             uid, _, _, _ = new_user(n)
             users.append(uid)
             st, tok = 200, sign_in(uid)
+            tokens.append(tok['access_token'])
             st2, _ = call(
                 'POST', '/rest/v1/rpc/join_leaderboard', ANON, tok['access_token'], {'p_display_name': f'Synth {n}'}
             )
@@ -314,6 +340,79 @@ def main() -> None:
             widget(a_dir).get('ranks', {}).get('ALL', {}).get('tokens') == {'rank': 2, 'of': 3},
         )
 
+        # groups: A creates one through the helper, B (user 2) joins with the code in another case, A's refresh
+        # writes both onto the group's boards
+        rc, out, err = helper(['leaderboard', 'group', 'create', '--name', '  Synth   Friends '], a_dir)
+        group = last_json(out).get('group') or {}
+        check(
+            'helper group create: ok, name cleaned, owner',
+            rc == 0 and group.get('name') == 'Synth Friends' and group.get('is_owner') is True,
+            (rc, out, err),
+        )
+        st, joined = call(
+            'POST', '/rest/v1/rpc/join_group', ANON, tokens[0], {'p_code': f' {group.get("code", "").upper()} '}
+        )
+        check(
+            'B joins with the code (upper case, spaces)',
+            st == 200 and joined.get('id') == group.get('id'),
+            (st, joined),
+        )
+        rc, out, err = helper(['leaderboard', 'group', 'refresh'], a_dir)
+        gf = groups_file(a_dir) or {}
+        mine = [g for g in gf.get('groups', []) if g.get('group', {}).get('id') == group.get('id')]
+        check('helper group refresh: leaderboard-groups.json has the group', rc == 0 and len(mine) == 1, (rc, out, gf))
+        g0 = mine[0] if mine else {}
+        check(
+            'group members: A (owner) and B',
+            sorted(m.get('displayName') for m in g0.get('members', [])) == ['Synth 2', 'Synth A2']
+            and [m.get('isOwner') for m in g0.get('members', [])] == [True, False],
+            g0.get('members'),
+        )
+        check(
+            'group board ALL tokens: B first, A second, nobody else',
+            board_names(g0, 'ALL', 'tokens') == ['Synth 2', 'Synth A2'],
+            board_names(g0, 'ALL', 'tokens'),
+        )
+        check('group file holds no tokens', 'access' not in json.dumps(gf).lower(), '')
+
+        # B's group: A joins it through the helper; renaming it is the owner's right only. The 403 is a group
+        # error and must not end A's participation (LeaderboardClient.check would read it as "left").
+        st, bg = call('POST', '/rest/v1/rpc/create_group', ANON, tokens[0], {'p_name': 'Synth B group'})
+        rc, out, err = helper(['leaderboard', 'group', 'join', '--code', bg.get('code', '')], a_dir)
+        check(
+            'helper group join by code',
+            rc == 0 and (last_json(out).get('group') or {}).get('id') == bg.get('id'),
+            (rc, out),
+        )
+        before = state(a_dir) or {}
+        rc, out, err = helper(
+            ['leaderboard', 'group', 'rename', '--group', bg.get('id', ''), '--name', 'hijack'], a_dir
+        )
+        check(
+            'rename by a non-owner refused as a group error',
+            rc == 1 and last_json(out).get('error_kind') == 'not_allowed',
+            (rc, out),
+        )
+        after = state(a_dir) or {}
+        check(
+            '403 from a group call: still joined, no error in leaderboard.json',
+            after.get('joined') is True and after.get('lastError') == before.get('lastError'),
+            after,
+        )
+        check(
+            'group name unchanged on the server',
+            psql(f"select name from public.groups where id = '{bg.get('id')}'") == 'Synth B group',
+        )
+        rc, out, err = helper(['leaderboard', 'group', 'join', '--code', 'zzzzzzzzzz'], a_dir)
+        check('unknown code: invalid link', rc == 1 and last_json(out).get('error_kind') == 'invalid_code', (rc, out))
+        rc, out, err = helper(['leaderboard', 'group', 'leave', '--group', bg.get('id', '')], a_dir)
+        ids = [g.get('group', {}).get('id') for g in (groups_file(a_dir) or {}).get('groups', [])]
+        check(
+            'helper group leave: gone from the file at once',
+            rc == 0 and bg.get('id') not in ids and group.get('id') in ids,
+            (rc, out, ids),
+        )
+
         # opt-in gate against a counting server: not joined -> no request; joined -> request (positive control)
         srv = http.server.HTTPServer(('127.0.0.1', 0), Counter)
         threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -345,8 +444,23 @@ def main() -> None:
         )
         check('server: user, profile, totals deleted', gone == '0,0,0', gone)
         check('leaderboard.json removed', state(a_dir) is None)
+        check('leaderboard-groups.json removed', groups_file(a_dir) is None)
+        st, bgroups = call('POST', '/rest/v1/rpc/my_groups', ANON, tokens[0], {})
+        handed = [g for g in (bgroups or []) if g.get('id') == group.get('id')]
+        check(
+            "A left the leaderboard: A's group passed to B, A is no longer a member",
+            st == 200 and len(handed) == 1 and handed[0].get('is_owner') is True and handed[0].get('members') == 1,
+            (st, bgroups),
+        )
         rc, out, err = collect(a_dir, claude)
-        check('after leave: no report, no ranks', 'leaderboard' not in out and 'ranks' not in widget(a_dir), out)
+        # the pass removes the widget's copy of the boards (what Leave promises) and logs that, nothing else
+        check(
+            'after leave: no report, no ranks, widget copy gone',
+            'leaderboard:' not in out
+            and 'ranks' not in widget(a_dir)
+            and not os.path.exists(os.path.join(a_dir, 'leaderboard-widget.json')),
+            out,
+        )
         # tokens gone: a forged opt-in finds no sign-in (no keychain read from outside the collector)
         with open(os.path.join(a_dir, 'leaderboard.json'), 'w') as f:
             json.dump({'joined': True, 'ranks': [], 'leavePending': False}, f)

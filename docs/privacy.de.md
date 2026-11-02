@@ -27,6 +27,9 @@ Der Server ist ein Supabase-Projekt des Maintainers in der Region **eu-west-1** 
 | Profil | Deine Konto-ID, dein GitHub-Nutzername, der von dir gewählte Anzeigename, wann du beigetreten bist, wann deine letzte Meldung ankam | Anzeigename und GitHub-Nutzername |
 | Summen | Für jeden der sechs Zeiträume (heute, 7 Tage, 30 Tage, seit Jahresbeginn, 1 Jahr, gesamt): Eingabe-Token, Ausgabe-Token, ihr Gegenwert in USD zu API-Listenpreisen, der erste Tag des Zeitraums, wann zuletzt aktualisiert | Ja, zusammen mit deinem Platz |
 | Meldegrenze | Deine GitHub-Nutzer-ID und der Zeitpunkt deiner letzten angenommenen Meldung (höchstens eine Meldung je 25 Minuten) | Nein |
+| Gruppen (freiwillig) | Je Gruppe: ihr Name, ihr Einladungscode, die Konto-ID der Person, der sie gehört, wann sie angelegt wurde | Nur für die Mitglieder der Gruppe: Name, Einladungscode und wem sie gehört |
+| Gruppenmitgliedschaften (freiwillig) | Je Gruppe, in der du bist: deine Konto-ID und wann du beigetreten bist | Nur für die Mitglieder der Gruppe: dein Anzeigename, GitHub-Nutzername und dein Platz und deine Summen in der Rangliste der Gruppe |
+| Beitrittsversuche | Deine GitHub-Nutzer-ID (sonst deine Konto-ID) und wie oft du je Stunde versucht hast, einer Gruppe beizutreten (höchstens 30 je Stunde) | Nein |
 | Server-Logs | Supabase protokolliert Anfragen an seine API, die Anmeldung und die Edge Functions in eigenen Logs, auch mit IP-Adressen. Die Edge Functions von TokenMaccer schreiben dort nur Fehlercodes hinein | Nein |
 
 Nie gesendet werden Projektnamen, Prompts, Dateinamen, Modelle oder andere Inhalte deiner Sitzungen. Der Collector meldet höchstens alle 30 Minuten, nach seinem regulären Durchlauf; die App selbst sendet keine Meldungen.
@@ -39,22 +42,33 @@ Nach seiner Meldung holt der Collector auch die Ranglisten für das Leaderboard-
 
 Die Teilen-Karte („#3 von 120 diese Woche“) entsteht auf deinem Mac. Sie geht nur dorthin, wohin du sie aus dem Teilen-Menü schickst, zusammen mit einem Link zur Projektseite auf GitHub (github.com/valentinherrera/tokenmaccer).
 
+### Gruppen
+
+Gruppen sind freiwillig und setzen das Leaderboard voraus. Wer den Einladungslink einer Gruppe (`https://tokenmaccer.app/join/…` oder `tokenmaccer://join/…`) oder ihren Code hat, kann ihr beitreten. Nur die Mitglieder einer Gruppe sehen, dass es sie gibt, ihren Namen, ihren Einladungscode, wer in ihr ist (Anzeigename, GitHub-Nutzername, wem sie gehört) und ihre Rangliste; ein falscher Code verrät nichts über irgendeine Gruppe. Die Rangliste einer Gruppe zeigt, was das globale Leaderboard von allen Teilnehmenden ohnehin zeigt (Anzeigename, GitHub-Nutzername, Summen), beschränkt auf die Mitglieder der Gruppe. Wem die Gruppe gehört, kann sie umbenennen, einen neuen Link erzeugen (der alte gilt sofort nicht mehr), Mitglieder entfernen und die Gruppe löschen. Grenzen: höchstens 10 eigene Gruppen, insgesamt 20 Gruppen, 100 Mitglieder je Gruppe, 30 Beitrittsversuche je Stunde.
+
+Nach jeder Meldung, direkt nach jeder Änderung an Gruppen, die du in der App vornimmst, und wenn du das Leaderboard-Fenster öffnest, dort eine Gruppe wählst oder **Gruppen …** öffnest (höchstens einmal pro Minute), holt der Collector deine Gruppen, ihre Mitglieder und ihre Ranglisten (je Zeitraum und Einheit die ersten 50 Plätze und deinen eigenen) und danach die Profilbilder der Personen auf diesen Ranglisten, auf dieselbe Weise wie oben für die globalen Ranglisten. Die Einladungskarte einer Gruppe entsteht auf deinem Mac und geht nur dorthin, wohin du sie schickst, zusammen mit dem Einladungslink.
+
 ### Was auf deinem Mac gespeichert wird
 
 - `leaderboard.json` in `~/Library/Application Support/TokenMaccer/`: dein Anzeigename, GitHub-Nutzername, deine Konto-ID, deine letzten Plätze, die Zeitpunkte der letzten Meldung und des letzten Versuchs, der letzte Fehler.
 - Der Schlüsselbund-Eintrag „TokenMaccer leaderboard sign-in“ mit Access- und Refresh-Token. Lesen kann ihn nur der Hintergrund-Collector von TokenMaccer.
 - `leaderboard-top.json` (die Ranglisten des Leaderboard-Fensters, siehe oben) und der Ordner `avatars/` mit den zwischengespeicherten Profilbildern, im selben Ordner wie `leaderboard.json`.
-- `leaderboard-widget.json` im App-Group-Container: eine Kopie für das Leaderboard-Widget, je Rangliste die ersten acht Plätze und deinen eigenen, mit den Profilbildern dieser Personen.
+- `leaderboard-groups.json` im selben Ordner: deine Gruppen (Name, Einladungscode, ob sie dir gehören), ihre Mitglieder (Anzeigename, GitHub-Nutzername, eine Mitglieds-Kennung, mit der die Besitzerin oder der Besitzer jemanden entfernt) und ihre Ranglisten.
+- `leaderboard-widget.json` im App-Group-Container: eine Kopie für das Leaderboard-Widget, je Rangliste die ersten acht Plätze und deinen eigenen, dasselbe für jede deiner Gruppen (mit dem Namen der Gruppe), mit den Profilbildern dieser Personen.
 
 ### Wie lange
 
 - **Konto, Sitzungen, Profil und Summen:** bis du austrittst. Inaktive Teilnehmende werden nicht automatisch gelöscht: Wenn du die Hintergrund-Aktualisierung stoppst, ohne auszutreten, bleiben deine letzten Summen auf dem Server; nach drei Tagen ohne Meldung verschwinden sie aus der Rangliste, gelöscht werden sie aber erst mit dem Austritt. Ob und wann der Maintainer inaktive Konten sonst entfernt: **TBD**.
 - **Meldegrenze:** bleibt nach dem Austritt bestehen, damit Austreten und erneutes Beitreten das 25-Minuten-Limit nicht umgehen. Es wird mit der ersten Meldung gelöscht, die der Server erhält, sobald es älter als eine Stunde ist.
+- **Gruppen und Mitgliedschaften:** bis du die Gruppe oder das Leaderboard verlässt, die Besitzerin oder der Besitzer dich entfernt oder die Gruppe löscht.
+- **Beitrittsversuche:** bleiben nach dem Austritt bestehen; Einträge, die älter als einen Tag sind, werden beim nächsten Beitrittsversuch gelöscht, den irgendjemand unternimmt.
 - **Server-Logs:** so lange, wie Supabase sie für dieses Projekt aufbewahrt; die Dauer hängt vom Supabase-Tarif ab und wird nicht von TokenMaccer festgelegt: **TBD**.
 
 ### Austreten und Löschen
 
-**Austreten …** in der App löscht dein Anmeldekonto auf dem Server. Profil, Summen, Sitzungen und deine GitHub-Identität auf dem Server werden mitgelöscht. Danach entfernt die App die Anmeldung aus deinem Schlüsselbund, `leaderboard.json`, `leaderboard-top.json`, `leaderboard-widget.json` und die zwischengespeicherten Profilbilder. Erfolg meldet sie erst, wenn der Server die Löschung bestätigt hat. Nicht durch Austreten gelöscht werden der Eintrag der Meldegrenze (siehe oben) und Einträge in den Logs von Supabase.
+**Austreten …** in der App löscht dein Anmeldekonto auf dem Server. Profil, Summen, Sitzungen, Gruppenmitgliedschaften und deine GitHub-Identität auf dem Server werden mitgelöscht. Gruppen, die dir gehören, gehen an das Mitglied über, das als Erstes beigetreten ist; eine Gruppe ohne weiteres Mitglied wird gelöscht. Danach entfernt die App die Anmeldung aus deinem Schlüsselbund, `leaderboard.json`, `leaderboard-top.json`, `leaderboard-groups.json`, `leaderboard-widget.json` und die zwischengespeicherten Profilbilder. Erfolg meldet sie erst, wenn der Server die Löschung bestätigt hat. Nicht durch Austreten gelöscht werden der Eintrag der Meldegrenze, die Beitrittsversuche (siehe oben) und Einträge in den Logs von Supabase.
+
+**Gruppe verlassen …** (Leaderboard-Fenster › Gruppen …) entfernt nur diese eine Mitgliedschaft, mit derselben Übergabe, wenn dir die Gruppe gehört; dein Eintrag im Leaderboard bleibt.
 
 Meldest du dich beim Austreten mit einem anderen GitHub-Konto an als dem, das beigetreten ist, lehnt die App das ab und löscht das Konto, das diese Anmeldung auf dem Server angelegt hat, wieder, es sei denn, dieses Konto nimmt selbst am Leaderboard teil.
 

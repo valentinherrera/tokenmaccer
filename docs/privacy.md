@@ -27,6 +27,9 @@ The server is a Supabase project of the maintainer in the region **eu-west-1** (
 | Profile | Your account ID, GitHub username, the display name you chose, when you joined, when your last report arrived | Display name and GitHub username |
 | Totals | For each of the six periods (today, 7 days, 30 days, year to date, 1 year, all time): input tokens, output tokens, their value in USD at API list prices, the first day of the period, when it was last updated | Yes, together with your place |
 | Report limit | Your GitHub user ID and the time of your last accepted report (at most one report per 25 minutes) | No |
+| Groups (optional) | Per group: its name, its invitation code, the account ID of its owner, when it was created | Only to the group's members: name, invitation code and who owns it |
+| Group memberships (optional) | Per group you are in: your account ID and when you joined | Only to the group's members: your display name, GitHub username and your place and totals on the group's ranking |
+| Join attempts | Your GitHub user ID (else your account ID) and how many times you tried to join a group in each hour (at most 30 per hour) | No |
 | Server logs | Supabase records requests to its API, sign-in and Edge Functions in its own logs, including IP addresses. TokenMaccer's Edge Functions write only error codes to them | No |
 
 Never sent: project names, prompts, file names, models or any other content of your sessions. The collector reports at most every 30 minutes, after its regular pass; the app itself sends no reports.
@@ -39,22 +42,33 @@ After its report the collector also fetches the boards for the app's leaderboard
 
 The share card ("#3 of 120 this week") is drawn on your Mac. It goes only where you send it from the share menu, together with a link to the project page on GitHub (github.com/valentinherrera/tokenmaccer).
 
+### Groups
+
+Groups are optional and need the leaderboard. Whoever has a group's invitation link (`https://tokenmaccer.app/join/…` or `tokenmaccer://join/…`) or its code can join it. Only the members of a group see that it exists, its name, its invitation code, who is in it (display name, GitHub username, who owns it) and its ranking; a wrong code reveals nothing about any group. A group's ranking shows what the global leaderboard already shows of every participant (display name, GitHub username, totals), limited to the group's members. The owner can rename the group, make a new link (the old one stops working at once), remove members and delete the group. Limits: at most 10 groups of your own, 20 groups in all, 100 members per group, 30 join attempts per hour.
+
+After every report, right after every group change you make in the app, and when you open the Leaderboard window, pick a group there or open **Groups…** (at most once a minute), the collector fetches your groups, their members and their rankings (per period and unit the first 50 places and your own) and then the profile pictures of the people on these rankings, the same way as for the global boards above. A group's invitation card is drawn on your Mac and goes only where you send it, together with the invitation link.
+
 ### What is stored on your Mac
 
 - `leaderboard.json` in `~/Library/Application Support/TokenMaccer/`: your display name, GitHub username, account ID, your latest places, the times of the last report and the last attempt, the last error.
 - The keychain item "TokenMaccer leaderboard sign-in" with the access and refresh token. Only TokenMaccer's background collector can read it.
 - `leaderboard-top.json` (the boards of the leaderboard window, see above) and the folder `avatars/` with the cached profile pictures, in the same folder as `leaderboard.json`.
-- `leaderboard-widget.json` in the App Group container: a copy for the leaderboard widget, per board the first eight places and your own, with the profile pictures of these people.
+- `leaderboard-groups.json` in the same folder: your groups (name, invitation code, whether you own them), their members (display name, GitHub username, a member handle the owner uses to remove someone) and their rankings.
+- `leaderboard-widget.json` in the App Group container: a copy for the leaderboard widget, per board the first eight places and your own, the same for each of your groups (with the group's name), with the profile pictures of these people.
 
 ### How long
 
 - **Account, sessions, profile and totals:** until you leave. There is no automatic deletion of inactive participants: if you stop background updates without leaving, your last totals stay on the server; they drop off the board after three days without a report but are only deleted when you leave. Whether and when the maintainer removes inactive accounts otherwise: **TBD**.
 - **Report limit:** stays after you leave, so leaving and joining again cannot get around the 25-minute limit. It is deleted with the first report the server receives once it is more than one hour old.
+- **Groups and memberships:** until you leave the group or the leaderboard, the owner removes you, or the owner deletes the group.
+- **Join attempts:** stay after you leave; entries older than a day are deleted with the next join attempt anyone makes.
 - **Server logs:** as long as Supabase keeps them for this project; the period depends on Supabase's plan and is not set by TokenMaccer: **TBD**.
 
 ### Leaving and deleting
 
-**Leave…** in the app deletes your sign-in account on the server. Your profile, totals, sessions and GitHub identity on the server go with it. Then the app removes the sign-in from your keychain, `leaderboard.json`, `leaderboard-top.json`, `leaderboard-widget.json` and the cached profile pictures. It reports success only after the server confirmed the deletion. Not deleted by Leave: the report limit entry (see above) and entries in Supabase's logs.
+**Leave…** in the app deletes your sign-in account on the server. Your profile, totals, sessions, group memberships and GitHub identity on the server go with it. Groups you own pass to the member who joined first; a group without another member is deleted. Then the app removes the sign-in from your keychain, `leaderboard.json`, `leaderboard-top.json`, `leaderboard-groups.json`, `leaderboard-widget.json` and the cached profile pictures. It reports success only after the server confirmed the deletion. Not deleted by Leave: the report limit entry, the join attempts (see above) and entries in Supabase's logs.
+
+**Leave Group…** (Leaderboard window › Groups…) removes only that one membership, with the same hand-over when you own the group; your entry on the leaderboard stays.
 
 If you sign in with a different GitHub account than the one that joined while leaving, the app refuses it and deletes the account that sign-in created on the server again, unless that account takes part in the leaderboard itself.
 

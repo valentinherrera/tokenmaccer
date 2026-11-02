@@ -144,7 +144,7 @@ select pg_temp.as_user('00000000-0000-0000-0000-000000000201');
 select throws_ok($$select remove_group_member((select id from pg_temp.g where k = 'a'),
   (select member_id from group_member_list() where display_name = 'Ann'))$$, '22023', null,
   'the owner cannot remove themselves');
-select throws_ok($$select remove_group_member((select id from pg_temp.g where k = 'a'), gen_random_uuid())$$, 'P0002', null,
+select throws_ok($$select remove_group_member((select id from pg_temp.g where k = 'a'), gen_random_uuid())$$, 'PT404', null,
   'removing an unknown member says so');
 select ok(remove_group_member((select id from pg_temp.g where k = 'a'),
   (select member_id from group_member_list() where display_name = 'Cat')), 'the owner removes a member');

@@ -85,8 +85,9 @@ extension CollectorTests {
         }
         let r = Collector.run(try config(), leaderboard: lb)
         XCTAssertEqual(r.exitCode, 0, r.stderr)
-        XCTAssertEqual(spy.paths, ["/functions/v1/report", "/rest/v1/rpc/leaderboard_top", "/leader-gh", "/synth-gh"],
-                       "the invalid login is never requested")
+        XCTAssertEqual(spy.paths, ["/functions/v1/report", "/rest/v1/rpc/leaderboard_top", "/rest/v1/rpc/my_groups",
+                                   "/leader-gh", "/synth-gh"],
+                       "the invalid login is never requested; the groups (none answered here) come after the boards")
         let top = try XCTUnwrap(spy.requests.first { $0.url.path.hasSuffix("leaderboard_top") })
         XCTAssertEqual(try JSONSerialization.jsonObject(with: top.body ?? Data()) as? [String: Int], ["p_limit": 50])
         XCTAssertEqual(top.headers["Authorization"], "Bearer access-1")

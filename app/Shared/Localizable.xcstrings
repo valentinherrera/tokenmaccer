@@ -21,8 +21,21 @@
         }
       }
     },
+    "%@" : {
+      "shouldTranslate" : false
+    },
     "%@ %@" : {
       "shouldTranslate" : false
+    },
+    "%@ can join again with the invitation link until you choose New Link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ kann mit dem Einladungslink wieder beitreten, bis du „Neuer Link“ wählst."
+          }
+        }
+      }
     },
     "%@ in" : {
       "localizations" : {
@@ -50,6 +63,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@. Verlasse zuerst das Leaderboard und versuche es dann erneut"
+          }
+        }
+      }
+    },
+    "1 to 40 characters. Every member sees the new name." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 bis 40 Zeichen. Alle Mitglieder sehen den neuen Namen."
           }
         }
       }
@@ -284,6 +307,16 @@
         }
       }
     },
+    "Board" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rangliste"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "de" : {
@@ -364,6 +397,16 @@
         }
       }
     },
+    "Choose the global leaderboard or one of your groups." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähl das globale Leaderboard oder eine deiner Gruppen."
+          }
+        }
+      }
+    },
     "Claude Code" : {
       "shouldTranslate" : false
     },
@@ -407,12 +450,32 @@
         }
       }
     },
+    "Compare with friends: whoever has a group's invitation link can join it. Only members see a group, who is in it and its ranking." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergleich dich mit Freunden: Wer den Einladungslink einer Gruppe hat, kann ihr beitreten. Nur Mitglieder sehen eine Gruppe, wer in ihr ist und ihre Rangliste."
+          }
+        }
+      }
+    },
     "Compare with others" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mit anderen vergleichen"
+          }
+        }
+      }
+    },
+    "Compare your Claude Code usage with us." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vergleich deine Claude-Code-Nutzung mit uns."
           }
         }
       }
@@ -433,6 +496,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Weiter mit GitHub"
+          }
+        }
+      }
+    },
+    "Copy Invitation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einladung kopieren"
           }
         }
       }
@@ -513,6 +586,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hintergrund-Updates konnten nicht gestoppt werden: %@"
+          }
+        }
+      }
+    },
+    "Create" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anlegen"
+          }
+        }
+      }
+    },
+    "Delete Group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppe löschen"
+          }
+        }
+      }
+    },
+    "Delete Group…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppe löschen …"
+          }
+        }
+      }
+    },
+    "Delete “%@”?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ löschen?"
           }
         }
       }
@@ -607,6 +720,16 @@
         }
       }
     },
+    "Former group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frühere Gruppe"
+          }
+        }
+      }
+    },
     "Found" : {
       "localizations" : {
         "de" : {
@@ -633,6 +756,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "GitHub-Anmeldung fehlgeschlagen: %@"
+          }
+        }
+      }
+    },
+    "Global" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Global"
+          }
+        }
+      }
+    },
+    "Groups" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppen"
+          }
+        }
+      }
+    },
+    "Groups are part of the TokenMaccer leaderboard. Sign in with GitHub to join the leaderboard; joining the group follows right after. Only your period totals are shared, never prompts or projects." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppen gehören zum TokenMaccer-Leaderboard. Melde dich mit GitHub an, um dem Leaderboard beizutreten; der Beitritt zur Gruppe folgt direkt danach. Geteilt werden nur deine Summen je Zeitraum, nie Prompts oder Projekte."
+          }
+        }
+      }
+    },
+    "Groups…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppen …"
+          }
+        }
+      }
+    },
+    "I'm #%lld of %lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich bin #%1$lld von %2$lld %3$@"
           }
         }
       }
@@ -667,12 +840,122 @@
         }
       }
     },
+    "Invitation for “%@” copied." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einladung für „%@“ kopiert."
+          }
+        }
+      }
+    },
+    "Invitation link or code" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einladungslink oder Code"
+          }
+        }
+      }
+    },
+    "Invite to “%@”" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu „%@“ einladen"
+          }
+        }
+      }
+    },
+    "Invite…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einladen …"
+          }
+        }
+      }
+    },
     "It appears with the next report, within 30 minutes." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sie erscheint mit der nächsten Meldung, innerhalb von 30 Minuten."
+          }
+        }
+      }
+    },
+    "Join" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beitreten"
+          }
+        }
+      }
+    },
+    "Join Group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppe beitreten"
+          }
+        }
+      }
+    },
+    "Join a Group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einer Gruppe beitreten"
+          }
+        }
+      }
+    },
+    "Join a group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einer Gruppe beitreten"
+          }
+        }
+      }
+    },
+    "Join my group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt meiner Gruppe bei"
+          }
+        }
+      }
+    },
+    "Join my group “%@” on the TokenMaccer leaderboard for Claude Code: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt meiner Gruppe „%1$@“ im TokenMaccer-Leaderboard für Claude Code bei: %2$@"
+          }
+        }
+      }
+    },
+    "Join my group “%@” on the TokenMaccer leaderboard for Claude Code: %@\nWith TokenMaccer installed, this link opens it directly: %@\nGet the app: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt meiner Gruppe „%1$@“ im TokenMaccer-Leaderboard für Claude Code bei: %2$@\nMit installiertem TokenMaccer öffnet dieser Link die App direkt: %3$@\nZur App: %4$@"
           }
         }
       }
@@ -687,12 +970,32 @@
         }
       }
     },
+    "Join the leaderboard first." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tritt zuerst dem Leaderboard bei."
+          }
+        }
+      }
+    },
     "Join the leaderboard to compare your totals with other Claude Code users. Only your period totals are shared." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tritt dem Leaderboard bei, um deine Summen mit anderen Claude-Code-Nutzern zu vergleichen. Geteilt werden nur deine Summen je Zeitraum."
+          }
+        }
+      }
+    },
+    "Join with GitHub" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit GitHub beitreten"
           }
         }
       }
@@ -713,6 +1016,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Der Beitritt ist fehlgeschlagen, und das Konto, das die Anmeldung auf dem Leaderboard-Server angelegt hat, konnte noch nicht gelöscht werden: %@"
+          }
+        }
+      }
+    },
+    "Joining the group…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trete der Gruppe bei …"
           }
         }
       }
@@ -807,6 +1120,26 @@
         }
       }
     },
+    "Leave Group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppe verlassen"
+          }
+        }
+      }
+    },
+    "Leave Group…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppe verlassen …"
+          }
+        }
+      }
+    },
     "Leave and Delete" : {
       "localizations" : {
         "de" : {
@@ -833,6 +1166,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Leaderboard verlassen?"
+          }
+        }
+      }
+    },
+    "Leave “%@”?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ verlassen?"
           }
         }
       }
@@ -867,6 +1210,66 @@
         }
       }
     },
+    "Make a new link for “%@”?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuen Link für „%@“ erzeugen?"
+          }
+        }
+      }
+    },
+    "Members" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitglieder"
+          }
+        }
+      }
+    },
+    "Members: %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mitglieder: %lld"
+          }
+        }
+      }
+    },
+    "More for “%@”" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr zu „%@“"
+          }
+        }
+      }
+    },
+    "Name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
+    },
+    "Name, 1 to 40 characters" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name, 1 bis 40 Zeichen"
+          }
+        }
+      }
+    },
     "Needs your approval" : {
       "localizations" : {
         "de" : {
@@ -883,6 +1286,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nie Projekte, Prompts, Dateinamen oder andere Inhalte. Alles andere bleibt auf diesem Mac."
+          }
+        }
+      }
+    },
+    "New Link" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Link"
+          }
+        }
+      }
+    },
+    "New Link…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Link …"
+          }
+        }
+      }
+    },
+    "New group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue Gruppe"
           }
         }
       }
@@ -953,6 +1386,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kein Leaderboard-Server eingerichtet."
+          }
+        }
+      }
+    },
+    "No member of this group has a current total for this period. Invite friends with the link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Mitglied dieser Gruppe hat eine aktuelle Summe für diesen Zeitraum. Lade Freunde mit dem Link ein."
           }
         }
       }
@@ -1067,6 +1510,16 @@
         }
       }
     },
+    "Only the group's owner can do that, or you're no longer in this group." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das kann nur, wem die Gruppe gehört, oder du bist nicht mehr in dieser Gruppe."
+          }
+        }
+      }
+    },
     "Open Login Items" : {
       "localizations" : {
         "de" : {
@@ -1133,6 +1586,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ausgabe"
+          }
+        }
+      }
+    },
+    "Owner" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Admin"
           }
         }
       }
@@ -1217,12 +1680,72 @@
         }
       }
     },
+    "Remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "Remove %@ from “%@”?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ aus „%2$@“ entfernen?"
+          }
+        }
+      }
+    },
     "Remove Data" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Daten entfernen"
+          }
+        }
+      }
+    },
+    "Remove…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen …"
+          }
+        }
+      }
+    },
+    "Rename" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbenennen"
+          }
+        }
+      }
+    },
+    "Rename Group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppe umbenennen"
+          }
+        }
+      }
+    },
+    "Rename…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbenennen …"
           }
         }
       }
@@ -1357,6 +1880,26 @@
         }
       }
     },
+    "Show Global Leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globales Leaderboard zeigen"
+          }
+        }
+      }
+    },
+    "Show Ranking" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rangliste zeigen"
+          }
+        }
+      }
+    },
     "Show TokenMaccer in the menu bar" : {
       "localizations" : {
         "de" : {
@@ -1467,6 +2010,16 @@
         }
       }
     },
+    "That is not an invitation link or code." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das ist kein Einladungslink und kein Code."
+          }
+        }
+      }
+    },
     "The background collector is missing from TokenMaccer.app." : {
       "localizations" : {
         "de" : {
@@ -1477,12 +2030,82 @@
         }
       }
     },
+    "The current link stops working at once. Members stay in the group; share the new link with anyone who should still join." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der aktuelle Link funktioniert sofort nicht mehr. Die Mitglieder bleiben in der Gruppe; teil den neuen Link mit allen, die noch beitreten sollen."
+          }
+        }
+      }
+    },
+    "The group and its ranking are deleted for every member. Your entry on the leaderboard stays." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Gruppe und ihre Rangliste werden für alle Mitglieder gelöscht. Dein Eintrag im Leaderboard bleibt."
+          }
+        }
+      }
+    },
+    "The group disappears from your app and widget. You can come back with the invitation link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Gruppe verschwindet aus deiner App und deinem Widget. Mit dem Einladungslink kannst du zurückkommen."
+          }
+        }
+      }
+    },
+    "The group name needs 1 to 40 characters." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Gruppenname braucht 1 bis 40 Zeichen."
+          }
+        }
+      }
+    },
+    "The group passes to the member who joined first. You can come back with the invitation link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Gruppe geht an das Mitglied über, das als Erstes beigetreten ist. Mit dem Einladungslink kannst du zurückkommen."
+          }
+        }
+      }
+    },
+    "The group's ranking is now in the Leaderboard window and in the leaderboard widget (Edit Widget › Board)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Rangliste der Gruppe ist jetzt im Leaderboard-Fenster und im Leaderboard-Widget (Widget bearbeiten › Rangliste)."
+          }
+        }
+      }
+    },
     "The image and a link to the download page. Your token count is on the card; nothing else is." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Das Bild und ein Link zur Download-Seite. Auf der Karte steht deine Token-Zahl, sonst nichts."
+          }
+        }
+      }
+    },
+    "The image and the invitation link. Anyone with the link can join the group until its owner renews the link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Bild und der Einladungslink. Mit dem Link kann jede Person der Gruppe beitreten, bis ihre Besitzerin oder ihr Besitzer einen neuen Link erzeugt."
           }
         }
       }
@@ -1617,6 +2240,36 @@
         }
       }
     },
+    "This group is full (100 members)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Gruppe ist voll (100 Mitglieder)."
+          }
+        }
+      }
+    },
+    "This invitation link is invalid or expired. Ask for a new one." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Einladungslink ist ungültig oder abgelaufen. Frag nach einem neuen."
+          }
+        }
+      }
+    },
+    "This member is no longer in the group." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Mitglied ist nicht mehr in der Gruppe."
+          }
+        }
+      }
+    },
     "Today" : {
       "localizations" : {
         "de" : {
@@ -1686,6 +2339,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Token oder USD"
+          }
+        }
+      }
+    },
+    "Too many join attempts. Try again in %lld min." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu viele Beitrittsversuche. Versuch es in %lld Min. noch einmal."
           }
         }
       }
@@ -1860,6 +2523,16 @@
         }
       }
     },
+    "Waiting for the leaderboard server…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warte auf den Leaderboard-Server …"
+          }
+        }
+      }
+    },
     "Waiting for the widget… This step checks itself off." : {
       "localizations" : {
         "de" : {
@@ -1930,12 +2603,92 @@
         }
       }
     },
+    "You can be in at most 20 groups." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du kannst in höchstens 20 Gruppen sein."
+          }
+        }
+      }
+    },
+    "You can own at most 10 groups." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dir können höchstens 10 Gruppen gehören."
+          }
+        }
+      }
+    },
+    "You left it, the owner removed you, or the group was deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du hast sie verlassen, wurdest von der Besitzerin oder dem Besitzer entfernt, oder die Gruppe wurde gelöscht."
+          }
+        }
+      }
+    },
+    "You left it, were removed, or it was deleted. Choose another board with Edit Widget." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du hast sie verlassen, wurdest entfernt oder sie wurde gelöscht. Wähl unter „Widget bearbeiten“ eine andere Rangliste."
+          }
+        }
+      }
+    },
+    "You were invited to a group on the TokenMaccer leaderboard. Its members see your display name, your GitHub username and your totals on the group's ranking, as on the global leaderboard. You can leave the group at any time." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du wurdest in eine Gruppe im TokenMaccer-Leaderboard eingeladen. Ihre Mitglieder sehen deinen Anzeigenamen, deinen GitHub-Nutzernamen und deine Summen in der Rangliste der Gruppe, wie im globalen Leaderboard. Du kannst die Gruppe jederzeit verlassen."
+          }
+        }
+      }
+    },
+    "You're in “%@”" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist in „%@“"
+          }
+        }
+      }
+    },
     "You're in. Your place appears after the first report." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Du bist dabei. Dein Platz erscheint nach der ersten Meldung."
+          }
+        }
+      }
+    },
+    "You're no longer in this group" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist nicht mehr in dieser Gruppe"
+          }
+        }
+      }
+    },
+    "You're not in a group yet." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist noch in keiner Gruppe."
           }
         }
       }
@@ -1976,6 +2729,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Du bist im Leaderboard"
+          }
+        }
+      }
+    },
+    "You're the only member, so the group is deleted." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du bist das einzige Mitglied, deshalb wird die Gruppe gelöscht."
           }
         }
       }
@@ -2030,12 +2793,12 @@
         }
       }
     },
-    "Your place among Claude Code users: the top places and your own row." : {
+    "Your place among Claude Code users, or in one of your groups: the top places and your own row." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dein Platz im Leaderboard: die ersten Plätze und deine eigene Zeile."
+            "value" : "Dein Platz unter den Nutzerinnen und Nutzern von Claude Code oder in einer deiner Gruppen: die vorderen Plätze und deine eigene Zeile."
           }
         }
       }

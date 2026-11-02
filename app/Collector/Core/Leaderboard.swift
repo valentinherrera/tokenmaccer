@@ -602,7 +602,7 @@ public struct LeaderboardSync: Sendable {
         self.transport = transport
     }
 
-    private func client() throws -> LeaderboardClient {
+    func client() throws -> LeaderboardClient {
         guard let endpoint else { throw LeaderboardError.noServer }
         return LeaderboardClient(endpoint: endpoint, transport: transport())
     }
@@ -617,7 +617,7 @@ public struct LeaderboardSync: Sendable {
     }
 
     /// Runs `body` with a valid access token; after a 401 it refreshes once and tries again.
-    private func authorized<T>(_ c: LeaderboardClient, now: Date, _ body: (String) throws -> T) throws -> T {
+    func authorized<T>(_ c: LeaderboardClient, now: Date, _ body: (String) throws -> T) throws -> T {
         // a failing refresh is final (no second refresh); only a 401 from `body` earns one more try
         let session = try validSession(c, now: now)
         do {
@@ -756,9 +756,11 @@ public struct LeaderboardSync: Sendable {
         Self.removeBoards(dataDir: dataDir)
     }
 
-    /// The boards and avatars of the leaderboard window: gone with the participation.
+    /// The boards, group boards and avatars of the leaderboard window: gone with the participation (the server
+    /// removes every group membership with the profile).
     static func removeBoards(dataDir: String) {
         LeaderboardBoards.remove(dataDir: dataDir)
+        LeaderboardGroups.remove(dataDir: dataDir)
         AvatarCache.remove(dataDir: dataDir)
     }
 
@@ -821,10 +823,14 @@ public struct LeaderboardSync: Sendable {
                 state.lastError = nil
                 state.lastErrorKind = nil
                 log = "leaderboard: reported, \(places.filter { $0.rank != nil }.count) places"
-                // the app's leaderboard window: the boards, then the avatars of who is on them (best effort)
+                // the app's leaderboard window: the boards, the groups, then the avatars of who is on them (best
+                // effort; when the boards fail the groups are not asked for in this pass either)
                 if let boards = try? authorized(c, now: now, { try c.top(token: $0, now: now) }) {
                     try? boards.save(dataDir: dataDir)
-                    AvatarCache(dataDir: dataDir).refresh(LeaderboardWidgetFile.avatarOrder(boards), transport: c.transport, now: now)
+                    let groups = try? authorized(c, now: now, { try c.groups(token: $0, now: now) })
+                    try? groups?.save(dataDir: dataDir)
+                    AvatarCache(dataDir: dataDir).refresh(
+                        LeaderboardWidgetFile.avatarOrder(boards, groups: groups), transport: c.transport, now: now)
                 }
             } catch LeaderboardError.notParticipant {
                 state.joined = false

@@ -178,15 +178,22 @@ final class Leaderboard {
     struct HelperAnswer: Sendable {
         var ok: Bool
         var error: String?
+        /// Group actions: the group the server answered with (id, name), and what kind of error it was.
+        var groupId: String?
+        var groupName: String?
+        var errorKind: String?
     }
 
     nonisolated private static func parse(_ data: Data) -> HelperAnswer {
         let last = String(decoding: data, as: UTF8.self).split(separator: "\n").last.map(String.init) ?? ""
         let obj = (try? JSONSerialization.jsonObject(with: Data(last.utf8)) as? [String: Any]) ?? [:]
-        return HelperAnswer(ok: obj["ok"] as? Bool == true, error: obj["error"] as? String)
+        let group = obj["group"] as? [String: Any]
+        return HelperAnswer(ok: obj["ok"] as? Bool == true, error: obj["error"] as? String,
+                            groupId: group?["id"] as? String, groupName: group?["name"] as? String,
+                            errorKind: obj["error_kind"] as? String)
     }
 
-    nonisolated private static func helper(_ url: URL, _ args: [String], stdin: Data?) async -> HelperAnswer {
+    nonisolated static func helper(_ url: URL, _ args: [String], stdin: Data?) async -> HelperAnswer {
         await withCheckedContinuation { cont in
             let p = Process()
             let out = Pipe()

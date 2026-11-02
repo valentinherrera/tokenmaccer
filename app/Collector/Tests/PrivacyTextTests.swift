@@ -78,4 +78,31 @@ final class PrivacyTextTests: XCTestCase {
             XCTAssertGreaterThan(Double(words), Double(sourceWords) * 0.97, "\(file): text lost")
         }
     }
+
+    /// Groups in both notices: what the server stores (table rows for groups, memberships and join attempts), who sees
+    /// it (members only), the local file, and what leaving does (memberships go, owned groups pass on or are deleted).
+    func testBundledNoticesCoverGroups() throws {
+        let docs = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("docs")
+        let expected: [String: (rows: [String], phrases: [String])] = [
+            "privacy.md": (["Groups (optional)", "Group memberships (optional)", "Join attempts"],
+                           ["Only the members of a group see", "leaderboard-groups.json", "group memberships",
+                            "pass to the member who joined first", "a group without another member is deleted",
+                            "**Leave Group…**"]),
+            "privacy.de.md": (["Gruppen (freiwillig)", "Gruppenmitgliedschaften (freiwillig)", "Beitrittsversuche"],
+                              ["Nur die Mitglieder einer Gruppe sehen", "leaderboard-groups.json", "Gruppenmitgliedschaften",
+                               "gehen an das Mitglied über, das als Erstes beigetreten ist",
+                               "eine Gruppe ohne weiteres Mitglied wird gelöscht", "**Gruppe verlassen …**"]),
+        ]
+        for (file, want) in expected {
+            let text = try String(contentsOf: docs.appendingPathComponent(file), encoding: .utf8)
+            let rows = PrivacyText.parse(text).compactMap { block -> [String]? in
+                if case .table(_, let rows) = block { return rows.map { $0.first ?? "" } }
+                return nil
+            }.flatMap { $0 }
+            for row in want.rows { XCTAssertTrue(rows.contains(row), "\(file): no table row \(row)") }
+            for phrase in want.phrases { XCTAssertTrue(text.contains(phrase), "\(file): missing \(phrase)") }
+        }
+    }
 }

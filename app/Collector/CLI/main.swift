@@ -9,7 +9,9 @@ import WidgetKit
 // is the app's way into the opt-in leaderboard: join reads {"code": …, "verifier": …} from stdin (the result of the
 // GitHub sign-in; without --display-name the server takes the GitHub username), rename changes the display name
 // of a joined account, all print one JSON line {"ok": true|false, …}. The sign-in tokens stay in this
-// program's keychain item. `leaderboard endpoint` prints the server this build would use and whether it
+// program's keychain item. `leaderboard group create|join|leave|rename|renew|remove-member|delete|refresh [--name N]
+// [--code C] [--group ID] [--member ID]` changes a group (or only fetches the groups again) and prints
+// {"ok": …, "group": {…}, "error": …, "error_kind": …}. `leaderboard endpoint` prints the server this build would use and whether it
 // honours overrides (Debug only); it sends nothing (scripts/check_release_endpoint.sh).
 let args = Array(CommandLine.arguments.dropFirst())
 if args.contains("--help") || args.contains("-h") {
@@ -62,6 +64,15 @@ if args.first == "leaderboard" {
         displayName = rest[i + 1]
         rest.removeSubrange(i...(i + 1))
     }
+    // group options: --name, --code, --group, --member (each with a value)
+    var option: [String: String] = [:]
+    for key in ["--name", "--code", "--group", "--member"] {
+        if let i = rest.firstIndex(of: key), i + 1 < rest.count {
+            option[key] = rest[i + 1]
+            rest.removeSubrange(i...(i + 1))
+        }
+    }
+    let groupVerb = action == "group" && !rest.isEmpty && !rest[0].hasPrefix("-") ? rest.removeFirst() : ""
     let wantsSignIn = rest.contains("--sign-in")
     rest.removeAll { $0 == "--sign-in" }
     var config: CollectorConfig
@@ -71,7 +82,7 @@ if args.first == "leaderboard" {
         reply(["ok": false, "error": "\(error)"])
     }
     useContainer(&config)
-    // join, rename and leave change what the leaderboard widget may show (Leave removes its copy of the boards)
+    // join, rename, leave and group actions change what the leaderboard widget may show (Leave removes its copy of the boards)
     func done(_ obj: [String: Any]) -> Never {
         if config.appGroup != nil, LeaderboardWidgetFile.sync(dataDir: config.dataDir, widgetPath: config.widgetPath) {
             reloadWidgets()
@@ -122,8 +133,39 @@ if args.first == "leaderboard" {
         } catch {
             done(["ok": false, "error": "\(error)"])
         }
+    case "group":
+        let g = option["--group"] ?? ""
+        let groupAction: GroupAction?
+        switch groupVerb {
+        case "create": groupAction = option["--name"].map { .create(name: $0) }
+        case "join": groupAction = option["--code"].map { .join(code: $0) }
+        case "leave": groupAction = g.isEmpty ? nil : .leave(group: g)
+        case "rename": groupAction = g.isEmpty ? nil : option["--name"].map { .rename(group: g, name: $0) }
+        case "renew": groupAction = g.isEmpty ? nil : .renew(group: g)
+        case "remove-member": groupAction = g.isEmpty ? nil : option["--member"].map { .removeMember(group: g, member: $0) }
+        case "delete": groupAction = g.isEmpty ? nil : .delete(group: g)
+        case "refresh": groupAction = .refresh
+        default: groupAction = nil
+        }
+        guard let groupAction else {
+            reply(["ok": false, "error": "usage: leaderboard group create --name N | join --code C | leave|renew|delete --group ID"
+                   + " | rename --group ID --name N | remove-member --group ID --member ID | refresh"])
+        }
+        do {
+            var answer: [String: Any] = ["ok": true]
+            if let group = try sync.group(groupAction) { answer["group"] = group.json }
+            done(answer)
+        } catch {
+            var answer: [String: Any] = ["ok": false, "error": "\(error)"]
+            if let e = error as? GroupError {
+                answer["error_kind"] = e.kind
+            } else if let kind = (error as? LeaderboardError)?.kind {
+                answer["error_kind"] = kind
+            }
+            done(answer)
+        }
     default:
-        reply(["ok": false, "error": "usage: leaderboard join|rename|leave|endpoint [--display-name NAME]"])
+        reply(["ok": false, "error": "usage: leaderboard join|rename|leave|group|endpoint [--display-name NAME]"])
     }
 }
 

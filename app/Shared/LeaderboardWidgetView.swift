@@ -3,10 +3,13 @@ import AppKit
 import SwiftUI
 
 /// The leaderboard widget: medium shows the first three places, large the first eight, each with the own row
-/// below a gap when it comes later. Period (chip row) and unit (header) are its own (BoardSelection); a click
-/// anywhere else opens the app's leaderboard window. Reads only leaderboard-widget.json (LeaderboardWidgetData), never the network.
+/// below a gap when it comes later. Period (chip row) and unit (header) are its own (BoardSelection); the board
+/// (global or one of the user's groups) is the widget's configuration ("Edit Widget"). A click anywhere else opens the
+/// app's leaderboard window on the same board. Reads only leaderboard-widget.json (LeaderboardWidgetData), never the
+/// network.
 struct LeaderboardWidgetView: View {
     let data: LeaderboardWidgetData?
+    var group: String? = nil
     let period: String
     let unit: Unit
     let size: Size
@@ -14,7 +17,18 @@ struct LeaderboardWidgetView: View {
     @Environment(\.widgetRenderingMode) private var mode
 
     private var places: Int { size == .large ? 8 : 3 }
-    private var state: BoardState { LeaderboardWidgetData.state(data, period: period, unit: unit, places: places) }
+    private var state: BoardState {
+        LeaderboardWidgetData.state(data, group: group, period: period, unit: unit, places: places)
+    }
+
+    /// tokenmaccer://leaderboard, with ?group=<id> for a group's board.
+    private var url: URL {
+        guard let group, var c = URLComponents(url: Place.leaderboardURL, resolvingAgainstBaseURL: false) else {
+            return Place.leaderboardURL
+        }
+        c.queryItems = [URLQueryItem(name: "group", value: group)]
+        return c.url ?? Place.leaderboardURL
+    }
 
     var body: some View {
         Group {
@@ -30,14 +44,19 @@ struct LeaderboardWidgetView: View {
                 }
             }
         }
-        .widgetURL(Place.leaderboardURL)
+        .widgetURL(url)
     }
 
     // MARK: Parts
 
     private var header: some View {
         HStack(spacing: 6) {
-            Text("Leaderboard").font(.system(size: 13, weight: .semibold))
+            if let name = data?.group(group)?.name {
+                Label { Text(verbatim: name) } icon: { Image(systemName: "person.2.fill") }
+                    .font(.system(size: 13, weight: .semibold))
+            } else {
+                Text("Leaderboard").font(.system(size: 13, weight: .semibold))
+            }
             Spacer(minLength: 4)
             Button(intent: ToggleBoardUnit()) {
                 Text(Format.unitName(unit)).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
@@ -58,6 +77,9 @@ struct LeaderboardWidgetView: View {
         case .board(nil):
             message(symbol: "person.3", title: "Nobody here yet",
                     detail: "No participant has a current total for this period.")
+        case .groupGone:
+            message(symbol: "person.2.slash", title: "You're no longer in this group",
+                    detail: "You left it, were removed, or it was deleted. Choose another board with Edit Widget.")
         case .board(let b?):
             VStack(alignment: .leading, spacing: size == .large ? 3 : 1) {
                 ForEach(b.top) { row($0) }

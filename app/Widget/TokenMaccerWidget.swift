@@ -75,40 +75,46 @@ struct TokenMaccerWidget: Widget {
 struct BoardEntry: TimelineEntry {
     let date: Date
     let data: LeaderboardWidgetData?
+    /// The chosen group's id; nil for the global board.
+    let group: String?
     let period: String
     let unit: Unit
 }
 
-struct BoardProvider: TimelineProvider {
+struct BoardProvider: AppIntentTimelineProvider {
     // the widget gallery and the placeholder show a made-up board, never the participants' real names
     func placeholder(in context: Context) -> BoardEntry { sample() }
 
-    func getSnapshot(in context: Context, completion: @escaping (BoardEntry) -> Void) {
-        completion(context.isPreview ? sample() : current())
+    func snapshot(for configuration: LeaderboardScopeIntent, in context: Context) async -> BoardEntry {
+        context.isPreview ? sample() : current(configuration)
     }
 
     private func sample() -> BoardEntry {
-        BoardEntry(date: .now, data: .sample, period: "1D", unit: .tokens)
+        BoardEntry(date: .now, data: .sample, group: nil, period: "1D", unit: .tokens)
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<BoardEntry>) -> Void) {
+    func timeline(for configuration: LeaderboardScopeIntent, in context: Context) async -> Timeline<BoardEntry> {
         // the boards change at most every 30 minutes; the collector asks for a reload when its copy changed
         let next = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now
-        completion(Timeline(entries: [current()], policy: .after(next)))
+        return Timeline(entries: [current(configuration)], policy: .after(next))
     }
 
-    private func current() -> BoardEntry {
-        BoardEntry(date: .now, data: LeaderboardWidgetData.load(), period: BoardSelection.period, unit: BoardSelection.unit)
+    private func current(_ configuration: LeaderboardScopeIntent) -> BoardEntry {
+        BoardEntry(date: .now, data: LeaderboardWidgetData.load(), group: configuration.scope?.groupID,
+                   period: BoardSelection.period, unit: BoardSelection.unit)
     }
 }
 
 struct LeaderboardWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "TokenMaccerLeaderboard", provider: BoardProvider()) { e in
+        // same kind as the StaticConfiguration before groups: placed widgets keep their place and, without a choice,
+        // show the global board
+        AppIntentConfiguration(kind: "TokenMaccerLeaderboard", intent: LeaderboardScopeIntent.self,
+                               provider: BoardProvider()) { e in
             LeaderboardWidgetEntryView(entry: e)
         }
         .configurationDisplayName("TokenMaccer Leaderboard")
-        .description("Your place among Claude Code users: the top places and your own row.")
+        .description("Your place among Claude Code users, or in one of your groups: the top places and your own row.")
         .supportedFamilies([.systemMedium, .systemLarge])
     }
 }
@@ -118,7 +124,7 @@ struct LeaderboardWidgetEntryView: View {
     let entry: BoardEntry
 
     var body: some View {
-        LeaderboardWidgetView(data: entry.data, period: entry.period, unit: entry.unit,
+        LeaderboardWidgetView(data: entry.data, group: entry.group, period: entry.period, unit: entry.unit,
                               size: family == .systemLarge ? .large : .medium)
             .containerBackground(.background, for: .widget)
     }

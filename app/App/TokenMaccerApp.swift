@@ -30,7 +30,8 @@ struct TokenMaccerApp: App {
             }
         }
         .windowResizability(.contentSize)
-        // tokenmaccer://leaderboard goes to the leaderboard window, nothing else opens a window from a link
+        // tokenmaccer://leaderboard and tokenmaccer://join/<code> go to the leaderboard window, nothing else opens a
+        // window from a link
         .handlesExternalEvents(matching: [])
         .commands {
             if Edition.isApp {
@@ -49,7 +50,8 @@ struct TokenMaccerApp: App {
             LeaderboardWindow()
         }
         .windowResizability(.contentSize)
-        .handlesExternalEvents(matching: ["leaderboard"])
+        // invitation links (tokenmaccer://join/<code>) open it too, with the join sheet
+        .handlesExternalEvents(matching: ["leaderboard", "join"])
 
         Settings {
             SettingsScene()

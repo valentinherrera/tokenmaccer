@@ -1,10 +1,10 @@
 import AppKit
 import SwiftUI
 
-// Renders the leaderboard window, the share card and the menu bar panel to PNGs (light and dark) from fixtures,
+// Renders the leaderboard window, the groups sheet, the share card and the menu bar panel to PNGs (light and dark) from fixtures,
 // without the app, its data or the network (the avatars are drawn here, no picture is downloaded). Build (from
 // the repository root):
-//   xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift \
+//   xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift app/App/GroupViews.swift \
 //     app/Preview/Leaderboard/main.swift -o /tmp/tm-leaderboard
 // Usage: tm-leaderboard <output dir> [-AppleLanguages '(de)']; German needs the binary inside an .app with
 // de.lproj from a built TokenMaccer.app (see README, "Screenshots").
@@ -36,6 +36,23 @@ struct LeaderboardRenderer {
             own: BoardRowValue(rank: 57, name: "synth-gh", login: "synth-2", value: 31.4, isMe: true))
         let updated = Calendar.current.date(bySettingHour: 13, minute: 30, second: 0, of: Date()) ?? Date()
         let card = ShareCardValue(rank: 3, participants: 120, period: "7D", usd: false, value: 16_000_000)
+        let friends = BoardValue(participants: 4, top: Array(top.prefix(4)).enumerated().map { i, r in
+            var r = r
+            r.rank = i + 1
+            return r
+        }, own: nil)
+        let scopes = [BoardScopeValue(id: "g1", name: "Friday Hackers"), BoardScopeValue(id: "g2", name: "Studio Nord")]
+        let members = [
+            GroupMemberValue(id: "m1", name: "synth-gh", login: "synth-2", isOwner: true, isMe: true),
+            GroupMemberValue(id: "m2", name: "Mara K.", login: "synth-0", isOwner: false, isMe: false),
+            GroupMemberValue(id: "m3", name: "devon", login: "synth-1", isOwner: false, isMe: false),
+        ]
+        let groups = [
+            GroupValue(id: "g1", name: "Friday Hackers", code: "k7m2p9qrst", isOwner: true, memberCount: 3, members: members),
+            GroupValue(id: "g2", name: "Studio Nord", code: "a3b4c5d6e7", isOwner: false, memberCount: 12, members: members),
+        ]
+        let invite = ShareCardValue(rank: 2, participants: 4, period: "7D", usd: false, value: 24_000_000,
+                                    group: GroupCardValue(name: "Friday Hackers", code: "k7m2p9qrst"))
 
         let scenes: [(String, AnyView)] = [
             ("leaderboard-7d-tokens", AnyView(window(.board(inTop), period: "7D", usd: false, updated: updated))),
@@ -49,7 +66,17 @@ struct LeaderboardRenderer {
                                                             offline: .offline))),
             ("leaderboard-unreachable-waiting", AnyView(window(.waiting, period: "1D", usd: false, updated: nil,
                                                                 offline: .unreachable))),
+            ("leaderboard-group-board", AnyView(window(.board(friends), period: "7D", usd: false, updated: updated,
+                                                        scopes: scopes, scope: "g1"))),
+            ("leaderboard-group-gone", AnyView(window(.groupGone, period: "7D", usd: false, updated: updated,
+                                                       scopes: scopes, scope: "g9"))),
+            ("groups-sheet", AnyView(GroupsSheet(groups: groups))),
+            ("groups-sheet-empty", AnyView(GroupsSheet(groups: [], error: "This invitation link is invalid or expired. Ask for a new one."))),
+            ("invite-sheet-joined-leaderboard", AnyView(InviteSheet(onLeaderboard: true))),
+            ("invite-sheet-not-on-leaderboard", AnyView(InviteSheet(onLeaderboard: false))),
+            ("invite-sheet-done", AnyView(InviteSheet(onLeaderboard: true, phase: .joined("Friday Hackers")))),
             ("share-sheet", AnyView(ShareSheetView(card: card))),
+            ("share-sheet-invite", AnyView(ShareSheetView(card: invite))),
             ("menubar-joined", AnyView(MenuBarPanel(value: MenuBarValue(
                 todayTokens: 2_350_000, todayUSD: 41.27, rank: 3, participants: 120, canShare: true)))),
             ("menubar-not-joined", AnyView(MenuBarPanel(value: MenuBarValue(todayTokens: 2_350_000, todayUSD: 41.27)))),
@@ -65,21 +92,25 @@ struct LeaderboardRenderer {
             }
         }
         // the card itself, exactly as shared (ImageRenderer, 1200 x 680 px)
-        for (suffix, c) in [("7d-tokens", card), ("1d-usd", ShareCardValue(rank: 1, participants: 8, period: "1D", usd: true, value: 41.27))] {
+        for (suffix, c) in [("7d-tokens", card), ("1d-usd", ShareCardValue(rank: 1, participants: 8, period: "1D", usd: true, value: 41.27)),
+                            ("group-invite", invite)] {
             guard let png = ShareCard.png(c) else { exit(1) }
             try? png.write(to: out.appendingPathComponent("share-card-\(suffix)-\(lang).png"))
         }
         print("message: \(ShareCard.message(card))")
-        print("rendered \(scenes.count * 2 + 2) images to \(out.path)")
+        print("invite message: \(ShareCard.message(invite))")
+        print("rendered \(scenes.count * 2 + 3) images to \(out.path)")
     }
 
     static var lang: String { Bundle.main.preferredLocalizations.first ?? "en" }
 
     @MainActor
     static func window(_ state: BoardState, period: String, usd: Bool, updated: Date?,
-                       offline: LeaderboardProblem.Kind? = nil) -> some View {
+                       offline: LeaderboardProblem.Kind? = nil, scopes: [BoardScopeValue] = [],
+                       scope: String? = nil) -> some View {
         LeaderboardWindowView(state: state, period: .constant(period), usd: .constant(usd), updated: updated,
-                              offline: offline, avatar: avatar)
+                              offline: offline, avatar: avatar, scopes: scopes, scope: .constant(scope),
+                              manageGroups: {})
     }
 
     /// Made-up avatars: a coloured tile with a simple pattern, one per login (no GitHub picture is used).

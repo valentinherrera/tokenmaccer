@@ -10,6 +10,7 @@ enum AppModels {
     static let dataDir = (WidgetData.realHome ?? NSHomeDirectory()) + "/Library/Application Support/TokenMaccer"
     static let setup = Setup()
     static let leaderboard = Leaderboard(dataDir: dataDir)
+    static let groups = Groups()
 }
 
 /// What the collector fetched for the leaderboard window (leaderboard-top.json) and the avatars it cached. The app
@@ -17,6 +18,8 @@ enum AppModels {
 @MainActor @Observable
 final class BoardStore {
     private(set) var boards: LeaderboardBoards?
+    /// leaderboard-groups.json: the user's groups, their members and boards.
+    private(set) var groups: LeaderboardGroups?
     @ObservationIgnored private var images: [String: (NSImage?, Date?)] = [:]
     @ObservationIgnored private let dataDir: String
 
@@ -28,6 +31,13 @@ final class BoardStore {
     func refresh() {
         let fresh = LeaderboardBoards.load(dataDir: dataDir)
         if fresh != boards { boards = fresh }
+        let freshGroups = LeaderboardGroups.load(dataDir: dataDir)
+        if freshGroups != groups { groups = freshGroups }
+    }
+
+    /// The boards the window can switch to besides the global one.
+    var scopes: [BoardScopeValue] {
+        (groups?.groups ?? []).map { BoardScopeValue(id: $0.group.id, name: $0.group.name) }
     }
 
     /// The cached picture of `login`, reloaded when the collector replaced the file.
@@ -40,11 +50,20 @@ final class BoardStore {
         return image
     }
 
-    /// The window's state for one board.
-    func state(joined: Bool, period: String, unit: Unit) -> BoardState {
+    /// The window's state for one board; `group` nil is the global board. A chosen group the file no longer lists
+    /// is gone (left elsewhere, removed by the owner, deleted), never quietly the global board.
+    func state(joined: Bool, group: String? = nil, period: String, unit: Unit) -> BoardState {
         guard joined else { return .notJoined }
-        guard let boards else { return .waiting }
-        guard let b = boards.board(period: period, unit: unit.rawValue), !b.entries.isEmpty else { return .board(nil) }
+        let found: LeaderboardBoard?
+        if let group {
+            guard let groups else { return .waiting }
+            guard let g = groups.group(id: group) else { return .groupGone }
+            found = g.board(period: period, unit: unit.rawValue)
+        } else {
+            guard let boards else { return .waiting }
+            found = boards.board(period: period, unit: unit.rawValue)
+        }
+        guard let b = found, !b.entries.isEmpty else { return .board(nil) }
         let rows = b.entries.map {
             BoardRowValue(rank: $0.rank, name: $0.displayName, login: $0.githubLogin, value: $0.value, isMe: $0.isMe)
         }
@@ -68,30 +87,73 @@ struct LeaderboardWindow: View {
     @State private var usd = Selection.unit == .usd
     @State private var sharing = false
     @State private var joining = false
+    @State private var groups = AppModels.groups
+    /// The chosen group's id; nil for the global board.
+    @State private var scope: String?
+    @State private var managing = false
+    @State private var inviting = false
+    @State private var inviteJoined: String?
     private let tick = Timer.publish(every: 15, on: .main, in: .common).autoconnect()
+
+    private var helper: URL? { AppModels.setup.helperURL }
 
     var body: some View {
         LeaderboardWindowView(
-            state: store.state(joined: leaderboard.joined, period: period, unit: usd ? .usd : .tokens),
-            period: $period, usd: $usd, updated: store.boards?.fetchedAt,
+            state: boardState,
+            period: $period, usd: $usd, updated: scope == nil ? store.boards?.fetchedAt : store.groups?.fetchedAt,
             offline: leaderboard.joined
                 ? leaderboard.state.flatMap { s in s.lastError.flatMap { LeaderboardProblem(kind: s.lastErrorKind, message: $0).kind } }
                 : nil,
             avatar: { store.avatar($0) },
             share: { sharing = true },
-            join: { joining = true })
+            join: { joining = true },
+            scopes: store.scopes,
+            scope: $scope,
+            manageGroups: { managing = true })
         .onReceive(tick) { _ in refresh() }
-        .onAppear { refresh() }
-        .onOpenURL { _ in
-            // from the widget: show the board the widget shows
+        .onAppear {
+            refresh()
+            refreshGroups()
+        }
+        // picking a group fetches it again (throttled), so a member who just joined shows up within seconds
+        .onChange(of: scope) { _, picked in if picked != nil { refreshGroups() } }
+        .onOpenURL { url in
+            if let code = GroupInvite.code(from: url) {
+                // an invitation link: one click to join (after the GitHub sign-in when not on the leaderboard yet)
+                groups.pendingInvite = code
+                groups.error = nil
+                inviteJoined = nil
+                leaderboard.refresh()
+                let otherSheet = sharing || joining || managing
+                sharing = false
+                joining = false
+                managing = false
+                guard otherSheet else {
+                    inviting = true
+                    return
+                }
+                // one sheet at a time: the open one goes first, then the invitation comes up
+                Task {
+                    try? await Task.sleep(for: .milliseconds(400))
+                    inviting = true
+                }
+                return
+            }
+            // from a widget: show the board the widget shows
             period = Selection.period
             usd = Selection.unit == .usd
+            scope = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
+                .first { $0.name == "group" }?.value?.lowercased()
             refresh()
         }
         .onChange(of: request.pending, initial: true) { _, pending in
             if pending {
                 request.pending = false
-                if card != nil { sharing = true }
+                // "Share Your Place" (menu bar) shares the place on the global board, not a group's invitation
+                if card(for: nil) != nil {
+                    scope = nil
+                    sharing = true
+                }
             }
         }
         .sheet(isPresented: $sharing) {
@@ -105,6 +167,29 @@ struct LeaderboardWindow: View {
                 refresh()
             }
         }
+        .sheet(isPresented: $managing) {
+            GroupsSheet(groups: Groups.values(store.groups), busy: groups.busy, error: groups.error, notice: groups.notice,
+                        actions: groupsActions)
+                .task {
+                    groups.error = nil
+                    groups.notice = nil
+                    if await groups.refresh(helper: helper) { store.refresh() }
+                }
+        }
+        .sheet(isPresented: $inviting) {
+            InviteSheet(onLeaderboard: leaderboard.joined,
+                        phase: inviteJoined.map { .joined($0) } ?? (groups.busy || leaderboard.busy ? .busy : .ready),
+                        error: groups.error ?? leaderboard.error,
+                        join: acceptInvite,
+                        close: {
+                            inviting = false
+                            if inviteJoined == nil { groups.pendingInvite = nil }
+                        })
+        }
+    }
+
+    private var boardState: BoardState {
+        store.state(joined: leaderboard.joined, group: scope, period: period, unit: usd ? .usd : .tokens)
     }
 
     private func refresh() {
@@ -112,11 +197,114 @@ struct LeaderboardWindow: View {
         store.refresh()
     }
 
-    /// The own place on the shown board, as the card shows it.
-    private var card: ShareCardValue? {
-        guard case .board(let b?) = store.state(joined: leaderboard.joined, period: period, unit: usd ? .usd : .tokens),
-            let me = b.me
-        else { return nil }
+    /// Joins the group of the invitation link; not on the leaderboard yet: the GitHub sign-in and the first report
+    /// first, then the group. Afterwards the window shows the group's ranking.
+    private func acceptInvite() {
+        guard let code = groups.pendingInvite else { return }
+        Task {
+            if !leaderboard.joined {
+                await leaderboard.join(helper: helper) { await AppModels.setup.updateNow() }
+                guard leaderboard.joined else { return refresh() }
+                await waitForFirstReport()
+            }
+            finishInvite(await groups.join(code, helper: helper))
+        }
+    }
+
+    /// After joining from an invitation: the first report must be in before the group join, so the new member is on
+    /// the group's board at once. updateNow returns without a pass when one is already running (the app's own, or the
+    /// background agent's), so wait for it and try again; at most about half a minute, then join all the same.
+    private func waitForFirstReport() async {
+        for _ in 0..<15 {
+            leaderboard.refresh()
+            if leaderboard.state?.lastAttemptAt != nil { return }
+            if AppModels.setup.running {
+                try? await Task.sleep(for: .seconds(1))
+                continue
+            }
+            await AppModels.setup.updateNow()
+            leaderboard.refresh()
+            if leaderboard.state?.lastAttemptAt != nil { return }
+            try? await Task.sleep(for: .seconds(2))
+        }
+    }
+
+    /// The groups again from the server (throttled in Groups.refresh), then the files.
+    private func refreshGroups() {
+        guard leaderboard.joined else { return }
+        Task { if await groups.refresh(helper: helper) { store.refresh() } }
+    }
+
+    private func finishInvite(_ joined: (id: String, name: String)?) {
+        refresh()
+        guard let joined else { return }
+        scope = joined.id
+        inviteJoined = joined.name
+    }
+
+    private var groupsActions: GroupsActions {
+        GroupsActions(
+            create: { name in
+                Task {
+                    if let id = await groups.create(name, helper: helper) { scope = id }
+                    store.refresh()
+                }
+            },
+            join: { pasted in
+                Task {
+                    if let g = await groups.join(pasted, helper: helper) { scope = g.id }
+                    store.refresh()
+                }
+            },
+            invite: { g in
+                scope = g.id
+                managing = false
+                // the share sheet can open once the groups sheet is gone
+                Task {
+                    try? await Task.sleep(for: .milliseconds(350))
+                    sharing = true
+                }
+            },
+            copy: { groups.copyInvitation($0) },
+            show: { g in
+                scope = g.id
+                managing = false
+            },
+            rename: { g, name in groupTask { await groups.rename(g.id, to: name, helper: helper) } },
+            renew: { g in groupTask { await groups.renew(g.id, helper: helper) } },
+            remove: { g, m in groupTask { await groups.remove(m.id, from: g.id, helper: helper) } },
+            delete: { g in groupTask(leaving: g.id) { await groups.delete(g.id, helper: helper) } },
+            leave: { g in groupTask(leaving: g.id) { await groups.leave(g.id, helper: helper) } },
+            close: { managing = false })
+    }
+
+    /// Runs a group action, then reads the files again; a group that is gone afterwards is no longer shown.
+    private func groupTask(leaving group: String? = nil, _ body: @escaping @MainActor () async -> Void) {
+        Task {
+            await body()
+            store.refresh()
+            if let group, scope == group, store.groups?.group(id: group) == nil { scope = nil }
+        }
+    }
+
+    /// The card for the shown board: on the global board the own place; on a group's board its invitation (with the
+    /// own place in the group when there is one).
+    private var card: ShareCardValue? { card(for: scope) }
+
+    private func card(for scope: String?) -> ShareCardValue? {
+        let state = store.state(joined: leaderboard.joined, group: scope, period: period, unit: usd ? .usd : .tokens)
+        if let scope {
+            guard let g = store.groups?.group(id: scope)?.group else { return nil }
+            var value = ShareCardValue(rank: 0, participants: 0, period: period, usd: usd, value: 0,
+                                       group: GroupCardValue(name: g.name, code: g.code))
+            if case .board(let b?) = state, let me = b.me {
+                value.rank = me.rank
+                value.participants = b.participants
+                value.value = me.value
+            }
+            return value
+        }
+        guard case .board(let b?) = state, let me = b.me else { return nil }
         return ShareCardValue(rank: me.rank, participants: b.participants, period: period, usd: usd, value: me.value)
     }
 }
@@ -126,7 +314,8 @@ enum Sharing {
     /// The card as a PNG file plus the invitation text, through the system share menu.
     static func share(_ card: ShareCardValue, from view: NSView) {
         guard let png = ShareCard.png(card) else { return }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("TokenMaccer-\(card.period).png")
+        let name = card.group == nil ? "TokenMaccer-\(card.period).png" : "TokenMaccer-Invitation.png"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         do { try png.write(to: url, options: .atomic) } catch { return }
         let picker = NSSharingServicePicker(items: [url, ShareCard.message(card)])
         picker.show(relativeTo: view.bounds, of: view, preferredEdge: .minY)

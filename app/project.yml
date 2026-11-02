@@ -87,6 +87,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_PREFIX).tokenmaccer
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Graphite & Amber: the accent set in Shared/Colors.xcassets (light #C93400, dark #FF9F0A)
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: $(TM_APP_ENTITLEMENTS)
         ENABLE_USER_SCRIPT_SANDBOXING: NO
     dependencies:
@@ -169,6 +171,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_PREFIX).tokenmaccer.widget
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: $(TM_WIDGET_ENTITLEMENTS)
   # Swift port of collector/collector.py (same numbers, see scripts/compare_collectors.py).
   # The app edition embeds the command-line tool as a background agent (SMAppService).

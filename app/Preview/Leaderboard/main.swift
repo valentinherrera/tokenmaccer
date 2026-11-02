@@ -55,7 +55,8 @@ struct LeaderboardRenderer {
             ("menubar-not-joined", AnyView(MenuBarPanel(value: MenuBarValue(todayTokens: 2_350_000, todayUSD: 41.27)))),
             ("menubar-waiting", AnyView(MenuBarPanel(value: MenuBarValue()))),
             ("menubar-no-claude-usage", AnyView(MenuBarPanel(value: MenuBarValue(todayTokens: 0, todayUSD: 0, noUsage: true)))),
-            ("settings", AnyView(SettingsView(showInMenuBar: .constant(true)))),
+            ("settings", AnyView(SettingsView(showInMenuBar: .constant(true), automaticChecks: .constant(true),
+                                              automaticInstall: .constant(true)))),
         ]
         for (name, view) in scenes {
             for dark in [false, true] {

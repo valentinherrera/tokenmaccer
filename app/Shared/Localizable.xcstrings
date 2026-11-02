@@ -284,6 +284,16 @@
         }
       }
     },
+    "Check for updates automatically" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch nach Updates suchen"
+          }
+        }
+      }
+    },
     "Choose" : {
       "localizations" : {
         "de" : {
@@ -513,6 +523,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "Download and install updates automatically" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates automatisch laden und installieren"
           }
         }
       }
@@ -993,6 +1013,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "An, alle 5 Minuten"
+          }
+        }
+      }
+    },
+    "Once a day. A downloaded update is installed when you quit TokenMaccer; Sparkle checks its signature first." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einmal am Tag. Ein geladenes Update wird installiert, wenn du TokenMaccer beendest; Sparkle prüft vorher seine Signatur."
           }
         }
       }
@@ -1706,6 +1736,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aktualisiert %@ · alle 30 Minuten neu"
+          }
+        }
+      }
+    },
+    "Updates" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates"
           }
         }
       }

@@ -530,12 +530,27 @@ struct MenuRow: View {
 
 struct SettingsView: View {
     @Binding var showInMenuBar: Bool
+    /// Sparkle's switches; nil in the source edition (no updater).
+    var automaticChecks: Binding<Bool>?
+    var automaticInstall: Binding<Bool>?
 
     var body: some View {
         Form {
-            Toggle("Show TokenMaccer in the menu bar", isOn: $showInMenuBar)
-            Text("Today's tokens and, after you joined the leaderboard, your place, next to the clock.")
-                .font(.caption).foregroundStyle(.secondary)
+            Section {
+                Toggle("Show TokenMaccer in the menu bar", isOn: $showInMenuBar)
+                Text("Today's tokens and, after you joined the leaderboard, your place, next to the clock.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if let automaticChecks, let automaticInstall {
+                Section("Updates") {
+                    Toggle("Check for updates automatically", isOn: automaticChecks)
+                    Toggle("Download and install updates automatically", isOn: automaticInstall)
+                        .disabled(!automaticChecks.wrappedValue)
+                    Text("Once a day. A downloaded update is installed when you quit TokenMaccer; Sparkle checks its signature first.")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
         .formStyle(.grouped)
         .frame(width: 420)

@@ -77,12 +77,30 @@ struct LeaderboardMenuButton: View {
     }
 }
 
-/// Sparkle, app edition only (started in `init`). Sparkle asks the user once (second launch)
-/// whether to check automatically; "Check for Updates…" always works.
+/// Sparkle, app edition only (started in `init`). Checks once a day without asking (SUEnableAutomaticChecks in
+/// Info.plist), downloads an update in the background and installs it when the app quits (SUAutomaticallyUpdate);
+/// both are switches in Settings. "Check for Updates…" always works.
 @MainActor
 enum Updates {
     static let controller = SPUStandardUpdaterController(
         startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+}
+
+/// The two update switches in Settings, written to Sparkle (which keeps them in the app's defaults).
+@MainActor @Observable
+final class UpdateSettings {
+    var automaticChecks: Bool {
+        didSet { Updates.controller.updater.automaticallyChecksForUpdates = automaticChecks }
+    }
+    var automaticInstall: Bool {
+        didSet { Updates.controller.updater.automaticallyDownloadsUpdates = automaticInstall }
+    }
+
+    init() {
+        let updater = Updates.controller.updater
+        automaticChecks = updater.automaticallyChecksForUpdates
+        automaticInstall = updater.automaticallyDownloadsUpdates
+    }
 }
 
 /// "Check for Updates…" for the app menu and the window; disabled while Sparkle is busy.

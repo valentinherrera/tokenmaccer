@@ -226,12 +226,19 @@ struct MenuBarContent: View {
     }
 }
 
-/// The Settings window (⌘,): whether the menu bar item is shown.
+/// The Settings window (⌘,): whether the menu bar item is shown, and (app edition) the update switches.
 struct SettingsScene: View {
     @AppStorage(MenuBarSetting.key) private var showInMenuBar = MenuBarSetting.defaultValue
+    @State private var updates: UpdateSettings? = Edition.isApp ? UpdateSettings() : nil
 
     var body: some View {
-        SettingsView(showInMenuBar: $showInMenuBar)
+        if let updates {
+            @Bindable var u = updates
+            SettingsView(showInMenuBar: $showInMenuBar, automaticChecks: $u.automaticChecks,
+                         automaticInstall: $u.automaticInstall)
+        } else {
+            SettingsView(showInMenuBar: $showInMenuBar)
+        }
     }
 }
 

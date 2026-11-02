@@ -77,6 +77,12 @@ targets:
         # release machine). A test feed is set per machine only: defaults write <bundle id> SUFeedURL <url>
         SUFeedURL: https://github.com/valentinherrera/tokenmaccer/releases/latest/download/appcast.xml
         SUPublicEDKey: $(TM_SPARKLE_PUBLIC_KEY)
+        # silent updates: check once a day from the first launch on (with this key Sparkle does not ask for
+        # permission, see Sparkle's "Customizing Sparkle"), download in the background and install when the app
+        # quits. Both can be switched off in Settings (⌘,), which writes the user's choice over these defaults.
+        SUEnableAutomaticChecks: true
+        SUAutomaticallyUpdate: true
+        SUScheduledCheckInterval: 86400
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_PREFIX).tokenmaccer

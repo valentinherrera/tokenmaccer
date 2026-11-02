@@ -323,7 +323,7 @@ struct ShareCard: View {
             }
             Spacer(minLength: 0)
             HStack {
-                Text("Token usage of Claude Code, on your Mac.").foregroundStyle(.white.opacity(0.6))
+                Text("A Mac widget that shows your Claude Code usage in tokens and USD at API prices.").foregroundStyle(.white.opacity(0.6))
                 Spacer(minLength: 12)
                 // The link must stay on one line so it can be typed off the picture; the tagline gives way.
                 Text(verbatim: Brand.inviteHost).foregroundStyle(Palette.accent.opacity(0.9))

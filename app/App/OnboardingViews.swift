@@ -344,7 +344,7 @@ struct OnboardingView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Welcome to TokenMaccer").font(.title2.weight(.semibold))
-                    Text("Your Claude Code usage, on your desktop.").foregroundStyle(.secondary)
+                    Text("A Mac widget that shows your Claude Code usage in tokens and USD at API prices.").foregroundStyle(.secondary)
                 }
             }
             VStack(alignment: .leading, spacing: 14) {

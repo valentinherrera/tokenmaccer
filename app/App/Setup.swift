@@ -318,8 +318,8 @@ struct SetupView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("TokenMaccer").font(.title2.weight(.semibold))
                     Text(leaderboard.joined
-                         ? "Claude Code token usage on your desktop. Only your period totals go to the leaderboard."
-                         : "Claude Code token usage on your desktop. Everything stays on this Mac.")
+                         ? "A Mac widget that shows your Claude Code usage in tokens and USD at API prices. Only your period totals go to the leaderboard."
+                         : "A Mac widget that shows your Claude Code usage in tokens and USD at API prices. Everything stays on this Mac.")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             }

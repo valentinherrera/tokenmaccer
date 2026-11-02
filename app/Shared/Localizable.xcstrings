@@ -1260,6 +1260,16 @@
         }
       }
     },
+    "More leaderboard actions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Leaderboard-Aktionen"
+          }
+        }
+      }
+    },
     "Name" : {
       "localizations" : {
         "de" : {
@@ -1536,6 +1546,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Das kann nur, wem die Gruppe gehört, oder du bist nicht mehr in dieser Gruppe."
+          }
+        }
+      }
+    },
+    "Open Leaderboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaderboard öffnen"
           }
         }
       }

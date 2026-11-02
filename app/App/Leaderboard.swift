@@ -234,6 +234,15 @@ struct LeaderboardSection: View {
     let setup: Setup
     @State private var joining = false
     @State private var confirmLeave = false
+    @Environment(\.openWindow) private var openWindow
+
+    /// The leaderboard window (where the board, the groups and sharing live), with a sheet when one is requested.
+    private func openLeaderboard(groups: Bool = false, share: Bool = false) {
+        if groups { ShareRequest.shared.groupsPending = true }
+        if share { ShareRequest.shared.pending = true }
+        openWindow(id: "leaderboard")
+        NSApp.activate()
+    }
 
     var body: some View {
         Section {
@@ -242,8 +251,22 @@ struct LeaderboardSection: View {
                     state: s.lastError == nil ? .ok : .problem, title: String(localized: "Leaderboard"),
                     value: String(localized: "Joined as \(s.displayName ?? "–")"), detail: detail(s)
                 ) {
-                    Button("Change Name…") { joining = true }.disabled(leaderboard.busy)
-                    Button("Leave…") { confirmLeave = true }.disabled(leaderboard.busy)
+                    // one main button; everything else in "…" so the row stays readable in German too
+                    Button("Open Leaderboard") { openLeaderboard() }
+                    Menu {
+                        Button("Groups…") { openLeaderboard(groups: true) }
+                        Button("Share…") { openLeaderboard(share: true) }
+                        Divider()
+                        Button("Change Name…") { joining = true }.disabled(leaderboard.busy)
+                        Button("Leave…") { confirmLeave = true }.disabled(leaderboard.busy)
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .accessibilityLabel(Text("More leaderboard actions"))
+                    .help(Text("More leaderboard actions"))
                 }
             } else if leaderboard.needsSignIn {
                 StatusRow(

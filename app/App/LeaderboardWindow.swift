@@ -71,11 +71,13 @@ final class BoardStore {
     }
 }
 
-/// The share sheet's request, so the menu bar can open the window with the sheet already up.
+/// Sheet requests, so the menu bar and the main window can open the leaderboard window with a sheet already up:
+/// `pending` the share sheet, `groupsPending` the Groups sheet.
 @MainActor @Observable
 final class ShareRequest {
     static let shared = ShareRequest()
     var pending = false
+    var groupsPending = false
 }
 
 /// The leaderboard window: board, period and unit, share, join.
@@ -154,6 +156,16 @@ struct LeaderboardWindow: View {
                     scope = nil
                     sharing = true
                 }
+            }
+        }
+        .onChange(of: request.groupsPending, initial: true) { _, pending in
+            if pending {
+                request.groupsPending = false
+                // "Groups…" in the main window: one sheet at a time
+                sharing = false
+                joining = false
+                inviting = false
+                managing = true
             }
         }
         .sheet(isPresented: $sharing) {

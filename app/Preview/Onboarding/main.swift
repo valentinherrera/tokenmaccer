@@ -5,7 +5,8 @@ import SwiftUI
 // its data or the network. Build (from the repository root):
 //   xcrun swiftc -parse-as-library app/Shared/*.swift app/App/OnboardingViews.swift \
 //     app/Preview/Onboarding/main.swift -o /tmp/tm-onboarding
-// Usage: tm-onboarding <output dir> [-AppleLanguages '(de)']
+// Usage: tm-onboarding <output dir> [-AppleLanguages '(de)'], run from the repository root (the privacy notice
+// sheet reads docs/privacy.md and docs/privacy.de.md from there).
 // German needs the binary inside an .app with de.lproj/Localizable.strings (see README, "Screenshots").
 @main
 struct OnboardingRenderer {
@@ -20,7 +21,6 @@ struct OnboardingRenderer {
         try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.prohibited)
-        let lang = Bundle.main.preferredLocalizations.first ?? "en"
 
         var joined = JoinStatus(phase: .joined, displayName: "synth-gh", githubLogin: "synth-gh", rank: 3,
                                 participants: 120, period: "7D")
@@ -37,6 +37,7 @@ struct OnboardingRenderer {
                 joined.participants = nil
                 return joined
             }()))),
+            ("4-privacy-notice", AnyView(PrivacyNoticeSheet(markdown: privacyMarkdown(lang)) {})),
         ]
         for (name, view) in scenes {
             for scheme in [ColorScheme.light, .dark] {
@@ -51,17 +52,25 @@ struct OnboardingRenderer {
     static func onboarding(_ step: OnboardingPlan.Step, widget: Bool = false, details: Bool = false,
                            join: JoinStatus = JoinStatus()) -> some View {
         OnboardingView(step: .constant(step), transcriptsFound: true, transcriptsPath: "~/.claude/projects",
-                       widgetRunning: widget, join: join, detailsOpen: details)
+                       widgetRunning: widget, join: join, privacyMarkdown: privacyMarkdown(lang), detailsOpen: details)
     }
 
-    /// Draws the view through AppKit (controls included, unlike ImageRenderer) at 2x.
+    static var lang: String { Bundle.main.preferredLocalizations.first ?? "en" }
+
+    static func privacyMarkdown(_ lang: String) -> String? {
+        try? String(contentsOfFile: lang.hasPrefix("de") ? "docs/privacy.de.md" : "docs/privacy.md", encoding: .utf8)
+    }
+
+    /// Draws the view through AppKit (controls included, unlike ImageRenderer) at 2x, in a window that counts as
+    /// key: an inactive window draws the prominent and default buttons grey, so the button hierarchy would not show.
     @MainActor
     static func snapshot(_ view: AnyView, dark: Bool, to url: URL) -> Bool {
-        let host = NSHostingView(rootView: view.background(Color(nsColor: .windowBackgroundColor)))
+        let host = NSHostingView(rootView: view.background(Color(nsColor: .windowBackgroundColor))
+            .environment(\.controlActiveState, .key))
         host.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         let size = host.fittingSize
         host.frame = NSRect(origin: .zero, size: size)
-        let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        let window = KeyWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.appearance = host.appearance
         window.contentView = host
         host.layoutSubtreeIfNeeded()
@@ -77,4 +86,12 @@ struct OnboardingRenderer {
             return false
         }
     }
+}
+
+/// A window AppKit and SwiftUI draw as the active one, without activating the renderer.
+final class KeyWindow: NSWindow {
+    override var isKeyWindow: Bool { true }
+    override var isMainWindow: Bool { true }
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
 }

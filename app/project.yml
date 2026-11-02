@@ -27,7 +27,7 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "14"
+    CURRENT_PROJECT_VERSION: "15"
     ENABLE_HARDENED_RUNTIME: YES
     TM_EDITION: source
     TM_APP_ENTITLEMENTS: App/App.entitlements
@@ -45,6 +45,11 @@ targets:
       - Shared
       # leaderboard server address for the sign-in (the collector links the same file, see below)
       - path: ../supabase/app-config.json
+        buildPhase: resources
+      # the privacy notice the consent opens in a sheet (PrivacyNotice.bundledMarkdown), readable offline
+      - path: ../docs/privacy.md
+        buildPhase: resources
+      - path: ../docs/privacy.de.md
         buildPhase: resources
     info:
       path: App/Info.plist
@@ -208,6 +213,7 @@ targets:
       - Shared/WidgetHealth.swift
       - Shared/SelfHealPlan.swift
       - Shared/OnboardingPlan.swift
+      - Shared/PrivacyText.swift
       - path: ../collector/prices.json
         buildPhase: resources
     dependencies:

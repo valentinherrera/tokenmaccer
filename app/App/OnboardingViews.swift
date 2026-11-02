@@ -23,13 +23,90 @@ struct JoinStatus: Equatable {
 }
 
 enum PrivacyNotice {
-    /// docs/privacy.md in the public repository (scripts/check_hosted_release.sh reads this line and checks it and
-    /// the German docs/privacy.de.md, which the app links when it runs in German).
+    /// docs/privacy.md in the public repository, the hosted copy README and website link to. The app does not
+    /// link it: the consent opens the copy bundled with the app (bundledMarkdown), which needs no network and
+    /// cannot be a dead page. scripts/check_hosted_release.sh reads this line and checks it and the German
+    /// docs/privacy.de.md before a release.
     static let privacyURL = URL(string: "https://github.com/valentinherrera/tokenmaccer/blob/main/docs/privacy.md")!
 
-    static var url: URL {
-        guard Bundle.main.preferredLocalizations.first?.hasPrefix("de") == true else { return privacyURL }
-        return URL(string: privacyURL.absoluteString.replacingOccurrences(of: "/privacy.md", with: "/privacy.de.md"))!
+    /// docs/privacy.md, or docs/privacy.de.md when the app runs in German, from the app bundle (project.yml copies
+    /// both); nil only in a build without them (the preview renderer passes the files itself).
+    static var bundledMarkdown: String? {
+        let german = Bundle.main.preferredLocalizations.first?.hasPrefix("de") == true
+        guard let url = Bundle.main.url(forResource: german ? "privacy.de" : "privacy", withExtension: "md")
+            ?? Bundle.main.url(forResource: "privacy", withExtension: "md") else { return nil }
+        return try? String(contentsOf: url, encoding: .utf8)
+    }
+}
+
+/// The bundled privacy notice in a sheet.
+struct PrivacyNoticeSheet: View {
+    let markdown: String?
+    let close: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    if let markdown {
+                        ForEach(Array(PrivacyText.parse(markdown).enumerated()), id: \.offset) { _, block in
+                            view(block)
+                        }
+                    } else {
+                        Text(verbatim: "docs/privacy.md is missing from this build.").foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(24)
+                .textSelection(.enabled)
+            }
+            Divider()
+            HStack {
+                Spacer()
+                Button("Done", action: close).keyboardShortcut(.defaultAction)
+            }
+            .padding(16)
+        }
+        .frame(width: 580, height: 620)
+    }
+
+    @ViewBuilder
+    private func view(_ block: PrivacyText.Block) -> some View {
+        switch block {
+        case .heading(let level, let text):
+            inline(text)
+                .font(level == 1 ? .title2.weight(.semibold) : level == 2 ? .title3.weight(.semibold) : .headline)
+                .padding(.top, level == 1 ? 0 : 8)
+        case .paragraph(let text):
+            inline(text).font(.callout)
+        case .bullet(let text):
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(verbatim: "•").foregroundStyle(.secondary)
+                inline(text)
+            }
+            .font(.callout)
+        case .table(let header, let rows):
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    VStack(alignment: .leading, spacing: 3) {
+                        inline(row.first ?? "").font(.callout.weight(.semibold))
+                        ForEach(Array(row.indices.dropFirst()), id: \.self) { i in
+                            inline(i < header.count ? "**\(header[i]):** \(row[i])" : row[i])
+                                .font(.callout).foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+    }
+
+    private func inline(_ s: String) -> some View {
+        let attributed = (try? AttributedString(
+            markdown: s, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(s)
+        return Text(attributed).fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -37,7 +114,7 @@ enum PrivacyNotice {
 /// the own place, large, and the display name GitHub gave (editable).
 struct JoinPanel: View {
     let status: JoinStatus
-    var privacyURL = PrivacyNotice.url
+    var privacyMarkdown = PrivacyNotice.bundledMarkdown
     /// Start with the details open (preview renderer).
     var detailsOpen = false
     let join: () -> Void
@@ -52,6 +129,7 @@ struct JoinPanel: View {
     }
 
     @State private var showDetails: Bool?
+    @State private var showPrivacy = false
 
     private var consent: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -66,7 +144,11 @@ struct JoinPanel: View {
             } label: {
                 Text("Details").font(.callout)
             }
-            Link("Privacy Notice", destination: privacyURL).font(.callout)
+            Button("Privacy Notice") { showPrivacy = true }
+                .buttonStyle(.link).font(.callout)
+                .sheet(isPresented: $showPrivacy) {
+                    PrivacyNoticeSheet(markdown: privacyMarkdown) { showPrivacy = false }
+                }
             VStack(alignment: .leading, spacing: 6) {
                 Button(action: join) {
                     HStack(spacing: 8) {
@@ -77,6 +159,8 @@ struct JoinPanel: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                // Return joins, here and in the onboarding's last step (whose footer has no default button then)
+                .keyboardShortcut(.defaultAction)
                 .disabled(status.phase == .busy)
                 Text("Your display name will be your GitHub username; you can change it right after.")
                     .font(.caption).foregroundStyle(.secondary)
@@ -210,7 +294,7 @@ struct OnboardingView: View {
     let transcriptsPath: String
     let widgetRunning: Bool
     let join: JoinStatus
-    var privacyURL = PrivacyNotice.url
+    var privacyMarkdown = PrivacyNotice.bundledMarkdown
     var detailsOpen = false
     var chooseFolder: () -> Void = {}
     var joinAction: () -> Void = {}
@@ -314,7 +398,8 @@ struct OnboardingView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            JoinPanel(status: join, privacyURL: privacyURL, detailsOpen: detailsOpen, join: joinAction, rename: rename)
+            JoinPanel(status: join, privacyMarkdown: privacyMarkdown, detailsOpen: detailsOpen, join: joinAction,
+                      rename: rename)
         }
     }
 

@@ -1,7 +1,8 @@
 #!/bin/bash
 # Before a public release: what the app and the privacy notice promise must already be true on the servers.
-#   1. The privacy notice the join sheet links to (and its German version) is reachable (HTTP 200), so nobody
-#      lands on a 404 before consenting. The link points at the public repository's main branch.
+#   1. The hosted privacy notice README and website link to (and its German version) is reachable (HTTP 200).
+#      The app itself opens the copy it bundles; the URL is privacyURL in app/App/OnboardingViews.swift and
+#      points at the public repository's main branch.
 #   2. The hosted auth server allows GitHub sign-in and has e-mail sign-up switched off
 #      (supabase/config.toml [auth.email] enable_signup = false, applied with `supabase config push`).
 #   3. Every migration in supabase/migrations is applied to the hosted project (`supabase db push`).

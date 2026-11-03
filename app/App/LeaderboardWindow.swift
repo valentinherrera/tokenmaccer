@@ -323,13 +323,16 @@ struct LeaderboardWindow: View {
 
 @MainActor
 enum Sharing {
-    /// The card as a PNG file plus the invitation text, through the system share menu.
+    /// The card as PNG data plus the invitation text, through the system share menu.
     static func share(_ card: ShareCardValue, from view: NSView) {
         guard let png = ShareCard.png(card) else { return }
         let name = card.group == nil ? "TokenMaccer-\(card.period).png" : "TokenMaccer-Invitation.png"
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
-        do { try png.write(to: url, options: .atomic) } catch { return }
-        let picker = NSSharingServicePicker(items: [url, ShareCard.message(card)])
+        // The picture as PNG data only, never as a file URL: WhatsApp for Mac turned the URL into text and put
+        // "/var/folders/…/TokenMaccer-Invitation.png" in front of the message (Valentin, 03.11.2026). The suggested
+        // name keeps the file name for AirDrop, Mail and Save.
+        let picture = NSItemProvider(item: png as NSData, typeIdentifier: "public.png")
+        picture.suggestedName = name
+        let picker = NSSharingServicePicker(items: [picture, ShareCard.message(card)])
         picker.show(relativeTo: view.bounds, of: view, preferredEdge: .minY)
     }
 }

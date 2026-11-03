@@ -1,6 +1,6 @@
 # TokenMaccer
 
-A macOS desktop widget that shows your **Claude Code** token usage like a stock ticker: today, 7 days, 30 days, year to date, 1 year and all time, with the change against the previous period.
+A macOS desktop widget that shows your **Claude Code** token usage like a stock ticker, whether you use Claude Code in the terminal or in the Claude desktop app: today, 7 days, 30 days, year to date, 1 year and all time, with the change against the previous period.
 
 > TokenMaccer is an independent project. It is not affiliated with, endorsed by or sponsored by Anthropic. "Claude" and "Claude Code" are trademarks of Anthropic.
 
@@ -39,7 +39,7 @@ USD values are estimates at public API list prices (`collector/prices.json`). If
 | What | Why | How to check / get it |
 |---|---|---|
 | A Mac with **macOS 15** or newer | WidgetKit APIs used by the widget | Apple menu > About This Mac |
-| **Claude Code**, used at least once | The collector reads its local transcripts in `~/.claude/projects` | `ls ~/.claude/projects` |
+| **Claude Code**, used at least once, in the terminal or in the Claude desktop app | The collector reads its local transcripts in `~/.claude/projects`; the desktop app writes them there too | `ls ~/.claude/projects` |
 | **Xcode 16** or newer, opened once | Builds the app; the first launch accepts the license and installs components | `xcodebuild -version` |
 | **Command Line Tools** | Provide `/usr/bin/python3` for the collector | `xcode-select -p`, else `xcode-select --install` |
 | **Homebrew** and **[XcodeGen](https://github.com/yonaskolb/XcodeGen)** | Generates the Xcode project from `app/project.yml` | `brew install xcodegen` |

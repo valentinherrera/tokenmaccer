@@ -6,7 +6,7 @@ This notice covers the downloadable TokenMaccer app and its optional leaderboard
 
 ## Without joining the leaderboard
 
-TokenMaccer reads Claude Code's transcripts on your Mac (`~/.claude/projects`) and keeps daily totals there (`~/Library/Application Support/TokenMaccer/`, plus `widget.json` in the app's App Group container for the widget). None of this leaves your Mac. The app makes no request to the leaderboard server and has no account for you.
+TokenMaccer reads Claude Code's transcripts on your Mac (`~/.claude/projects`, where Claude Code writes them in the terminal and in the Claude desktop app) and keeps daily totals there (`~/Library/Application Support/TokenMaccer/`, plus `widget.json` in the app's App Group container for the widget). None of this leaves your Mac. The app makes no request to the leaderboard server and has no account for you.
 
 The only network request is the **update check** ([Sparkle](https://sparkle-project.org)): the app downloads `appcast.xml` from this repository's latest GitHub release, automatically once a day (switch it off in **Settings… › Updates**), and when you click **Check for Updates…**; when a new version is listed there, it downloads that version from the same release. Like any download, GitHub sees your IP address and the request header with the app's name and version. The check sends nothing about you or your usage.
 

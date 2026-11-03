@@ -292,7 +292,7 @@ struct RankHero: View {
 struct NoClaudeDataNote: View {
     var body: some View {
         Label {
-            Text("No Claude Code data yet. Claude Code writes its transcripts to ~/.claude/projects once you use it; if yours are somewhere else, choose that folder above.")
+            Text("No Claude Code data yet. Claude Code writes its transcripts to ~/.claude/projects once you use it, in the terminal or in the Claude desktop app; if yours are somewhere else, choose that folder above.")
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: "doc.text.magnifyingglass")

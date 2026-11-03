@@ -1410,12 +1410,12 @@
         }
       }
     },
-    "No Claude Code data yet. Claude Code writes its transcripts to ~/.claude/projects once you use it; if yours are somewhere else, choose that folder above." : {
+    "No Claude Code data yet. Claude Code writes its transcripts to ~/.claude/projects once you use it, in the terminal or in the Claude desktop app; if yours are somewhere else, choose that folder above." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Noch keine Claude-Code-Daten. Claude Code schreibt seine Transkripte nach ~/.claude/projects, sobald du es benutzt; liegen deine woanders, wähle oben diesen Ordner."
+            "value" : "Noch keine Claude-Code-Daten. Claude Code schreibt seine Transkripte nach ~/.claude/projects, sobald du es benutzt, im Terminal oder in der Claude-Desktop-App; liegen deine woanders, wähle oben diesen Ordner."
           }
         }
       }

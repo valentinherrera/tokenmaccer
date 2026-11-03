@@ -332,8 +332,35 @@ enum Sharing {
         // name keeps the file name for AirDrop, Mail and Save.
         let picture = NSItemProvider(item: png as NSData, typeIdentifier: "public.png")
         picture.suggestedName = name
-        let picker = NSSharingServicePicker(items: [picture, ShareCard.message(card)])
+        let message = ShareCard.message(card)
+        let picker = NSSharingServicePicker(items: [picture, message])
+        // The picker holds its delegate weakly; keep the one for the open menu.
+        let delegate = PickerDelegate(message: message)
+        pickerDelegate = delegate
+        picker.delegate = delegate
         picker.show(relativeTo: view.bounds, of: view, preferredEdge: .minY)
+    }
+
+    private static var pickerDelegate: PickerDelegate?
+
+    /// Targets that take only a picture or only text (WhatsApp, see SharePlan) get the message alone, under their own
+    /// name and icon; every other target gets picture and message.
+    private final class PickerDelegate: NSObject, NSSharingServicePickerDelegate {
+        let message: String
+        init(message: String) { self.message = message }
+
+        func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker,
+                                  sharingServicesForItems items: [Any],
+                                  proposedSharingServices proposedServices: [NSSharingService]) -> [NSSharingService] {
+            proposedServices.map { service in
+                guard SharePlan.content(forServiceTitle: service.title) == .messageOnly else { return service }
+                let message = message
+                return NSSharingService(title: service.title, image: service.image,
+                                        alternateImage: service.alternateImage) {
+                    service.perform(withItems: [message])
+                }
+            }
+        }
     }
 }
 

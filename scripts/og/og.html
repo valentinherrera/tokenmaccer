@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Source of the link previews (Open Graph, 1200 x 630): docs/assets/og.jpg (?v=home) and og-invite.jpg (?v=invite).
+     Rendered by scripts/render_og_images.sh; not deployed. Same colour tokens and widget renders as the website. -->
+<link rel="stylesheet" href="../../docs/assets/colors.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; position: relative;
+    background: var(--gradient-wallpaper); background-size: 100% 150%; background-position: 0 30%;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--graphite-900);
+  }
+  .brand { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 650; }
+  .brand img { width: 52px; height: 52px; }
+  h1 { position: absolute; left: 64px; top: 150px; margin: 0; font-size: 92px; line-height: .98; letter-spacing: -0.045em; font-weight: 700; width: 560px; }
+  .sub { position: absolute; left: 64px; top: 360px; margin: 0; width: 520px; font-size: 30px; line-height: 1.3; color: var(--graphite-700); font-weight: 500; }
+  .url { position: absolute; left: 64px; bottom: 52px; margin: 0; font-size: 26px; font-weight: 650; color: var(--white); }
+  .glass {
+    position: absolute; display: block; height: auto;
+    background: var(--glass-sheen), var(--glass-tint);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5); backdrop-filter: blur(28px) saturate(1.5);
+    box-shadow:
+      inset 2px 2px 0 -0.5px var(--glass-highlight), inset -1.5px -1.5px 0 -0.5px var(--glass-rim-low),
+      inset 0 0 0 1px var(--glass-edge), inset 0 0 24px var(--glass-glow),
+      0 3px 8px var(--glass-shadow-near), 0 14px 30px -4px var(--glass-shadow-near), 0 40px 80px -12px var(--glass-shadow);
+  }
+  .glass.large { border-radius: 6.5% / 6.2%; }
+  .glass.medium { border-radius: 6.5% / 13.9%; }
+  .usage { right: 64px; top: 56px; width: 400px; }
+  .board { right: 236px; top: 388px; width: 380px; }
+  .invite .group { right: 64px; top: 150px; width: 520px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="brand"><img src="../../docs/assets/icon.png" alt="">TokenMaccer</div>
+  <div id="home">
+    <h1>Your tokens, like a stock.</h1>
+    <p class="sub">Claude Code usage in a Mac widget, in tokens and USD.</p>
+    <img class="glass large usage" src="../../docs/assets/widget-dark-en.png" alt="">
+    <img class="glass medium board" src="../../docs/assets/board-widget-dark-en.png" alt="">
+  </div>
+  <div id="invite" class="invite" hidden>
+    <h1>You're invited to a group.</h1>
+    <p class="sub">Compare your Claude Code usage with friends, right in a Mac widget.</p>
+    <img class="glass medium group" src="../../docs/assets/group-widget-dark-en.png" alt="">
+  </div>
+  <p class="url">tokenmaccer.app</p>
+  <script>
+    if (new URLSearchParams(location.search).get('v') === 'invite') {
+      document.getElementById('home').hidden = true;
+      document.getElementById('invite').hidden = false;
+    }
+  </script>
+</body>
+</html>

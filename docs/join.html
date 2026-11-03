@@ -8,6 +8,19 @@
 <meta name="robots" content="noindex">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="/assets/icon.png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+<!-- Link preview of every invitation link (the app shares these): picture from scripts/render_og_images.sh. One URL
+     for all codes: the preview never shows a group name or code. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TokenMaccer">
+<meta property="og:title" content="You're invited to a TokenMaccer group">
+<meta property="og:description" content="Compare your Claude Code usage with friends on a private leaderboard, right in a Mac widget.">
+<meta property="og:image" content="https://tokenmaccer.app/assets/og-invite.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A TokenMaccer group leaderboard widget as glass on a Mac desktop">
+<meta name="twitter:card" content="summary_large_image">
 <!-- Landing page of group invitations: https://tokenmaccer.app/join/<code> (vercel.json rewrites every /join/<code>
      here). On a Mac it hands the code to the app once (tokenmaccer://join/<code>); the page stays as the fallback
      with the same button, the download and the code to paste. The code never leaves the browser: no request, no

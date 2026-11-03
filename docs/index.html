@@ -32,12 +32,6 @@
   header { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--color-text); text-decoration: none; }
   .brand img { width: 32px; height: 32px; }
-  .lang { display: flex; gap: 2px; background: var(--color-surface); border-radius: 8px; padding: 2px; }
-  .lang button {
-    border: 0; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 14px; font-weight: 600;
-    padding: 4px 10px; border-radius: 6px; cursor: pointer;
-  }
-  .lang button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
 
   /* Headline */
   .intro { padding: 56px 0 40px; }
@@ -72,7 +66,7 @@
   .menubar .menu { color: var(--white); }
   .menubar .right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
   .menubar .ticker {
-    align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px;
+    display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px;
     background: rgba(255,255,255,.16); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
   }
   .menubar .ticker img { width: 16px; height: 16px; }
@@ -154,9 +148,6 @@
   footer { border-top: 1px solid var(--color-border); padding: 28px 0 44px; color: var(--color-text-secondary); font-size: 14px; }
   footer p { margin: 0 0 6px; }
 
-  [data-lang] { display: none; }
-  html[lang="en"] [data-lang="en"], html[lang="de"] [data-lang="de"] { display: revert; }
-  html[lang="en"] .ticker[data-lang="en"], html[lang="de"] .ticker[data-lang="de"] { display: inline-flex; }
 
   @media (min-width: 1280px) {
     .intro { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); grid-template-areas: "h1 lede" "h1 cta" "h1 copy";
@@ -183,10 +174,9 @@
     .w-board { width: 100%; max-width: 364px; }
     .w-panel { display: none !important; }
     .menubar { gap: 14px; padding: 0 12px; font-size: 13px; }
-    html[lang] .menubar .menu { display: none; }
+    .menubar .menu { display: none; }
     .desk .note { position: static; text-align: center; margin: 4px auto 0; }
     .more { grid-template-columns: 1fr; gap: 36px; }
-    .lang button { min-height: 44px; min-width: 44px; font-size: 15px; }
     .cards { grid-template-columns: 1fr; row-gap: 28px; }
     .friends { padding-bottom: 56px; }
   }
@@ -196,170 +186,115 @@
 <div class="wrap">
   <header>
     <a class="brand" href="/"><img src="assets/icon.png" alt="">TokenMaccer</a>
-    <div class="lang" role="group" aria-label="Language">
-      <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
-      <button type="button" data-set-lang="de" aria-pressed="false">DE</button>
-    </div>
   </header>
 
   <main>
     <div class="intro">
-      <h1 data-lang="en"><span>Your tokens,</span> <span>like a stock.</span></h1>
-      <h1 data-lang="de"><span>Deine Token,</span> <span>wie eine Aktie.</span></h1>
-      <p class="lede" data-lang="en">A Mac widget that shows your Claude Code usage in tokens and USD at API prices.</p>
-      <p class="lede" data-lang="de">Ein Mac-Widget, das deinen Claude-Code-Verbrauch in Token und USD zu API-Preisen zeigt.</p>
+      <h1><span>Your tokens,</span> <span>like a stock.</span></h1>
+      <p class="lede">A Mac widget that shows your Claude Code usage in tokens and USD at API prices.</p>
       <div class="cta">
         <a class="download" href="https://github.com/valentinherrera/tokenmaccer/releases/latest/download/TokenMaccer.dmg">
           <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2v11m0 0-4.5-4.5M10 13l4.5-4.5M3 17h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span data-lang="en">Download for Mac</span><span data-lang="de">Für den Mac laden</span>
+          Download for Mac
         </a>
-        <span class="req" data-lang="en">Free and open source, macOS 15 or newer</span>
-        <span class="req" data-lang="de">Kostenlos und Open Source, ab macOS 15</span>
+        <span class="req">Free and open source, macOS 15 or newer</span>
       </div>
       <div class="copy brew">
         <code>brew install --cask valentinherrera/tap/tokenmaccer</code>
-        <button type="button" data-copy="brew install --cask valentinherrera/tap/tokenmaccer"><span data-lang="en">Copy</span><span data-lang="de">Kopieren</span></button>
+        <button type="button" data-copy="brew install --cask valentinherrera/tap/tokenmaccer">Copy</button>
       </div>
       <div class="phone">
-        <p data-lang="en">TokenMaccer runs on a Mac. Copy the link and open it there.</p>
-        <p data-lang="de">TokenMaccer läuft auf dem Mac. Kopier den Link und öffne ihn dort.</p>
+        <p>TokenMaccer runs on a Mac. Copy the link and open it there.</p>
         <div class="copy">
           <code>tokenmaccer.app</code>
-          <button type="button" data-copy="https://tokenmaccer.app"><span data-lang="en">Copy link</span><span data-lang="de">Link kopieren</span></button>
+          <button type="button" data-copy="https://tokenmaccer.app">Copy link</button>
         </div>
       </div>
     </div>
 
-    <div class="desk" role="img" aria-labelledby="desk-en desk-de">
+    <div class="desk" role="img" aria-labelledby="desk-note">
       <div class="menubar" aria-hidden="true">
         <span class="app">Terminal</span>
-        <span class="menu" data-lang="en">Shell</span><span class="menu" data-lang="de">Shell</span>
-        <span class="menu" data-lang="en">Edit</span><span class="menu" data-lang="de">Bearbeiten</span>
-        <span class="menu" data-lang="en">View</span><span class="menu" data-lang="de">Darstellung</span>
+        <span class="menu">Shell</span>
+        <span class="menu">Edit</span>
+        <span class="menu">View</span>
         <span class="right">
-          <span class="ticker" data-lang="en"><img src="assets/icon.png" alt="">2.4M</span>
-          <span class="ticker" data-lang="de"><img src="assets/icon.png" alt="">2,4 Mio.</span>
-          <span class="clock" data-lang="en">Mon 9:41 AM</span><span class="clock" data-lang="de">Mo. 9:41</span>
+          <span class="ticker"><img src="assets/icon.png" alt="">2.4M</span>
+          <span class="clock">Mon 9:41 AM</span>
         </span>
       </div>
-      <img class="w-usage glass large" src="assets/widget-dark-en.png" data-i18n-src width="728" height="764" alt="">
-      <img class="w-board glass medium" src="assets/board-widget-dark-en.png" data-i18n-src width="728" height="340" alt="">
-      <img class="w-panel glass panel" src="assets/menubar-dark-en.png" data-i18n-src width="560" height="520" alt="">
-      <p class="note" id="desk-en" data-lang="en">On your desktop: the usage widget, the leaderboard widget, and today's tokens in the menu bar. Demo numbers, made-up names.</p>
-      <p class="note" id="desk-de" data-lang="de">Auf deinem Schreibtisch: das Verbrauchs-Widget, das Leaderboard-Widget und die Token von heute in der Menüleiste. Demo-Zahlen, ausgedachte Namen.</p>
+      <img class="w-usage glass large" src="assets/widget-dark-en.png" width="728" height="764" alt="">
+      <img class="w-board glass medium" src="assets/board-widget-dark-en.png" width="728" height="340" alt="">
+      <img class="w-panel glass panel" src="assets/menubar-dark-en.png" width="560" height="520" alt="">
+      <p class="note" id="desk-note">On your desktop: the usage widget, the leaderboard widget, and today's tokens in the menu bar. Demo numbers, made-up names.</p>
     </div>
 
-    <section class="friends" aria-labelledby="friends-en friends-de">
-      <h2 id="friends-en" data-lang="en">Better with friends.</h2>
-      <h2 id="friends-de" data-lang="de">Mit Freunden besser.</h2>
+    <section class="friends" aria-labelledby="friends-h">
+      <h2 id="friends-h">Better with friends.</h2>
       <ol class="cards">
         <li>
-          <div class="shot"><img class="glass large" src="assets/widget-dark-en.png" data-i18n-src width="728" height="764" alt="" loading="lazy"></div>
-          <h3 data-lang="en">Read your chart</h3><h3 data-lang="de">Chart lesen</h3>
-          <p data-lang="en">Orange means more than the period before, green means less. The dotted line is where you were then.</p>
-          <p data-lang="de">Orange heißt mehr als im Zeitraum davor, grün weniger. Die gepunktete Linie zeigt, wo du damals warst.</p>
+          <div class="shot"><img class="glass large" src="assets/widget-dark-en.png" width="728" height="764" alt="" loading="lazy"></div>
+          <h3>Read your chart</h3>
+          <p>Orange means more than the period before, green means less. The dotted line is where you were then.</p>
         </li>
         <li>
-          <div class="shot"><img class="round" src="assets/invite-card-en.png" data-i18n-src width="800" height="453" alt="" loading="lazy"></div>
-          <h3 data-lang="en">Start your own board</h3><h3 data-lang="de">Eigenes Leaderboard</h3>
-          <p data-lang="en">Create a group and send the link. Friends join with GitHub.</p>
-          <p data-lang="de">Leg eine Gruppe an und schick den Link. Freunde treten mit GitHub bei.</p>
+          <div class="shot"><img class="round" src="assets/invite-card-en.png" width="800" height="453" alt="" loading="lazy"></div>
+          <h3>Start your own board</h3>
+          <p>Create a group and send the link. Friends join with GitHub.</p>
         </li>
         <li>
-          <div class="shot"><img class="glass medium" src="assets/group-widget-dark-en.png" data-i18n-src width="728" height="340" alt="" loading="lazy"></div>
-          <h3 data-lang="en">Your group in the widget</h3><h3 data-lang="de">Deine Gruppe im Widget</h3>
-          <p data-lang="en">Click the widget's title to switch between global and your groups.</p>
-          <p data-lang="de">Ein Klick auf den Titel im Widget wechselt zwischen global und deinen Gruppen.</p>
+          <div class="shot"><img class="glass medium" src="assets/group-widget-dark-en.png" width="728" height="340" alt="" loading="lazy"></div>
+          <h3>Your group in the widget</h3>
+          <p>Click the widget's title to switch between global and your groups.</p>
         </li>
         <li>
-          <div class="shot"><img class="round" src="assets/share-card-en.png" data-i18n-src width="800" height="453" alt="" loading="lazy"></div>
-          <h3 data-lang="en">Rank globally, share it</h3><h3 data-lang="de">Global vergleichen, teilen</h3>
-          <p data-lang="en">See your place among everyone and share it as a card.</p>
-          <p data-lang="de">Sieh deinen Platz unter allen und teile ihn als Karte.</p>
+          <div class="shot"><img class="round" src="assets/share-card-en.png" width="800" height="453" alt="" loading="lazy"></div>
+          <h3>Rank globally, share it</h3>
+          <p>See your place among everyone and share it as a card.</p>
         </li>
       </ol>
     </section>
 
     <div class="more">
       <section>
-        <h2 data-lang="en">Get started</h2>
-        <h2 data-lang="de">Loslegen</h2>
-        <ol class="steps" data-lang="en">
+        <h2>Get started</h2>
+        <ol class="steps">
           <li>Open TokenMaccer.dmg and drag TokenMaccer onto Applications.</li>
           <li>Open TokenMaccer. macOS asks once; click Open.</li>
           <li>Right-click the desktop, choose Edit Widgets… and drag out TokenMaccer.</li>
-        </ol>
-        <ol class="steps" data-lang="de">
-          <li>Öffne TokenMaccer.dmg und zieh TokenMaccer auf Programme.</li>
-          <li>Öffne TokenMaccer. macOS fragt einmal nach; klick auf Öffnen.</li>
-          <li>Rechtsklick auf den Schreibtisch, Widgets bearbeiten … wählen und TokenMaccer herausziehen.</li>
         </ol>
         <!-- The cask lives in github.com/valentinherrera/homebrew-tap (Casks/tokenmaccer.rb), generated by
              scripts/release.sh from packaging/homebrew/tokenmaccer.rb. -->
         <div class="copy">
           <code>brew install --cask valentinherrera/tap/tokenmaccer</code>
-          <button type="button" data-copy="brew install --cask valentinherrera/tap/tokenmaccer"><span data-lang="en">Copy</span><span data-lang="de">Kopieren</span></button>
+          <button type="button" data-copy="brew install --cask valentinherrera/tap/tokenmaccer">Copy</button>
         </div>
-        <p class="quiet" data-lang="en" style="margin-top:12px">Or with Homebrew. Updates install themselves when you quit the app.</p>
-        <p class="quiet" data-lang="de" style="margin-top:12px">Oder mit Homebrew. Updates installieren sich selbst, wenn du die App beendest.</p>
+        <p class="quiet" style="margin-top:12px">Or with Homebrew. Updates install themselves when you quit the app.</p>
       </section>
       <section id="privacy">
-        <h2 data-lang="en">Stays on your Mac</h2>
-        <h2 data-lang="de">Bleibt auf deinem Mac</h2>
-        <p data-lang="en">TokenMaccer reads Claude Code's transcripts on your Mac and sends nothing, apart from a daily update check. The leaderboard is optional: join with GitHub, and only your totals per period go to the server, never prompts, projects or file names.</p>
-        <p data-lang="de">TokenMaccer liest die Transkripte von Claude Code auf deinem Mac und sendet nichts, bis auf eine tägliche Update-Prüfung. Das Leaderboard ist freiwillig: Tritt mit GitHub bei, dann gehen nur deine Summen je Zeitraum an den Server, nie Prompts, Projekte oder Dateinamen.</p>
-        <p data-lang="en"><a href="/privacy">Privacy notice</a></p>
-        <p data-lang="de"><a href="/privacy/de">Datenschutzhinweis</a></p>
+        <h2>Stays on your Mac</h2>
+        <p>TokenMaccer reads Claude Code's transcripts on your Mac and sends nothing, apart from a daily update check. The leaderboard is optional: join with GitHub, and only your totals per period go to the server, never prompts, projects or file names.</p>
+        <p><a href="/privacy">Privacy notice</a></p>
       </section>
     </div>
   </main>
 
   <footer>
-    <p data-lang="en">USD is what your tokens would cost at Anthropic's public API list prices, not your bill. TokenMaccer is not affiliated with Anthropic.</p>
-    <p data-lang="de">USD ist, was deine Token zu Anthropics öffentlichen API-Listenpreisen kosten würden, nicht deine Rechnung. TokenMaccer gehört nicht zu Anthropic.</p>
-    <p><a href="https://github.com/valentinherrera/tokenmaccer">GitHub</a> · <span data-lang="en">Open source (MIT)</span><span data-lang="de">Open Source (MIT)</span> · <a href="/privacy" data-lang="en">Privacy</a><a href="/privacy/de" data-lang="de">Datenschutz</a> · <a href="/impressum" data-lang="en">Legal notice</a><a href="/impressum" data-lang="de">Impressum</a></p>
-    <p data-lang="en">A project of PAUS UG (haftungsbeschränkt), Düsseldorf.</p>
-    <p data-lang="de">Ein Projekt der PAUS UG (haftungsbeschränkt), Düsseldorf.</p>
+    <p>USD is what your tokens would cost at Anthropic's public API list prices, not your bill. TokenMaccer is not affiliated with Anthropic.</p>
+    <p><a href="https://github.com/valentinherrera/tokenmaccer">GitHub</a> · Open source (MIT) · <a href="/privacy">Privacy</a> (<a href="/privacy/de" hreflang="de" lang="de">Deutsch</a>) · <a href="/impressum">Legal notice</a></p>
+    <p>A project of PAUS UG (haftungsbeschränkt), Düsseldorf.</p>
   </footer>
 </div>
 <p class="sr" id="copied" aria-live="polite"></p>
 <script>
-  // Language: ?lang=de|en, then a choice made here before, then the browser's language. The choice is kept in
-  // localStorage (this browser only); nothing leaves the page.
-  (function () {
-    var root = document.documentElement;
-    function set(lang, remember) {
-      root.lang = lang;
-      document.querySelectorAll('[data-set-lang]').forEach(function (b) {
-        b.setAttribute('aria-pressed', String(b.getAttribute('data-set-lang') === lang));
-      });
-      document.querySelectorAll('[data-i18n-src]').forEach(function (el) {
-        var attr = el.tagName === 'SOURCE' ? 'srcset' : 'src';
-        el.setAttribute(attr, el.getAttribute(attr).replace(/-(en|de)\.png$/, '-' + lang + '.png'));
-      });
-      document.querySelector('.desk').setAttribute('aria-labelledby', 'desk-' + lang);
-      document.title = lang === 'de' ? 'TokenMaccer für den Mac' : 'TokenMaccer for Mac';
-      if (remember) { try { localStorage.setItem('lang', lang); } catch (e) {} }
-    }
-    var param = new URLSearchParams(location.search).get('lang');
-    var saved = null;
-    try { saved = localStorage.getItem('lang'); } catch (e) {}
-    var guess = (navigator.language || 'en').toLowerCase().indexOf('de') === 0 ? 'de' : 'en';
-    var lang = param === 'de' || param === 'en' ? param : saved === 'de' || saved === 'en' ? saved : guess;
-    set(lang, false);
-    document.querySelectorAll('[data-set-lang]').forEach(function (b) {
-      b.addEventListener('click', function () { set(b.getAttribute('data-set-lang'), true); });
-    });
-  })();
   // Copy buttons: the clipboard API, else select the text so it can be copied by hand. The result is announced
   // through the live region and shown on the button for two seconds.
   (function () {
     var live = document.getElementById('copied');
-    var words = { en: ['Copied', 'Select and copy'], de: ['Kopiert', 'Markieren und kopieren'] };
+    var w = ['Copied', 'Select and copy'];
     document.querySelectorAll('[data-copy]').forEach(function (b) {
       var original = b.innerHTML;
       function show(ok) {
-        var w = words[document.documentElement.lang] || words.en;
         b.textContent = ok ? w[0] : w[1];
         live.textContent = '';
         setTimeout(function () { live.textContent = ok ? w[0] : w[1]; }, 50);

@@ -21,7 +21,7 @@
 # Sparkle's EdDSA private key must be in the login keychain (Sparkle's generate_keys, run once per maintainer);
 # its public key is TM_SPARKLE_PUBLIC_KEY in app/project.yml. generate_appcast signs with the keychain key.
 # macOS asks once to let generate_appcast use that key (Always Allow), and remembers that for one program at one
-# path: so the script runs a fixed copy of Sparkle's tools from TM_SPARKLE_TOOLS (default ~/dev/signing/sparkle-bin),
+# path: so the script runs a fixed copy of Sparkle's tools from TM_SPARKLE_TOOLS (default ~/TokenMaccer/signing/sparkle-bin),
 # not the one SwiftPM unpacks into the build folder (deleted and recreated on every run). The copy is renewed only
 # when the Sparkle version in app/project.yml changes (then macOS asks once more); it is checked against the hashes
 # recorded with it on every run.
@@ -48,7 +48,7 @@ APP_NAME="TokenMaccer.app"
 DMG="$DIST/TokenMaccer-$VERSION.dmg"
 DMG_LATEST="$DIST/TokenMaccer.dmg"   # same file, stable name for releases/latest/download/TokenMaccer.dmg
 RELEASE_NOTES="$ROOT/docs/release-notes/$VERSION.md"
-SPARKLE_TOOLS="${TM_SPARKLE_TOOLS:-$HOME/dev/signing/sparkle-bin}"
+SPARKLE_TOOLS="${TM_SPARKLE_TOOLS:-$HOME/TokenMaccer/signing/sparkle-bin}"
 NOTES="$DIST/notarization-$VERSION.txt"
 URL_PREFIX="${TM_DOWNLOAD_URL_PREFIX:-https://github.com/valentinherrera/tokenmaccer/releases/download/v$VERSION/}"
 

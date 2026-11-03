@@ -170,7 +170,8 @@ struct LeaderboardWindow: View {
         }
         .sheet(isPresented: $sharing) {
             if let card {
-                ShareSheetView(card: card, share: { Sharing.share(card, from: $0) }) { sharing = false }
+                ShareSheetView(card: card, share: { Sharing.share(card, from: $0) },
+                               copyPicture: { Sharing.copyPicture(card) }) { sharing = false }
             }
         }
         .sheet(isPresented: $joining) {
@@ -323,44 +324,25 @@ struct LeaderboardWindow: View {
 
 @MainActor
 enum Sharing {
-    /// The card as PNG data plus the invitation text, through the system share menu.
+    /// The message with the link, through the system share menu. Text only: WhatsApp for Mac takes the picture as soon
+    /// as one is offered and drops the text with the link (Valentin, 03.11.2026, builds 34 and 35). It is not a share
+    /// service the picker hands to the app, so it cannot be given text alone; the link preview of tokenmaccer.app
+    /// (og-invite.jpg on /join/ links, og.jpg otherwise) shows a picture. The card itself goes through copyPicture.
     static func share(_ card: ShareCardValue, from view: NSView) {
-        guard let png = ShareCard.png(card) else { return }
-        let name = card.group == nil ? "TokenMaccer-\(card.period).png" : "TokenMaccer-Invitation.png"
-        // The picture as PNG data only, never as a file URL: WhatsApp for Mac turned the URL into text and put
-        // "/var/folders/…/TokenMaccer-Invitation.png" in front of the message (Valentin, 03.11.2026). The suggested
-        // name keeps the file name for AirDrop, Mail and Save.
-        let picture = NSItemProvider(item: png as NSData, typeIdentifier: "public.png")
-        picture.suggestedName = name
-        let message = ShareCard.message(card)
-        let picker = NSSharingServicePicker(items: [picture, message])
-        // The picker holds its delegate weakly; keep the one for the open menu.
-        let delegate = PickerDelegate(message: message)
-        pickerDelegate = delegate
-        picker.delegate = delegate
+        let picker = NSSharingServicePicker(items: [ShareCard.message(card)])
         picker.show(relativeTo: view.bounds, of: view, preferredEdge: .minY)
     }
 
-    private static var pickerDelegate: PickerDelegate?
-
-    /// Targets that take only a picture or only text (WhatsApp, see SharePlan) get the message alone, under their own
-    /// name and icon; every other target gets picture and message.
-    private final class PickerDelegate: NSObject, NSSharingServicePickerDelegate {
-        let message: String
-        init(message: String) { self.message = message }
-
-        func sharingServicePicker(_ sharingServicePicker: NSSharingServicePicker,
-                                  sharingServicesForItems items: [Any],
-                                  proposedSharingServices proposedServices: [NSSharingService]) -> [NSSharingService] {
-            proposedServices.map { service in
-                guard SharePlan.content(forServiceTitle: service.title) == .messageOnly else { return service }
-                let message = message
-                return NSSharingService(title: service.title, image: service.image,
-                                        alternateImage: service.alternateImage) {
-                    service.perform(withItems: [message])
-                }
-            }
-        }
+    /// The card on the clipboard as PNG (and TIFF for apps that only read that), to paste with Command-V.
+    @discardableResult
+    static func copyPicture(_ card: ShareCardValue) -> Bool {
+        guard let png = ShareCard.png(card) else { return false }
+        let board = NSPasteboard.general
+        board.clearContents()
+        board.declareTypes([.png, .tiff], owner: nil)
+        board.setData(png, forType: .png)
+        if let tiff = NSImage(data: png)?.tiffRepresentation { board.setData(tiff, forType: .tiff) }
+        return true
     }
 }
 

@@ -395,8 +395,10 @@ struct ShareCard: View {
 struct ShareSheetView: View {
     let card: ShareCardValue
     var share: (NSView) -> Void = { _ in }
+    var copyPicture: () -> Bool = { false }
     var close: () -> Void = {}
     @State private var anchor = AnchorBox()
+    @State private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -418,9 +420,9 @@ struct ShareSheetView: View {
             .accessibilityLabel(Text(verbatim: ShareCard.message(card)))
             Group {
                 if card.group == nil {
-                    Text("The image and a link to the download page. Your token count is on the card; nothing else is.")
+                    Text("Share sends the message with a link to the download page; most apps show a preview. Copy Picture puts the card on the clipboard. Your token count is on the card; nothing else is.")
                 } else {
-                    Text("The image and the invitation link. Anyone with the link can join the group until its owner renews the link.")
+                    Text("Share sends the message with the invitation link; most apps show a preview. Copy Picture puts the card on the clipboard. Anyone with the link can join the group until its owner renews the link.")
                 }
             }
                 .font(.callout).foregroundStyle(.secondary)
@@ -428,6 +430,7 @@ struct ShareSheetView: View {
             HStack {
                 Spacer()
                 Button("Done", action: close).keyboardShortcut(.cancelAction)
+                Button(copied ? "Copied" : "Copy Picture") { copied = copyPicture() }
                 Button { if let v = anchor.view { share(v) } } label: { Text("Share…").primaryLabel() }
                     .buttonStyle(.borderedProminent).tint(Palette.buttonBackground)
                     .keyboardShortcut(.defaultAction)

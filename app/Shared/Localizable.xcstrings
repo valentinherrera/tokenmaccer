@@ -510,12 +510,32 @@
         }
       }
     },
+    "Copied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiert"
+          }
+        }
+      }
+    },
     "Copy Invitation" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Einladung kopieren"
+          }
+        }
+      }
+    },
+    "Copy Picture" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bild kopieren"
           }
         }
       }
@@ -1950,6 +1970,26 @@
         }
       }
     },
+    "Share sends the message with a link to the download page; most apps show a preview. Copy Picture puts the card on the clipboard. Your token count is on the card; nothing else is." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen schickt die Nachricht mit einem Link zur Download-Seite, die meisten Apps zeigen eine Vorschau. „Bild kopieren“ legt die Karte in die Zwischenablage. Auf der Karte steht deine Token-Zahl, sonst nichts."
+          }
+        }
+      }
+    },
+    "Share sends the message with the invitation link; most apps show a preview. Copy Picture puts the card on the clipboard. Anyone with the link can join the group until its owner renews the link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen schickt die Nachricht mit dem Einladungslink, die meisten Apps zeigen eine Vorschau. „Bild kopieren“ legt die Karte in die Zwischenablage. Mit dem Link kann jede Person der Gruppe beitreten, bis ihre Besitzerin oder ihr Besitzer einen neuen Link erzeugt."
+          }
+        }
+      }
+    },
     "Share…" : {
       "localizations" : {
         "de" : {
@@ -2176,26 +2216,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Die Rangliste der Gruppe ist jetzt im Leaderboard-Fenster und im Leaderboard-Widget (Widget bearbeiten › Rangliste)."
-          }
-        }
-      }
-    },
-    "The image and a link to the download page. Your token count is on the card; nothing else is." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Bild und ein Link zur Download-Seite. Auf der Karte steht deine Token-Zahl, sonst nichts."
-          }
-        }
-      }
-    },
-    "The image and the invitation link. Anyone with the link can join the group until its owner renews the link." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Bild und der Einladungslink. Mit dem Link kann jede Person der Gruppe beitreten, bis ihre Besitzerin oder ihr Besitzer einen neuen Link erzeugt."
           }
         }
       }

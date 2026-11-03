@@ -4,6 +4,7 @@ import SwiftUI
 // Renders the leaderboard widget from fixtures (no files, no network): every state, medium and large, light and dark.
 // Build: xcrun swiftc app/Shared/*.swift app/Preview/LeaderboardWidget/main.swift -o render-board
 // Usage: render-board <output dir> [-AppleLocale de_DE]
+// TM_RENDER_CLEAR=1: transparent background, for the website, which draws the glass itself (scripts/render_site_images.sh).
 @MainActor
 func render() {
     let args = CommandLine.arguments
@@ -12,6 +13,7 @@ func render() {
         exit(2)
     }
     let out = URL(fileURLWithPath: args[1])
+    let clear = ProcessInfo.processInfo.environment["TM_RENDER_CLEAR"] == "1"
     try? FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
 
     let names = ["Mara Lindqvist", "octo-dev", "Jonas", "Priya Raman", "Theo", "Ana Sofía Castellanos de la Vega",
@@ -65,7 +67,7 @@ func render() {
                 let v = LeaderboardWidgetView(data: data, group: group, period: "7D", unit: unit, size: size)
                     .padding(14)
                     .frame(width: frame.width, height: frame.height)
-                    .background(scheme == .dark ? Color(white: 0.17) : Color(white: 0.95))
+                    .background(clear ? Color.clear : scheme == .dark ? Color(white: 0.17) : Color(white: 0.95))
                     .environment(\.colorScheme, scheme)
                 let r = ImageRenderer(content: v)
                 r.scale = 2

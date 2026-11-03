@@ -63,3 +63,29 @@
   --color-button-bg: var(--amber);
   --color-button-text: var(--graphite-900);
 }
+
+/* Schreibtisch (Website, Valentin 03.11.2026): heller Hintergrund nach dem macOS-26-Schreibtisch (Himmelblau, Sandhorizont,
+   Cyan-/Kobaltwellen, eigener Verlauf, kein Apple-Bild) und Liquid Glass darüber. Reine Dekoration, keine Bedeutung,
+   kein Amber. Glas = Graphit 52 % über dem unscharfen, gesättigten Hintergrund (Valentin 03.11.2026: „mittel“): weiße
+   Schrift gemessen im Browser (colorkit, WCAG) 3,4–4,0:1, also 3:1 für große Zahlen erfüllt, kleine Beschriftungen
+   darunter; Valentins echte Mac-Widgets: 2,0–2,9:1. Fließtext auf dem Schreibtisch auf --glass-tint-strong: 6,6–9,1:1. */
+:root {
+  --wall-sky: #81B2D2;     /* oklch(0.74 0.07 238) */
+  --wall-haze: #B6C6D7;    /* oklch(0.82 0.03 250) */
+  --wall-sand: #DDD0B4;    /* oklch(0.86 0.04 85) */
+  --wall-cyan: #67AFD3;    /* oklch(0.72 0.09 232) */
+  --wall-cobalt: #3673CB;  /* oklch(0.56 0.15 258) */
+  --wall-deep: #234993;    /* oklch(0.42 0.13 262) */
+  --gradient-wallpaper:
+    radial-gradient(70% 45% at 92% 104%, var(--wall-deep) 0%, rgba(35,73,147,0) 70%),
+    linear-gradient(167deg, rgba(255,255,255,0) 66%, rgba(255,255,255,.62) 70.5%, rgba(255,255,255,0) 73%),
+    radial-gradient(90% 38% at 12% 96%, var(--wall-cobalt) 0%, rgba(54,115,203,0) 72%),
+    radial-gradient(120% 22% at 60% 74%, rgba(103,175,211,.85) 0%, rgba(103,175,211,0) 70%),
+    linear-gradient(180deg, var(--wall-sky) 0%, var(--wall-haze) 36%, var(--wall-sand) 50%, var(--wall-cyan) 62%, var(--wall-cobalt) 100%);
+  --glass-tint: rgba(28, 28, 30, .52);
+  --glass-tint-strong: rgba(28, 28, 30, .58); /* Fließtext auf dem Schreibtisch, auch über dem Lichtstreif */
+  --glass-sheen: linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,0) 45%);
+  --glass-edge: rgba(255, 255, 255, .30);
+  --glass-highlight: rgba(255, 255, 255, .50);
+  --glass-shadow: rgba(20, 44, 90, .28);
+}

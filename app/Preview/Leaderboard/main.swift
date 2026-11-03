@@ -7,7 +7,8 @@ import SwiftUI
 //   xcrun swiftc -parse-as-library app/Shared/*.swift app/App/LeaderboardViews.swift app/App/GroupViews.swift \
 //     app/Preview/Leaderboard/main.swift -o /tmp/tm-leaderboard
 // Usage: tm-leaderboard <output dir> [-AppleLanguages '(de)']; German needs the binary inside an .app with
-// de.lproj from a built TokenMaccer.app (see README, "Screenshots").
+// de.lproj from a built TokenMaccer.app (scripts/render_site_images.sh does this).
+// TM_RENDER_CLEAR=1: transparent background, for the website, which draws the glass itself.
 @main
 struct LeaderboardRenderer {
     @MainActor
@@ -137,7 +138,8 @@ struct LeaderboardRenderer {
     /// key, like app/Preview/Onboarding.
     @MainActor
     static func snapshot(_ view: AnyView, dark: Bool, to url: URL) -> Bool {
-        let host = NSHostingView(rootView: view.background(Color(nsColor: .windowBackgroundColor))
+        let clear = ProcessInfo.processInfo.environment["TM_RENDER_CLEAR"] == "1"
+        let host = NSHostingView(rootView: view.background(clear ? Color.clear : Color(nsColor: .windowBackgroundColor))
             .environment(\.controlActiveState, .key))
         host.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         let size = host.fittingSize

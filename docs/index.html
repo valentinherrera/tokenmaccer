@@ -12,8 +12,10 @@
      fixtures in app/Preview), never from anyone's real usage. -->
 <link rel="stylesheet" href="assets/colors.css">
 <style>
-  /* colours: only assets/colors.css (Graphite & Amber). The desk below the headline is always graphite, in light mode
-     too: it is a Mac desktop, and amber belongs on dark ground only. */
+  /* colours: only assets/colors.css (Graphite & Amber, plus the desk wallpaper and glass tokens). The desk and the card
+     backgrounds are a light macOS-26-style wallpaper in both modes; the widgets sit on it as Liquid Glass: the pictures
+     are transparent (scripts/render_site_images.sh) and the glass is drawn here, so the wallpaper shows through wherever
+     a widget lies. */
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
@@ -57,17 +59,17 @@
   /* The desk: a Mac desktop with the real widgets on it */
   .desk {
     position: relative; overflow: hidden; border-radius: 28px;
-    background: var(--gradient-field);
+    background: var(--gradient-wallpaper);
     height: clamp(560px, 46vw, 980px); margin: 0 calc(-1 * var(--gutter)) 72px;
     border-radius: 0;
   }
   .menubar {
     position: absolute; inset: 0 0 auto 0; height: 32px; display: flex; align-items: center; gap: 22px;
     padding: 0 18px; font-size: 14px; color: var(--white);
-    background: rgba(28,28,30,.55); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+    background: var(--glass-tint); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6);
   }
   .menubar .app { font-weight: 700; }
-  .menubar .menu { color: var(--gray-200); }
+  .menubar .menu { color: var(--white); }
   .menubar .right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
   .menubar .ticker {
     align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px;
@@ -75,14 +77,26 @@
   }
   .menubar .ticker img { width: 16px; height: 16px; }
   .menubar .clock { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* Liquid Glass: blur and saturate the wallpaper behind the picture, a graphite veil for white text, a light top sheen,
+     a fine bright rim. Corner radius as on macOS (6.5 % of the width), written per shape so corners stay circular. */
+  .glass {
+    background: var(--glass-sheen), var(--glass-tint);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5); backdrop-filter: blur(28px) saturate(1.5);
+    box-shadow: inset 0 0 0 1px var(--glass-edge), inset 0 1px 0 var(--glass-highlight), 0 22px 48px var(--glass-shadow);
+  }
+  .glass.large { border-radius: 6.5% / 6.2%; }     /* 728 x 764 */
+  .glass.medium { border-radius: 6.5% / 13.9%; }   /* 728 x 340 */
+  .glass.panel { border-radius: 5% / 5.4%; }       /* 560 x 520 */
   .desk > img { position: absolute; height: auto; display: block; }
-  .w-usage { left: max(6%, var(--gutter)); top: calc(32px + 6%); width: clamp(300px, 24vw, 470px); filter: drop-shadow(0 24px 40px rgba(0,0,0,.5)); }
-  .w-board { left: 38%; top: 47%; width: clamp(330px, 27vw, 530px); border-radius: clamp(20px, 1.6vw, 32px); box-shadow: 0 24px 40px rgba(0,0,0,.5); }
+  .w-usage { left: max(6%, var(--gutter)); top: calc(32px + 6%); width: clamp(300px, 24vw, 470px); }
+  .w-board { left: 38%; top: 47%; width: clamp(330px, 27vw, 530px); }
   /* the menu bar panel opens under its item */
-  .w-panel { right: max(18px, calc(var(--gutter) - 24px)); top: 38px; width: clamp(250px, 20vw, 390px); filter: drop-shadow(0 24px 40px rgba(0,0,0,.55)); }
+  .w-panel { right: max(18px, calc(var(--gutter) - 24px)); top: 38px; width: clamp(250px, 20vw, 390px); }
   .desk .note {
-    position: absolute; right: var(--gutter); bottom: 26px; margin: 0; max-width: 20em;
-    font-size: 14px; color: var(--gray-300);
+    position: absolute; right: var(--gutter); bottom: 26px; margin: 0; max-width: 21em; padding: 10px 14px; border-radius: 14px;
+    font-size: 14px; color: var(--white);
+    background: var(--glass-tint-strong); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6);
+    box-shadow: inset 0 0 0 1px var(--glass-edge);
   }
 
   /* Copy field: the brew command (and the page link on a phone) on one line that scrolls, with a 44 pt button */
@@ -104,16 +118,21 @@
     .intro .copy.brew { display: none; }
   }
 
-  /* Better with friends: four cards, each a real render on graphite and one line */
+  /* Better with friends: four cards, each a real render on its own stretch of the wallpaper and one line */
   .friends { padding: 0 0 72px; }
   .friends h2 { font-size: clamp(30px, 3.4vw, 52px); letter-spacing: -0.03em; line-height: 1.05; margin: 0 0 28px; }
   .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 1.6vw, 28px); margin: 0; padding: 0; list-style: none; }
   .cards li { display: flex; flex-direction: column; }
   .shot {
     display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3; padding: 8%;
-    background: var(--gradient-field); border-radius: 20px; overflow: hidden;
+    background: var(--gradient-wallpaper); background-size: 100% 160%; border-radius: 20px; overflow: hidden;
   }
-  .shot img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; filter: drop-shadow(0 14px 24px rgba(0,0,0,.45)); }
+  .cards li:nth-child(1) .shot { background-position: 0 0; }
+  .cards li:nth-child(2) .shot { background-position: 0 40%; }
+  .cards li:nth-child(3) .shot { background-position: 0 75%; }
+  .cards li:nth-child(4) .shot { background-position: 0 100%; }
+  .shot img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; }
+  .shot img.round { filter: drop-shadow(0 14px 24px var(--glass-shadow)); }
   .shot img.round { border-radius: clamp(10px, 1.2vw, 18px); }
   .cards h3 { font-size: 19px; letter-spacing: -0.01em; margin: 16px 0 4px; }
   .cards p { margin: 0; color: var(--color-text-secondary); font-size: 16px; line-height: 1.45; }
@@ -158,7 +177,7 @@
     .desk { height: auto; padding: 56px 16px 20px; border-radius: 22px; margin: 0 0 48px; box-shadow: 0 30px 80px rgba(28,28,30,.28); }
     .desk > img { position: static; margin: 0 auto 18px; max-width: 100%; }
     .w-usage { width: 300px; }
-    .w-board { width: 100%; max-width: 364px; border-radius: 18px; }
+    .w-board { width: 100%; max-width: 364px; }
     .w-panel { display: none !important; }
     .menubar { gap: 14px; padding: 0 12px; font-size: 13px; }
     html[lang] .menubar .menu { display: none; }
@@ -220,9 +239,9 @@
           <span class="clock" data-lang="en">Mon 9:41 AM</span><span class="clock" data-lang="de">Mo. 9:41</span>
         </span>
       </div>
-      <img class="w-usage" src="assets/widget-dark-en.png" data-i18n-src width="610" height="640" alt="">
-      <img class="w-board" src="assets/board-widget-dark-en.png" data-i18n-src width="728" height="340" alt="">
-      <img class="w-panel" src="assets/menubar-dark-en.png" data-i18n-src width="560" height="520" alt="">
+      <img class="w-usage glass large" src="assets/widget-dark-en.png" data-i18n-src width="728" height="764" alt="">
+      <img class="w-board glass medium" src="assets/board-widget-dark-en.png" data-i18n-src width="728" height="340" alt="">
+      <img class="w-panel glass panel" src="assets/menubar-dark-en.png" data-i18n-src width="560" height="520" alt="">
       <p class="note" id="desk-en" data-lang="en">On your desktop: the usage widget, the leaderboard widget, and today's tokens in the menu bar. Demo numbers, made-up names.</p>
       <p class="note" id="desk-de" data-lang="de">Auf deinem Schreibtisch: das Verbrauchs-Widget, das Leaderboard-Widget und die Token von heute in der Menüleiste. Demo-Zahlen, ausgedachte Namen.</p>
     </div>
@@ -232,7 +251,7 @@
       <h2 id="friends-de" data-lang="de">Mit Freunden besser.</h2>
       <ol class="cards">
         <li>
-          <div class="shot"><img src="assets/widget-dark-en.png" data-i18n-src width="610" height="640" alt="" loading="lazy"></div>
+          <div class="shot"><img class="glass large" src="assets/widget-dark-en.png" data-i18n-src width="728" height="764" alt="" loading="lazy"></div>
           <h3 data-lang="en">Read your chart</h3><h3 data-lang="de">Chart lesen</h3>
           <p data-lang="en">Orange means more than the period before, green means less. The dotted line is where you were then.</p>
           <p data-lang="de">Orange heißt mehr als im Zeitraum davor, grün weniger. Die gepunktete Linie zeigt, wo du damals warst.</p>
@@ -244,7 +263,7 @@
           <p data-lang="de">Leg eine Gruppe an und schick den Link. Freunde treten mit GitHub bei.</p>
         </li>
         <li>
-          <div class="shot"><img class="round" src="assets/group-widget-dark-en.png" data-i18n-src width="728" height="340" alt="" loading="lazy"></div>
+          <div class="shot"><img class="glass medium" src="assets/group-widget-dark-en.png" data-i18n-src width="728" height="340" alt="" loading="lazy"></div>
           <h3 data-lang="en">Your group in the widget</h3><h3 data-lang="de">Deine Gruppe im Widget</h3>
           <p data-lang="en">Click the widget's title to switch between global and your groups.</p>
           <p data-lang="de">Ein Klick auf den Titel im Widget wechselt zwischen global und deinen Gruppen.</p>

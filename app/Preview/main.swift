@@ -4,6 +4,7 @@ import SwiftUI
 // Renders the widget view to PNGs (light/dark, all sizes) without adding it to the desktop.
 // Build: swiftc app/Shared/*.swift app/Preview/main.swift -o render
 // Usage: render <widget.json> <output dir> [period ...] [-AppleLocale en_US]
+// TM_RENDER_CLEAR=1: transparent background, for the website, which draws the glass itself (scripts/render_site_images.sh).
 // widget.json "none": the state before the collector's first pass (no file yet).
 @MainActor
 func render() {
@@ -23,6 +24,7 @@ func render() {
         i += 1
     }
     if periods.isEmpty { periods = ["1D", "30D"] }
+    let clear = ProcessInfo.processInfo.environment["TM_RENDER_CLEAR"] == "1"
     if data == nil && args[1] != "none" {
         print("could not read \(args[1])")
         exit(1)
@@ -38,7 +40,7 @@ func render() {
                 let v = TickerView(data: data, period: period, unit: .tokens, size: size)
                     .padding(14)
                     .frame(width: frame.width, height: frame.height)
-                    .background(scheme == .dark ? Color(white: 0.17) : Color(white: 0.95))
+                    .background(clear ? Color.clear : scheme == .dark ? Color(white: 0.17) : Color(white: 0.95))
                     .environment(\.colorScheme, scheme)
                 let r = ImageRenderer(content: v)
                 r.scale = 2

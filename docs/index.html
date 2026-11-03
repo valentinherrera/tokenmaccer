@@ -82,7 +82,10 @@
   .glass {
     background: var(--glass-sheen), var(--glass-tint);
     -webkit-backdrop-filter: blur(28px) saturate(1.5); backdrop-filter: blur(28px) saturate(1.5);
-    box-shadow: inset 0 0 0 1px var(--glass-edge), inset 0 1px 0 var(--glass-highlight), 0 22px 48px var(--glass-shadow);
+    box-shadow:
+      inset 2px 2px 0 -0.5px var(--glass-highlight), inset -1.5px -1.5px 0 -0.5px var(--glass-rim-low),
+      inset 0 0 0 1px var(--glass-edge), inset 0 0 24px var(--glass-glow),
+      0 3px 8px var(--glass-shadow-near), 0 14px 30px -4px var(--glass-shadow-near), 0 40px 80px -12px var(--glass-shadow);
   }
   .glass.large { border-radius: 6.5% / 6.2%; }     /* 728 x 764 */
   .glass.medium { border-radius: 6.5% / 13.9%; }   /* 728 x 340 */

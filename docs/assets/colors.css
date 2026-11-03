@@ -84,8 +84,11 @@
     linear-gradient(180deg, var(--wall-sky) 0%, var(--wall-haze) 36%, var(--wall-sand) 50%, var(--wall-cyan) 62%, var(--wall-cobalt) 100%);
   --glass-tint: rgba(28, 28, 30, .52);
   --glass-tint-strong: rgba(28, 28, 30, .58); /* Fließtext auf dem Schreibtisch, auch über dem Lichtstreif */
-  --glass-sheen: linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,0) 45%);
-  --glass-edge: rgba(255, 255, 255, .30);
-  --glass-highlight: rgba(255, 255, 255, .50);
-  --glass-shadow: rgba(20, 44, 90, .28);
+  --glass-sheen: linear-gradient(135deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 9%);
+  --glass-edge: rgba(255, 255, 255, .22);
+  --glass-highlight: rgba(255, 255, 255, .85); /* Lichtkante oben links */
+  --glass-rim-low: rgba(255, 255, 255, .28);   /* schwache Kante unten rechts */
+  --glass-glow: rgba(255, 255, 255, .14);      /* Innenleuchten am Rand */
+  --glass-shadow-near: rgba(10, 24, 52, .38);  /* naher, scharfer Schatten: hebt ab */
+  --glass-shadow: rgba(14, 34, 72, .50);       /* weiter, weicher Schatten */
 }
